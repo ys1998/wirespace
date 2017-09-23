@@ -1,0 +1,6 @@
+<strong>{{ directory }}</strong>
+<hr>
+<ul style="list-style:none;">
+{% for object in directory_list %}
+    <li><a href = "{% url 'share:addr' object %}">{{ object }}</li>
+{% endfor %}
