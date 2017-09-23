@@ -7,7 +7,9 @@ def directory(request, addr):
     else:
         home = ''
 
-    directory_list = [x + os.path.expanduser('/') for x in os.listdir(home + addr)]
+    if not addr or addr[-1] != '/':
+        addr += '/'
+    directory_list = [home + addr + x for x in os.listdir(home + addr)]
     return render(request, 'share/directory.html', {
             'directory' : home + addr,
             'directory_list' : directory_list
