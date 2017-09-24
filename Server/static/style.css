@@ -1,0 +1,16 @@
+
+.dir {
+	height:2em; 
+	width: 10em; 
+	overflow-x: hidden;
+	overflow-y: hidden;
+	background: rgba(0,255,100);
+}
+
+.file {
+	height:2em;
+	width:10em;
+	overflow-x: hidden;
+	overflow-y: hidden; 
+	background: rgba(255,100,0);
+}

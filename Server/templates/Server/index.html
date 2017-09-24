@@ -1,0 +1,19 @@
+{% load static %}
+<html>
+	<head>
+		<link rel = "stylesheet" type = "text/css" href ="{% static 'Server/style.css' %}" />
+	</head>
+	<body>
+		<h1>You are at : {{ current_path }}</h1>
+		<form action="/" method="post">
+			{% csrf_token %}
+			{% for item, type in list.items %}
+				{% if type == "dir" %}
+					<input type="submit" value="{{ item }}" name="{{ current_path|add:item }}" class="dir">
+				{% else %}
+					<div class="file">{{ item }}</div>
+				{% endif %}
+			{% endfor %}
+		</form>
+	</body>
+</html>

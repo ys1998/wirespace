@@ -1,0 +1,12 @@
+
+.dir {
+	height:2em; 
+	width: 5em; 
+	background: rgba(0,255,100);
+}
+
+.file {
+	height:2em;
+	width:5em; 
+	background: rgba(255,100,0);
+}
