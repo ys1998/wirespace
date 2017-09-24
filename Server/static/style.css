@@ -1,5 +1,6 @@
 
 .dir {
+	margin: 1em 1em 1em 1em;
 	height:2em; 
 	width: 10em; 
 	overflow-x: hidden;
@@ -8,6 +9,7 @@
 }
 
 .file {
+	margin: 1em 1em 1em 1em;
 	height:2em;
 	width:10em;
 	overflow-x: hidden;
