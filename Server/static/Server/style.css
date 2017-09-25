@@ -1,12 +1,16 @@
 
 .dir {
-	height:2em; 
-	width: 5em; 
-	background: rgba(0,255,100);
+	max-width:10em;
+	margin: 0.5em; 
+	padding: 0.5em;
+	overflow: hidden;
+	background: rgba(255,255,100);
 }
 
 .file {
-	height:2em;
-	width:5em; 
+	max-width:10em;
+	margin: 0.5em; 
+	padding: 0.5em;
+	overflow: hidden;
 	background: rgba(255,100,0);
 }
