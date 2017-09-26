@@ -4,14 +4,14 @@
 		<link rel = "stylesheet" type = "text/css" href ="{% static 'Server/style.css' %}" />
 	</head>
 	<body>
-		<h1>You are at : {{ current_path }}</h1>
+		<h1>You are at : {{ "/"|add:current_path }}</h1>
 		<form action="/" method="post">
 			{% csrf_token %}
 			{% for item, type in list.items %}
 				{% if type == "dir" %}
-					<input type="submit" value="{{ item }}" name="{{ current_path|add:item }}" class="dir">
+					<input  class="dir" type="submit" value="{{ item }}" name="{{ current_path|add:item }}">
 				{% else %}
-					<div class="file">{{ item }}</div>
+					<input  class="file" type="submit" value="{{ item }}" name="{{ current_path|add:item }}">
 				{% endif %}
 			{% endfor %}
 		</form>

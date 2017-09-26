@@ -1,0 +1,5 @@
+pip3
+django
+django-ipware
+python3
+mimetypes
