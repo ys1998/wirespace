@@ -9,9 +9,15 @@
 			{% csrf_token %}
 			{% for item, type in list.items %}
 				{% if type == "dir" %}
-					<input  class="dir" type="submit" value="{{ item }}" name="{{ current_path|add:item }}">
+					<div class="download">
+						<input class="dl" type="submit" value="d" name="download:{{ current_path|add:item }}">
+						<input  class="dir" type="submit" value="{{ item }}" name="open:{{ current_path|add:item }}">
+					</div>
 				{% else %}
-					<input  class="file" type="submit" value="{{ item }}" name="{{ current_path|add:item }}">
+					<div class="download">
+						<input class="dl" type="submit" value="d" name="download:{{ current_path|add:item }}">
+						<input  class="file" type="submit" value="{{ item }}" name="open:{{ current_path|add:item }}">
+					</div>
 				{% endif %}
 			{% endfor %}
 		</form>
