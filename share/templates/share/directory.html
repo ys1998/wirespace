@@ -1,0 +1,21 @@
+{% load static %}
+<html>
+	<script src="{% static "share/js/jquery.js" %}" ></script>
+	<script src="{% static "share/js/directory.js" %}" ></script>
+	<body>
+	<div id="list">
+	<div id="back">
+		<button class="back_button" id="back_button" value="{{ original_directory }}">Back</button>
+	</div>
+	<ul>
+	{% for item,type in file_list.items %}
+		{% if type == 'dir' %}
+		<li><button class="button" id="dir-{{ item }}" value="{{ item }}">{{ item }}</button></li>
+		{% else %}
+		<li>{{ item }}</li>
+		{% endif %}
+	{% endfor %}
+	</div>
+</ul>
+</body>
+</html>
