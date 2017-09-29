@@ -7,4 +7,3 @@ Here are the links to some important Google Docs:
 * [Module assignee](https://docs.google.com/document/d/1uGKmLdquwzOtJd5fShIoizKnfWHU_jhlt5DK_yDBj3s/edit?usp=sharing)
 * [Idea sharing](https://docs.google.com/document/d/1rm-UcDiYtEIs8XoRj3kdWNkcpA8XKBiQ06JsMLKhM90/edit?usp=sharing)
 
-Open web (it's not a Django app). Run  npm start  from the terminal. Remove the comments in the index.html file to see the possible views.
