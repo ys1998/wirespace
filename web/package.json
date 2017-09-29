@@ -1,0 +1,23 @@
+{
+  "name": "wirespace",
+  "version": "1.0.0",
+  "description": "bundles for project",
+  "main": "index.js",
+  "scripts": {
+    "start": "webpack-dev-server --hot"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "babel": "^6.23.0",
+    "babel-cli": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "react": "^16.0.0",
+    "react-dom": "^16.0.0",
+    "webpack": "^3.6.0",
+    "webpack-dev-server": "^2.8.2"
+  },
+  "devDependencies": {
+    "webpack": "^3.6.0"
+  }
+}
