@@ -13,7 +13,7 @@ CACHE_DIR='/home/yash/cache'
 
 # Create your views here.
 def home(request):
-	root_path="/home/yash/Public"
+	root_path="/home/yash/"
 	if not request.method=="POST":
 		current_path=""
 		curr_dir_items=os.listdir(os.path.join(root_path,current_path))
@@ -74,7 +74,9 @@ def get_file(filepath,mode):
 	else:
 		return HttpResponse("{0} file does not exist.".format(filepath))
 	
-# # View to handle directory download requests
+# View to handle directory download requests
+# CACHE_DIR is used for storing generated .zip files for future use - 
+# prevents them for being created multiple times
 def get_dir(dirpath,rootpath):
 	global CACHE_DIR
 	if not os.path.exists(CACHE_DIR):
@@ -89,7 +91,8 @@ def get_dir(dirpath,rootpath):
 			return response
 		# creating new .zip file if not already created 
 		else:
-			os.makedirs(CACHE_DIR+dirpath)
+			if not os.path.exists(CACHE_DIR+dirpath):
+				os.makedirs(CACHE_DIR+dirpath)
 			file_to_send=zipfile.ZipFile(CACHE_DIR+dirpath+"/"+dir_name+".zip",'w',zipfile.ZIP_DEFLATED)
 			for root,dirs,files in os.walk(dirpath):
 				for file in files:
