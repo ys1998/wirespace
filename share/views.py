@@ -13,6 +13,7 @@ CACHE_DIR='/home/yash/cache'
 
 # Create your views here.
 def home(request):
+	# Displaying the initial directory structure
 	root_path="/home/yash/"
 	if not request.method=="POST":
 		current_path=""
@@ -28,13 +29,10 @@ def home(request):
 		context={'list':curr_dir,'current_path':current_path}
 		return render(request,'share/index.html',context)
 	else:
-		action=None
-		current_path=""
-		for name in request.POST:
-			if not name=="csrfmiddlewaretoken":
-				action=name.split(':')[0]
-				current_path=name.split(':')[1]+"/"
-				break
+		# Displaying the directory structure based on the request
+		action=request.POST["action"]
+		current_path=request.POST["name"]
+		
 		if action=="open":
 			if os.path.isdir(os.path.join(root_path,current_path)):
 				curr_dir_items=os.listdir(os.path.join(root_path,current_path))
@@ -50,14 +48,14 @@ def home(request):
 					context={'list':curr_dir,'current_path':current_path}
 					return render(request,'share/index.html',context)
 				else:
-					return HttpResponse("This directory is empty")
+					return HttpResponse("This directory is empty.")
 			else:
-				return get_file(str(os.path.join(root_path,current_path))[:-1],"open")
+				return get_file(os.path.join(root_path,current_path),"open")
 		elif action=="download":
 			if os.path.isdir(os.path.join(root_path,current_path)):
-				return get_dir(str(os.path.join(root_path,current_path))[:-1],"/".join(os.path.join(root_path,current_path).split('/')[:-2]))
+				return get_dir(os.path.join(root_path,current_path),"/".join(os.path.join(root_path,current_path).split('/')[:-1]))
 			else:
-				return get_file(str(os.path.join(root_path,current_path))[:-1],"download")
+				return get_file(os.path.join(root_path,current_path),"download")
 
 
 # View to handle file download requests

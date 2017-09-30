@@ -2,9 +2,6 @@
 .download {
 	display: inline;
 	width: 18%;
-}
-.dl {
-	width:3%;
 	margin: 0.5em -0.2em 0.5em 0.5em; 
 	padding: 0.5em;
 	overflow: hidden;
