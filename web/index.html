@@ -1,108 +1,17 @@
+<!-- serve static files -->
 <!DOCTYPE HTML>
 <html>
 
 <head>
     <title> ReactJS </title>
-	<link rel="stylesheet" type="text/css" href="css/custom.css">
     <link rel="stylesheet" type="text/css" href="css/w3.css">
+    <link rel="stylesheet" type="text/css" href="css/custom.css">
     <link rel="stylesheet" type="text/css" href="css/font-awesome.min.css">
 </head>
 
 <body class="w3-light-gray HelFont">
-    <div class="w3-white" style="margin-bottom: 10px; position: -webkit-sticky; position: sticky; top: 0">
-   		<div class="w3-block w3-card" style="padding-top:10px; padding-bottom: 10px; overflow:auto">
-
-   			<div class="w3-row w3-hide-medium w3-hide-large" style="padding-bottom: 10px">
-        		<div class="w3-col w3-left" style="width:200px;"">
-					<a href="https://www.github.com/ys1998/Wirespace" class="w3-button w3-round w3-hover-white" style="width:100%; font-size: 20pt; opacity: 0.5; margin-left:-18px">Wirespace</a>
-				</div>
-   			</div>
-			<div class="w3-row" style="padding-bottom: 5px">
-        		<div class="w3-hide-small w3-col w3-left  w3-hover-white" style="width:200px;"">
-					<a href="https://www.github.com/ys1998/Wirespace" class="w3-button w3-round w3-hover-white" style="width:100%; font-size: 20pt; opacity: 0.5">Wirespace</a>
-				</div>
-
-				<!-- Download all -->
-				<button id="down_all" class="circle w3-right w3-col w3-hover-gray w3-button" style="width: 50px; padding-top: 12px; padding-left: 5px; padding-right: 5px; margin-right: 13px; margin-left: 13px; opacity: 0.5">
-					<i class="fa fa-download" style="font-size: 15pt;"></i>
-				</button>
-
-				<!-- Search bar -->
-				<div class="w3-rest" style="padding-top: 2px;">
-					<input id="search" class="w3-input w3-light-gray w3-border-0" type="text" placeholder="Search storage" style="padding-top: 15px; padding-left: 15px; margin-left: 15px; width: 100%; height: 50px; opacity: 0.7;">
-				</div>
-
-			</div>
-			<div class="w3-row" style="padding-top: 10px;">
-				<div class="w3-col w3-left" style="width: 15%; min-width: 100px;">
-					<button id="menu" class="w3-button google-blue w3-hover-blue" style="height: 35px; margin-left: 18%; width: 60%; font-size: 9pt">
-						ACTION
-					</button>
-				</div>
-				<div class="w3-rest">
-
-					<!-- Current working directory -->
-					<!--
-					<div id="path" class="w3-block" style=" margin-left: 10px; margin-top: -10px; margin-bottom: -10px; opacity: 0.7; font-size: 16pt; overflow-x: auto;">
-						<button class="w3-button" style="padding-top: 12px;">My Drive</button>
-						<i class="fa fa-chevron-right" style="font-size: 10pt; margin-left: -15px; margin-right: -15px;"></i>
-						<button class="w3-button" style="padding-top: 12px;"><b>My Cuckoo</b></button>
-					</div>
-					-->
-				</div>
-			</div>
-		</div>
-    </div>
-
-    <!-- Toggling view mode -->
-    <div class="w3-light-gray" style="position: fixed; right: 15px; top: 135px">
-    	<i class="circle fa fa-list w3-button" style="padding: 14px 9px; font-size: 18pt; opacity: 0.5"></i>
-    </div>
-
-    <!-- Settings -->
-    <div class="w3-light-gray" style="position: fixed; right: 15px; top: 185px">
-    	<i class="circle fa fa-wrench w3-button" style="padding: 14px 9px; font-size: 18pt; opacity: 0.5"></i>
-    </div>
-
-    <!-- Listing -->
-    <div id="list" class="w3-container w3-light-gray" style="margin-top: 10px; padding-left: 40px; padding-right: 40px; overflow: auto">
-	    <div id="FolderContents" style="margin-top: 10px; min-height: 100px;">	
-	    	<div class="w3-row" style="height: 28px; overflow: hidden;">
-	    		<div class="w3-col" style="width: auto; font-size: 14pt; opacity: 0.5">Folders</div>
-	    		<div class="w3-rest"><div class="w3-border-bottom" style="border-width: 10px; display:inline-block; width: 100%; height: 50%; margin-left: 10px"></div></div>
-	    	</div>
-
-	    	<!-- Actual place where folders will be listed -->
-	    	<div id="folders">
-	    		
-	    		<div class="w3-white w3-card-2 w3-round list-card">
-	    			<i class="fa fa-folder icon"></i>
-	    			<div class="w3-container folder-detail">Blink</div>
-	    		</div>
-	    		
-
-	    	</div>
-	    </div>
-    	
-    	<div id="FileContents" style="margin-top: 10px; min-height: 100px;">	
-	    	<div class="w3-row" style="height: 28px; overflow: hidden;">
-	    		<div class="w3-col" style="width: auto; font-size: 14pt; opacity: 0.5">Files</div>
-	    		<div class="w3-rest"><div class="w3-border-bottom" style="border-width: 10px; display:inline-block; width: 100%; height: 50%; margin-left: 10px"></div></div>
-	    	</div>
-
-	    	<!-- Actual place where files will be listed -->
-	    	<div id="files">
-	    		<!-- Note that the icons need to be changed according to file extension -->
-	    		<div class="w3-white w3-card-2 w3-round list-card">
-	    			<i class="fa fa-file-pdf-o icon"></i>
-	    			<div class="w3-block file-detail">Balaguruswa... pdf</div>
-	    			<!-- Comment: Actual name - Balaguruswamy Aiyer.pdf -->
-	    		</div>
-	    		
-	    	</div>
-	    </div>
+	<div id="body">
 	</div>
-    
     <script src = "index.js"></script>
 </body>
 </html>
