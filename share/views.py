@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect, StreamingHttpResponse, JsonResponse
 from django.core.files import File
+from django.views.decorators.csrf import csrf_exempt
 import os
 import mimetypes
 import zipfile
@@ -15,47 +16,46 @@ CACHE_DIR='/home/yash/cache'
 def home(request):
 	# Displaying the initial directory structure
 	root_path="/home/yash/Public"
-	if not request.method=="POST":
-		current_path=""
-		curr_dir_items=os.listdir(os.path.join(root_path,current_path))
-		curr_dir={}
-		for item in curr_dir_items:
-			if not item[0]=='.':
-				if(os.path.isdir(os.path.join(root_path,current_path,item))):
-					curr_dir[item]="dir"
-				else:
-					curr_dir[item]="file"
-
-		context={'list':curr_dir,'current_path':current_path}
-		return render(request,'share/index.html',context)
-	else:
-		# Displaying the directory structure based on the request
-		action=request.POST["action"]
-		current_path=request.POST["name"]
+	# if not request.method=="POST":
+	current_path=""
+	curr_dir_items=os.listdir(os.path.join(root_path,current_path))
+	curr_dir={}
+	for item in curr_dir_items:
+		if not item[0]=='.':
+			if(os.path.isdir(os.path.join(root_path,current_path,item))):
+				curr_dir[item]="dir"
+			else:
+				curr_dir[item]="file"
+	context={'list':curr_dir,'current_path':current_path}
+	return render(request,'share/index.html',context)
+	# else:
+	# 	# Displaying the directory structure based on the request
+	# 	action=request.POST["action"]
+	# 	current_path=request.POST["name"]
 		
-		if action=="open":
-			if os.path.isdir(os.path.join(root_path,current_path)):
-				curr_dir_items=os.listdir(os.path.join(root_path,current_path))
-				if curr_dir_items:
-					curr_dir={}
-					for item in curr_dir_items:
-						if not item[0]=='.':
-							if(os.path.isdir(os.path.join(root_path,current_path,item))):
-								curr_dir[item]="dir"
-							else:
-								curr_dir[item]="file"
+	# 	if action=="open":
+	# 		if os.path.isdir(os.path.join(root_path,current_path)):
+	# 			curr_dir_items=os.listdir(os.path.join(root_path,current_path))
+	# 			if curr_dir_items:
+	# 				curr_dir={}
+	# 				for item in curr_dir_items:
+	# 					if not item[0]=='.':
+	# 						if(os.path.isdir(os.path.join(root_path,current_path,item))):
+	# 							curr_dir[item]="dir"
+	# 						else:
+	# 							curr_dir[item]="file"
 
-					context={'list':curr_dir,'current_path':current_path}
-					return render(request,'share/index.html',context)
-				else:
-					return HttpResponse("This directory is empty.")
-			else:
-				return get_file(os.path.join(root_path,current_path),"open")
-		elif action=="download":
-			if os.path.isdir(os.path.join(root_path,current_path)):
-				return get_dir(os.path.join(root_path,current_path),"/".join(os.path.join(root_path,current_path).split('/')[:-1]))
-			else:
-				return get_file(os.path.join(root_path,current_path),"download")
+	# 				context={'list':curr_dir,'current_path':current_path}
+	# 				return render(request,'share/index.html',context)
+	# 			else:
+	# 				return HttpResponse("This directory is empty.")
+	# 		else:
+	# 			return get_file(os.path.join(root_path,current_path),"open")
+	# 	elif action=="download":
+	# 		if os.path.isdir(os.path.join(root_path,current_path)):
+	# 			return get_dir(os.path.join(root_path,current_path),"/".join(os.path.join(root_path,current_path).split('/')[:-1]))
+	# 		else:
+	# 			return get_file(os.path.join(root_path,current_path),"download")
 
 
 # View to handle file download requests
@@ -107,15 +107,16 @@ def get_dir(dirpath,rootpath):
 # View to handle 'open' requests
 def open_item(request):
 	if request.method=="POST":
-		current_path=request.POST['address']
-		item=request.POST['item']
-		# rootpath="" find rootpath from request.user and add login_required decorator
+		current_path=request.POST["address"]
+		item=request.POST["item"]
+		# find root_path from request.user and add login_required decorator
+		root_path="/home/yash/Public"
 		if os.path.isdir(os.path.join(root_path,current_path,item)):
 			curr_dir_items=os.listdir(os.path.join(root_path,current_path,item))
 			context={"address":os.path.join(current_path,item),"dir":[],"file":[],"hidden":[]}
 			for element in curr_dir_items:
 				if not element[0]=='.':
-					if(os.path.isdir(os.path.join(root_path,current_path,element))):
+					if(os.path.isdir(os.path.join(root_path,current_path,item,element))):
 						context["dir"].append(element)
 					else:
 						context["file"].append(element)
@@ -129,10 +130,12 @@ def open_item(request):
 # View to handle 'download' requests
 def download_item(request):
 	if request.method=="POST":
+		# find root_path from request.user and add login_required decorator
+		root_path="/home/yash/Public"
 		current_path=request.POST['address']
 		item=request.POST['item']
 		if os.path.isdir(os.path.join(root_path,current_path,item)):
-			return get_dir(os.path.join(current_path,item),root_path)
+			return get_dir(os.path.join(root_path,current_path,item),root_path)
 		else:
 			return get_file(os.path.join(root_path,current_path,item),"download")
 
