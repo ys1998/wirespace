@@ -1,0 +1,25 @@
+
+.download {
+	display: inline;
+	width: 18%;
+	margin: 0.5em -0.2em 0.5em 0.5em; 
+	padding: 0.5em;
+	overflow: hidden;
+	background: rgba(100,255,100);
+}
+.dir {
+	width:15%;
+	margin: 0.5em 0.5em 0.5em -0.2em; 
+	padding: 0.5em;
+	overflow: hidden;
+	background: rgba(255,255,100);
+}
+
+.file {
+	width:15%;
+	margin: 0.5em 0.5em 0.5em -0.2em; 
+	padding: 0.5em;
+	overflow: hidden;
+	color: white;
+	background: rgba(100,100,255);
+}
