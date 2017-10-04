@@ -135,7 +135,7 @@ def download_item(request):
 		current_path=request.POST['address']
 		item=request.POST['item']
 		if os.path.isdir(os.path.join(root_path,current_path,item)):
-			return get_dir(os.path.join(root_path,current_path,item),root_path)
+			return get_dir(os.path.join(root_path,current_path,item),os.path.join(root_path,current_path))
 		else:
 			return get_file(os.path.join(root_path,current_path,item),"download")
 
