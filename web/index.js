@@ -21882,9 +21882,11 @@ var _queryString = __webpack_require__(60);
 
 var _queryString2 = _interopRequireDefault(_queryString);
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _reactFileDownload = __webpack_require__(63);
 
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+var _reactFileDownload2 = _interopRequireDefault(_reactFileDownload);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -21892,9 +21894,8 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } //AJAX requests
 //manipulating fields/classes
-
-
 //stringify - for content type application/x-www-form-urlencoded
+
 
 var UnitTemplate = function (_React$Component) {
 	_inherits(UnitTemplate, _React$Component);
@@ -22036,7 +22037,6 @@ var Files = function (_React$Component3) {
 
 			var icons = this.props.files.map(this.genIcon);
 			var files = this.props.files.map(this.genName);
-			console.log(icons);
 			return _react2.default.createElement(ContentTemplate, {
 				heading: 'Files',
 				names: files,
@@ -22062,21 +22062,12 @@ var ActionButton = function (_React$Component4) {
 	_createClass(ActionButton, [{
 		key: 'render',
 		value: function render() {
-			var Style = {
-				height: '35px',
-				marginLeft: '18%',
-				width: '60%',
-				fontSize: '9pt'
-			};
-			var BoxStyle = {
-				width: '200px'
-			};
 			return _react2.default.createElement(
 				'div',
-				{ className: 'w3-col w3-left', style: BoxStyle },
+				{ className: 'w3-col w3-left ActionBoxStyle' },
 				_react2.default.createElement(
 					'button',
-					{ id: 'menu', className: 'w3-button google-blue w3-hover-blue', style: Style },
+					{ id: 'menu', className: 'w3-button google-blue w3-hover-blue Actionbuttonstyle' },
 					'ACTION'
 				)
 			);
@@ -22110,11 +22101,6 @@ var Address = function (_React$Component5) {
 		value: function renderFolder(name, link, last) {
 			var _this7 = this;
 
-			var Style = {
-				paddingTop: '12px',
-				width: 'auto'
-			};
-
 			var display = void 0;
 			if (last) display = _react2.default.createElement(
 				'b',
@@ -22123,7 +22109,7 @@ var Address = function (_React$Component5) {
 			);else display = name;
 			return _react2.default.createElement(
 				'button',
-				{ className: 'w3-button w3-hover-white', style: Style, onClick: function onClick() {
+				{ className: 'w3-button w3-hover-white AddressStyle', onClick: function onClick() {
 						return _this7.props.jumpTo(link);
 					} },
 				display
@@ -22134,23 +22120,6 @@ var Address = function (_React$Component5) {
 		value: function render() {
 			var _this8 = this;
 
-			var BoxStyle = {
-				marginLeft: '5px',
-				marginTop: '-10px',
-				marginBottom: '-10px',
-				opacity: 0.7,
-				fontSize: '16pt',
-				overflowX: 'auto'
-			};
-
-			var IconStyle = {
-				fontSize: '8pt'
-			};
-
-			var outerStyle = {
-				display: 'inline-block'
-			};
-
 			var folders = this.props.folders.split('/');
 			var links = this.genLink(folders);
 
@@ -22159,13 +22128,13 @@ var Address = function (_React$Component5) {
 				{ className: 'w3-rest' },
 				_react2.default.createElement(
 					'div',
-					{ style: BoxStyle },
+					{ 'class': 'AddressBoxStyle' },
 					folders.map(function (name, index) {
 						return _react2.default.createElement(
 							'div',
-							{ style: outerStyle, key: name },
+							{ 'class': 'AddressOuterStyle', key: name },
 							index + 1 == folders.length ? _this8.renderFolder(name, links[index], true) : _this8.renderFolder(name, links[index], false),
-							_react2.default.createElement('i', { className: 'fa fa-chevron-right', style: IconStyle })
+							_react2.default.createElement('i', { className: 'fa fa-chevron-right AddressIconStyle' })
 						);
 					})
 				)
@@ -22193,16 +22162,9 @@ var DownAll = function (_React$Component6) {
 	}, {
 		key: 'render',
 		value: function render() {
-			var Style = {
-				width: '50px',
-				padding: '13px 0px 0px 1px',
-				margin: '3px 13px',
-				fontSize: '15pt',
-				opacity: 0.5
-			};
 			return _react2.default.createElement(
 				'div',
-				{ id: 'down_all', className: 'circle w3-button w3-right w3-col w3-hover-gray w3-button', style: Style },
+				{ id: 'down_all', className: 'circle w3-button w3-right w3-col w3-hover-gray w3-button DownAllStyle' },
 				_react2.default.createElement('i', { className: 'fa fa-download', onClick: this.props.onClick })
 			);
 		}
@@ -22223,21 +22185,10 @@ var SearchBar = function (_React$PureComponent) {
 	_createClass(SearchBar, [{
 		key: 'render',
 		value: function render() {
-			var Style = {
-				paddingTop: '2px'
-			};
-			var BoxStyle = {
-				paddingTop: '15px',
-				paddingLeft: '15px',
-				marginLeft: '15px',
-				width: '100%',
-				height: '50px',
-				opacity: 0.7
-			};
 			return _react2.default.createElement(
 				'div',
-				{ className: 'w3-rest', style: Style },
-				_react2.default.createElement('input', { id: 'search', className: 'w3-input w3-light-gray w3-border-0', type: 'text', placeholder: 'Search storage', style: BoxStyle })
+				{ className: 'w3-rest SearchBarStyle' },
+				_react2.default.createElement('input', { id: 'search', className: 'w3-input w3-light-gray w3-border-0 SearchBarBoxStyle', type: 'text', placeholder: 'Search storage' })
 			);
 		}
 	}]);
@@ -22263,20 +22214,12 @@ var ProjectLogo = function (_React$Component7) {
 		key: 'render',
 		value: function render() {
 			var projectLink = "https://github.com/ys1998/Wirespace";
-			var BoxStyle = {
-				width: '200px'
-			};
-			var Style = {
-				width: '100%',
-				fontSize: '20pt',
-				opacity: 0.5
-			};
 			return _react2.default.createElement(
 				'div',
-				{ className: 'w3-col w3-left w3-hover-white', style: BoxStyle },
+				{ className: 'w3-col w3-left w3-hover-white LogoBoxStyle' },
 				_react2.default.createElement(
 					'a',
-					{ href: projectLink, className: 'w3-button w3-round w3-hover-white', style: Style },
+					{ href: projectLink, className: 'w3-button w3-round w3-hover-white LogoStyle' },
 					'Wirespace'
 				)
 			);
@@ -22287,12 +22230,9 @@ var ProjectLogo = function (_React$Component7) {
 }(_react2.default.Component);
 
 function NavBot(props) {
-	var Style = {
-		paddingTop: '10px'
-	};
 	return _react2.default.createElement(
 		'div',
-		{ className: 'w3-row', style: Style },
+		{ className: 'w3-row NavBotStyle' },
 		_react2.default.createElement(ActionButton, null),
 		_react2.default.createElement(Address, {
 			folders: props.folders,
@@ -22302,12 +22242,9 @@ function NavBot(props) {
 }
 
 function NavTop(props) {
-	var Style = {
-		paddingBottom: '5px'
-	};
 	return _react2.default.createElement(
 		'div',
-		{ className: 'w3-row', style: Style },
+		{ className: 'w3-row NavTopStyle' },
 		_react2.default.createElement(ProjectLogo, null),
 		_react2.default.createElement(DownAll, { onClick: function onClick() {
 				return props.downLink;
@@ -22317,23 +22254,12 @@ function NavTop(props) {
 }
 
 function NavBar(props) {
-	var _outerStyle;
-
-	var outerStyle = (_outerStyle = {
-		marginBottom: '10px',
-		position: '-webkit-sticky'
-	}, _defineProperty(_outerStyle, 'position', 'sticky'), _defineProperty(_outerStyle, 'top', '0'), _outerStyle);
-	var Style = {
-		paddingTop: '10px',
-		paddingBottom: '10px',
-		overflow: 'auto'
-	};
 	return _react2.default.createElement(
 		'div',
-		{ className: 'w3-white', style: outerStyle },
+		{ className: 'w3-white NavBarOuterStyle' },
 		_react2.default.createElement(
 			'div',
-			{ className: 'w3-block w3-card', style: Style },
+			{ className: 'w3-block w3-card NavBarStyle' },
 			_react2.default.createElement(NavTop, {
 				downLink: props.downLink,
 				search: props.search
@@ -22362,16 +22288,9 @@ var Content = function (_React$Component8) {
 	_createClass(Content, [{
 		key: 'render',
 		value: function render() {
-			var Style = {
-				marginTop: '10px',
-				paddingLeft: '40px',
-				paddingRight: '40px',
-				overflow: 'auto'
-			};
-
 			return _react2.default.createElement(
 				'div',
-				{ className: 'w3-container w3-light-gray', style: Style },
+				{ className: 'w3-container w3-light-gray ContentStyle' },
 				_react2.default.createElement(Folders, {
 					folders: this.props.folders,
 					open: this.props.openFolder
@@ -22401,20 +22320,16 @@ var App = function (_React$Component9) {
 			path: '',
 			hidden: []
 		};
-		console.log(_this13.state);
 		return _this13;
 	}
 
 	_createClass(App, [{
-		key: 'handleSearch',
-		value: function handleSearch(query) {}
-	}, {
-		key: 'jumpTo',
-		value: function jumpTo(address) {
+		key: 'get_request',
+		value: function get_request(param) {
 			var _this14 = this;
 
 			_axios2.default.post('http://localhost:8000/share/open/', _queryString2.default.stringify({
-				target: address
+				target: param
 			}), {
 				headers: {
 					'Content-Type': 'application/x-www-form-urlencoded'
@@ -22427,42 +22342,27 @@ var App = function (_React$Component9) {
 					hidden: res.data.hidden
 				};
 				_this14.setState(newState);
-				console.log(_this14.state);
 			}).catch(function (error) {
 				console.log("Error in request");
 				console.log(error);
 			});
 		}
 	}, {
+		key: 'handleSearch',
+		value: function handleSearch(query) {}
+	}, {
+		key: 'jumpTo',
+		value: function jumpTo(address) {
+			this.get_request(address);
+		}
+	}, {
 		key: 'openFolder',
-		value: function openFolder(address) {
-			var _this15 = this;
-
-			_axios2.default.post('http://localhost:8000/share/open/', _queryString2.default.stringify({
-				target: this.state.path + '/' + address
-			}), {
-				headers: {
-					'Content-Type': 'application/x-www-form-urlencoded'
-				}
-			}).then(function (res) {
-				var newState = {
-					dirs: res.data.dirs,
-					files: res.data.files,
-					path: res.data.path,
-					hidden: res.data.hidden
-				};
-				_this15.setState(newState);
-				console.log(_this15.state);
-			}).catch(function (error) {
-				console.log("Error in request");
-				console.log(error);
-			});
+		value: function openFolder(folder) {
+			this.get_request(this.state.path + '/' + folder);
 		}
 	}, {
 		key: 'openFile',
 		value: function openFile(address) {
-			var _this16 = this;
-
 			_axios2.default.post('http://localhost:8000/share/open/', _queryString2.default.stringify({
 				target: this.state.path + '/' + address
 			}), {
@@ -22470,14 +22370,7 @@ var App = function (_React$Component9) {
 					'Content-Type': 'application/x-www-form-urlencoded'
 				}
 			}).then(function (res) {
-				var newState = {
-					dirs: res.data.dirs,
-					files: res.data.files,
-					path: res.data.path,
-					hidden: res.data.hidden
-				};
-				_this16.setState(newState);
-				console.log(_this16.state);
+				(0, _reactFileDownload2.default)(res, 'js.pdf');
 			}).catch(function (error) {
 				console.log("Error in request");
 				console.log(error);
@@ -22486,32 +22379,12 @@ var App = function (_React$Component9) {
 	}, {
 		key: 'componentDidMount',
 		value: function componentDidMount() {
-			var _this17 = this;
-
-			_axios2.default.post('http://localhost:8000/share/open/', _queryString2.default.stringify({
-				target: ''
-			}), {
-				headers: {
-					'Content-Type': 'application/x-www-form-urlencoded'
-				}
-			}).then(function (res) {
-				var newState = {
-					dirs: res.data.dirs,
-					files: res.data.files,
-					path: res.data.path,
-					hidden: res.data.hidden
-				};
-				_this17.setState(newState);
-				console.log(_this17.state);
-			}).catch(function (error) {
-				console.log("Error in request");
-				console.log(error);
-			});
+			this.get_request('');
 		}
 	}, {
 		key: 'render',
 		value: function render() {
-			var _this18 = this;
+			var _this15 = this;
 
 			var downLink = "/share";
 			return _react2.default.createElement(
@@ -22520,11 +22393,11 @@ var App = function (_React$Component9) {
 				_react2.default.createElement(NavBar, {
 					folders: this.state.path,
 					search: function search(query) {
-						return _this18.handleSearch(query);
+						return _this15.handleSearch(query);
 					},
 					downLink: downLink,
 					jumpTo: function jumpTo(address) {
-						return _this18.jumpTo(address);
+						return _this15.jumpTo(address);
 					}
 				}),
 				_react2.default.createElement(Icons
@@ -22533,11 +22406,11 @@ var App = function (_React$Component9) {
 				_react2.default.createElement(Content, {
 					folders: this.state.dirs,
 					openFile: function openFile(address) {
-						return _this18.openFile(address);
+						return _this15.openFile(address);
 					},
 					files: this.state.files,
 					openFolder: function openFolder(address) {
-						return _this18.openFolder(address);
+						return _this15.openFolder(address);
 					}
 				})
 			);
@@ -23803,6 +23676,42 @@ module.exports = function (encodedURI) {
 		return customDecodeURIComponent(encodedURI);
 	}
 };
+
+
+/***/ }),
+/* 63 */
+/***/ (function(module, exports) {
+
+module.exports = function(data, filename, mime) {
+    var blob = new Blob([data], {type: mime || 'application/octet-stream'});
+    if (typeof window.navigator.msSaveBlob !== 'undefined') {
+        // IE workaround for "HTML7007: One or more blob URLs were 
+        // revoked by closing the blob for which they were created. 
+        // These URLs will no longer resolve as the data backing 
+        // the URL has been freed."
+        window.navigator.msSaveBlob(blob, filename);
+    }
+    else {
+        var blobURL = window.URL.createObjectURL(blob);
+        var tempLink = document.createElement('a');
+        tempLink.style.display = 'none';
+        tempLink.href = blobURL;
+        tempLink.setAttribute('download', filename); 
+        
+        // Safari thinks _blank anchor are pop ups. We only want to set _blank
+        // target if the browser does not support the HTML5 download attribute.
+        // This allows you to download files in desktop safari if pop up blocking 
+        // is enabled.
+        if (typeof tempLink.download === 'undefined') {
+            tempLink.setAttribute('target', '_blank');
+        }
+        
+        document.body.appendChild(tempLink);
+        tempLink.click();
+        document.body.removeChild(tempLink);
+        window.URL.revokeObjectURL(blobURL);
+    }
+}
 
 
 /***/ })
