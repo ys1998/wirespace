@@ -10,12 +10,12 @@ import zipfile
 
 # Cache is stored in this location
 # Keep it different from the shared directory
-CACHE_DIR='/home/yash/cache'
-
+root_path=os.path.expanduser('~')
+CACHE_DIR=root_path+'/cache'
 # Create your views here.
 def home(request):
 	# Displaying the initial directory structure
-	root_path="/home/yash/Public"
+
 	# if not request.method=="POST":
 	current_path=""
 	curr_dir_items=os.listdir(os.path.join(root_path,current_path))
@@ -110,7 +110,7 @@ def open_item(request):
 		current_path=request.POST["address"]
 		item=request.POST["item"]
 		# find root_path from request.user and add login_required decorator
-		root_path="/home/yash/Public"
+
 		if os.path.isdir(os.path.join(root_path,current_path,item)):
 			curr_dir_items=os.listdir(os.path.join(root_path,current_path,item))
 			context={"address":os.path.join(current_path,item),"dir":[],"file":[],"hidden":[]}
@@ -131,7 +131,7 @@ def open_item(request):
 def download_item(request):
 	if request.method=="POST":
 		# find root_path from request.user and add login_required decorator
-		root_path="/home/yash/Public"
+
 		current_path=request.POST['address']
 		item=request.POST['item']
 		if os.path.isdir(os.path.join(root_path,current_path,item)):
