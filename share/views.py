@@ -10,8 +10,9 @@ import zipfile
 
 # Cache is stored in this location
 # Keep it different from the shared directory
-root_path=os.path.expanduser('~')
-CACHE_DIR=root_path+'/cache'
+(root_path, shared_dir) = os.path.split(os.path.expanduser('~'))
+
+CACHE_DIR = root_path + shared_dir + '/cache'
 
 # Create your views here.
 def home(request):
@@ -45,7 +46,7 @@ def get_file(filepath,mode):
 			response['Content-Disposition'] = " attachment; filename={0}".format(os.path.basename(filepath))
 		else:
 			return ValueError("Invalide mode")
-		
+
 		response['Content-Length'] = os.path.getsize(filepath)
 		return response
 
@@ -105,20 +106,17 @@ def open_item(request):
 		# 2 fields:
 		# target - path to requested item
 		# absolute - bool for whether path is absolute
-		target = request.POST["target"]
-		isAbs = request.POST["absolute"].lower()
-		if isAbs == 'false':
-			target = os.path.join(root_path, target)
-		elif isAbs == 'true':
-			target = target
-		else :
-			raise ValueError
-		# find root_path from request.user and add login_required decorator
-		
+		addr = request.POST["target"]
+		addr = os.path.normpath(addr)
+		if addr == "" or addr == ".":
+			addr = shared_dir
+
+		target = os.path.join(root_path, addr)
+
 		if os.path.isdir(target):
 			dir_items = os.listdir(target)
 			context = {
-				"address": target,
+				"path": addr,
 				"dirs": [],
 				"files": [],
 				"hidden":[]
@@ -134,8 +132,11 @@ def open_item(request):
 
 			return JsonResponse(context)
 
-		else:
+		elif os.path.exists(target):
 			return get_file(target, "open")
+
+		else:
+			return ValueError("'target' field invalid in request")
 
 
 # View to handle 'download' requests
@@ -143,14 +144,9 @@ def download_item(request):
 	if request.method=="POST":
 		# find root_path from request.user and add login_required decorator
 
-		target = request.POST["target"]
-		isAbs = request.POST["absolute"].lower()
-		if isAbs == 'false':
-			target = os.path.join(root_path, target)
-		elif isAbs == 'true':
-			target = target
-		else :
-			raise ValueError
+		addr = request.POST["target"]
+		addr = os.path.normpath(addr)
+		target = os.path.join(root_path, addr)
 
 		if os.path.isdir(target):
 			return get_dir(target)

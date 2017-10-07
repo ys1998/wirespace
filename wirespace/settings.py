@@ -31,7 +31,7 @@ ALLOWED_HOSTS = ['localhost','10.42.0.1']
 # Application definition
 
 INSTALLED_APPS = [
-    'corsheaders',          #Cross domain request module
+    #'corsheaders',          #Cross domain request module (Development)
     'share.apps.ShareConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -44,7 +44,7 @@ INSTALLED_APPS = [
 CORS_ORIGIN_ALLOW_ALL = True
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',    #CORS Module (Development)
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
