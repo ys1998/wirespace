@@ -11,7 +11,7 @@ def gen_key(length=16):
 	return new_key
 
 class Key(models.Model):
-	key=models.CharField(max_length=32,default=gen_key,editable=False,	primary_key=True)
+	key=models.CharField(max_length=32,default=gen_key,editable=False,	primary_key=True,help_text="This value is temporary. Use the final value after saving.")
 	permission=models.CharField(max_length=1,choices=(('r','Read-only'),('w','Read-and-Write')),default='r')
 	shared_to=models.CharField(max_length=30,default="Anonymous")
 	email=models.EmailField(max_length=254,help_text="E-mail of the person with whom the space is shared")
