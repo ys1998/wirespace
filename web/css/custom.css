@@ -97,16 +97,10 @@
 	background-color: #fffdf5!important;
 }
 
-.icon {
-	font-size: 50pt;
-	padding-top: 13px;
-	padding-left: 25px;
-	opacity: 1;
-}
-
 .list-card {
 	display: inline-block;
-	height: 120px;
+	vertical-align: top;
+	height: 130px;
 	width: 120px;
 	overflow: hidden;
 	padding: 13px -10px 13px -10px;
@@ -114,6 +108,18 @@
 	color: gray;
 }
 
-.shift-down {
+.icon {
+	font-size: 50pt;
+	padding-top: 13px;
+	margin: auto;
+	width: 100%;
+	opacity: 1;
+}
+
+.itemlabel {
+	height: 44px;
+	width: 100%;
+	word-wrap: break-word;
+	margin: auto;
 	margin-top: 5px;
 }
