@@ -4,6 +4,7 @@ from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect, StreamingHttpResponse, JsonResponse
 from django.core.files import File
 from django.views.decorators.csrf import csrf_exempt
+from django.template import loader
 import os
 import mimetypes
 import zipfile
@@ -16,20 +17,9 @@ CACHE_DIR = os.path.join(root_path, shared_dir, 'cache')
 
 # Create your views here.
 def home(request):
-	# Displaying the initial directory structure
-
-	# if not request.method=="POST":
-	current_path=""
-	curr_dir_items=os.listdir(os.path.join(root_path,current_path))
-	curr_dir={}
-	for item in curr_dir_items:
-		if not item[0]=='.':
-			if(os.path.isdir(os.path.join(root_path,current_path,item))):
-				curr_dir[item]="dir"
-			else:
-				curr_dir[item]="file"
-	context={'list':curr_dir,'current_path':current_path}
+	context={}
 	return render(request,'share/index.html',context)
+	
 
 # View to handle file download requests
 def get_file(filepath,mode):
@@ -45,7 +35,7 @@ def get_file(filepath,mode):
 		elif mode == "download":
 			response['Content-Disposition'] = " attachment; filename={0}".format(os.path.basename(filepath))
 		else:
-			return ValueError("Invalide mode")
+			return ValueError("Invalid mode")
 
 		response['Content-Length'] = os.path.getsize(filepath)
 		return response
@@ -67,6 +57,8 @@ def get_dir(dirpath):
 
 		(dir_name, parentdir) = os.path.split(dirpath)
 		target = CACHE_DIR + dirpath + "/" + dir_name + ".zip"
+		print(target)
+
 		# checking if required .zip file already exists in CACHE_DIR 
 		if os.path.exists(target):
 			response = StreamingHttpResponse(
@@ -144,7 +136,9 @@ def download_item(request):
 		# find root_path from request.user and add login_required decorator
 
 		addr = request.POST["target"]
+		print(addr+"\n")
 		addr = os.path.normpath(addr)
+		print(addr+"\n")
 		if addr == "" or addr == ".":
 			addr = shared_dir
 

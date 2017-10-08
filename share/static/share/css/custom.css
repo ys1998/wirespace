@@ -1,3 +1,69 @@
+.AddressIconStyle {
+	font-size: 8pt;
+}
+
+.Actionbuttonstyle{
+	height: 35px; margin-left: 18%; width: 60%; font-size: 9pt;
+}
+
+.ActionBoxStyle {
+	width: 200px;
+}
+
+.AddressStyle {
+	padding-top: 12px; width: auto;
+}
+
+.AddressBoxStyle {
+	margin-left: 5px; margin-top: -10px; margin-bottom: -10px; opacity: 0.7; font-size: 16pt; overflow-x: auto;
+}
+
+.AddressOuterStyle {
+	display: inline-block;
+}
+
+.DownAllStyle {
+	width: 50px; padding: 13px 0px 0px 1px; margin: 3px 13px; font-size: 15pt; opacity: 0.5;
+}
+
+.SearchBarStyle {
+	padding: 2px;
+}
+
+.SearchBarBoxStyle{
+	padding-top: 15px; padding-left: 15px; margin-left: 15px; width: 100%; height: 50px; opacity: 0.7;
+}
+
+.LogoStyle {
+	width: 100%; font-size: 20pt; opacity: 0.5;
+}
+
+.LogoBoxStyle {
+	width: 200px;
+}
+
+.NavBotStyle {
+	padding: 10px;
+}
+
+.NavTopStyle {
+	padding-bottom: 5px;
+}
+
+.NavBarOuterStyle {
+	margin-bottom: 10px; top: 0px;
+	position: -webkit-sticky;
+	position: sticky;
+}
+
+.NavBarStyle {
+	padding-top: 10px; padding-bottom: 10px; overflow: auto;
+}
+
+.ContentStyle {
+	margin-top: 10px; padding-left: 40px; padding-right: 40px; overflow: auto;
+}
+
 .perma-google-blue {
 	color: #fff!important;
 	background-color:#5c83eb!important;
