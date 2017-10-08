@@ -21,7 +21,7 @@ class Key(models.Model):
 	expires_on=models.DateTimeField(default=None)
 
 	def __str__(self):
-		return self.shared_to+" : "+self.path_shared
+		return self.shared_to+" -> "+self.path_shared
 
 	def time_slot(self):
 		return "{:%d %b %Y, %X}".format(self.created_on)+" --- "+"{:%d %b %Y, %X}".format(self.expires_on)
@@ -34,6 +34,11 @@ class Key(models.Model):
 				return "%3.2f%s%s"%(num, " "+unit, suffix)
 			num /= 1024.0
 		return "%3.2f%s%s"%(num,'P', suffix)
+
+	def link(self):
+		ip='10.42.0.3' # Obtain IP and initialize it here
+		port='8000' # Obtain the port and initialize it here
+		return ip+":"+port+"/share/"+self.key
 
 	def save(self,*args,**kwargs):
 		if self.expires_on==None:
