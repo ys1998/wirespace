@@ -14,7 +14,11 @@
 	</div>
 	<div id="form" style="display: none;">
 		<form id="downloadform" action="http://localhost:8000/share/download/" method="POST">
-			<input type="text" name="target" id="targetlink">
+			<input type="text" name="target" id="dtargetlink">
+			<input type="submit" value="submit">
+		</form>
+		<form id="openform" action="http://localhost:8000/share/open/" method="POST">
+			<input type="text" name="target" id="otargetlink">
 			<input type="submit" value="submit">
 		</form>
     <script src = "index.js"></script>

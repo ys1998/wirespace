@@ -21933,7 +21933,7 @@ var UnitTemplate = function (_React$Component) {
 				_react2.default.createElement('i', { className: "fa " + this.props.icon + " fa-5x fa-fw icon" }),
 				_react2.default.createElement(
 					'div',
-					{ className: 'w3-container w3-center shift-down' },
+					{ className: 'w3-container w3-center itemlabel' },
 					this.props.name
 				)
 			);
@@ -21971,7 +21971,7 @@ var Folders = function (_React$Component2) {
 	_createClass(Folders, [{
 		key: 'genName',
 		value: function genName(folder_name) {
-			return folder_name.slice(0, 11);
+			return folder_name.slice(0, 20);
 		}
 	}, {
 		key: 'genIcon',
@@ -22027,8 +22027,8 @@ var Files = function (_React$Component3) {
 		key: 'genName',
 		value: function genName(file_name) {
 			var len = file_name.length;
-			if (len < 12) return file_name;
-			return file_name.slice(0, 7) + ".." + file_name.slice(len - 2, len);
+			if (len < 21) return file_name;
+			return file_name.slice(0, 18) + ".." + file_name.slice(len - 4, len);
 		}
 	}, {
 		key: 'render',
@@ -22365,11 +22365,19 @@ var App = function (_React$Component9) {
 			this.get_request(this.state.path + '/' + folder);
 		}
 	}, {
+		key: 'openFile',
+		value: function openFile(address) {
+			var form = document.forms['openform'];
+			form.elements[0].value = this.state.path + '/' + address;
+			form.submit();
+		}
+	}, {
 		key: 'download',
 		value: function download(address) {
 			//Use hidden form to send post requests for download
+			console.log(address);
 			var form = document.forms['downloadform'];
-			form.elements[0].value = this.state.path + '/' + address;
+			form.elements[0].value = address;
 			form.submit();
 		}
 	}, {
@@ -22404,7 +22412,7 @@ var App = function (_React$Component9) {
 				_react2.default.createElement(Content, {
 					folders: this.state.dirs,
 					openFile: function openFile(address) {
-						return _this16.download(address);
+						return _this16.openFile(address);
 					},
 					files: this.state.files,
 					openFolder: function openFolder(address) {
