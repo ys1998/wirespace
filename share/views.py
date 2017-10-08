@@ -9,13 +9,12 @@ import os
 import mimetypes
 import zipfile
 
-# Cache is stored in this location
-# Keep it different from the shared directory
-(root_path, shared_dir) = os.path.split(os.path.expanduser('~'))
+(root_path, shared_dir) = os.path.split(os.path.expanduser('~/Public'))
 
-CACHE_DIR = os.path.join(root_path, shared_dir, 'cache')
+# Keep CACHE_DIR separate from the shared directory
+# Used for storing generated .zip files
+CACHE_DIR = os.path.expanduser('~/cache')
 
-# Create your views here.
 def home(request):
 	context={}
 	return render(request,'share/index.html',context)
@@ -55,10 +54,9 @@ def get_dir(dirpath):
 		if not os.path.exists(CACHE_DIR+dirpath):
 			os.makedirs(CACHE_DIR+dirpath)
 
-		(dir_name, parentdir) = os.path.split(dirpath)
-		target = CACHE_DIR + dirpath + "/" + dir_name + ".zip"
-		print(target)
-
+		(parentdir,dir_name) = os.path.split(dirpath)
+		target = os.path.normpath(CACHE_DIR + dirpath + "/" + dir_name + ".zip")
+		
 		# checking if required .zip file already exists in CACHE_DIR 
 		if os.path.exists(target):
 			response = StreamingHttpResponse(
@@ -70,12 +68,11 @@ def get_dir(dirpath):
 			return response
 		# creating new .zip file if not already created 
 		else:
-			file_to_send = zipfile.ZipFile(
-				target, zipfile.ZIP_DEFLATED)
-
+			file_to_send = zipfile.ZipFile(target, 'x',zipfile.ZIP_DEFLATED)
+			
 			for root, dirs, files in os.walk(dirpath):
 				for file in files:
-					rel_path = os.path.relpath(root, parentdir)
+					rel_path = os.path.relpath(root,parentdir)
 					file_to_send.write(
 						os.path.join(root,file),
 						os.path.join(rel_path,file)
@@ -136,14 +133,11 @@ def download_item(request):
 		# find root_path from request.user and add login_required decorator
 
 		addr = request.POST["target"]
-		print(addr+"\n")
 		addr = os.path.normpath(addr)
-		print(addr+"\n")
 		if addr == "" or addr == ".":
 			addr = shared_dir
 
 		target = os.path.join(root_path, addr)
-
 		if os.path.isdir(target):
 			return get_dir(target)
 		else:
