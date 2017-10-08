@@ -12,7 +12,7 @@ import zipfile
 # Keep it different from the shared directory
 (root_path, shared_dir) = os.path.split(os.path.expanduser('~'))
 
-CACHE_DIR = root_path + shared_dir + '/cache'
+CACHE_DIR = os.path.join(root_path, shared_dir, 'cache')
 
 # Create your views here.
 def home(request):
@@ -103,9 +103,7 @@ def get_dir(dirpath):
 @csrf_exempt
 def open_item(request):
 	if request.method == "POST":
-		# 2 fields:
 		# target - path to requested item
-		# absolute - bool for whether path is absolute
 		addr = request.POST["target"]
 		addr = os.path.normpath(addr)
 		if addr == "" or addr == ".":
@@ -140,12 +138,16 @@ def open_item(request):
 
 
 # View to handle 'download' requests
+@csrf_exempt
 def download_item(request):
 	if request.method=="POST":
 		# find root_path from request.user and add login_required decorator
 
 		addr = request.POST["target"]
 		addr = os.path.normpath(addr)
+		if addr == "" or addr == ".":
+			addr = shared_dir
+
 		target = os.path.join(root_path, addr)
 
 		if os.path.isdir(target):

@@ -22128,11 +22128,11 @@ var Address = function (_React$Component5) {
 				{ className: 'w3-rest' },
 				_react2.default.createElement(
 					'div',
-					{ 'class': 'AddressBoxStyle' },
+					{ className: 'AddressBoxStyle' },
 					folders.map(function (name, index) {
 						return _react2.default.createElement(
 							'div',
-							{ 'class': 'AddressOuterStyle', key: name },
+							{ className: 'AddressOuterStyle', key: name },
 							index + 1 == folders.length ? _this8.renderFolder(name, links[index], true) : _this8.renderFolder(name, links[index], false),
 							_react2.default.createElement('i', { className: 'fa fa-chevron-right AddressIconStyle' })
 						);
@@ -22162,10 +22162,14 @@ var DownAll = function (_React$Component6) {
 	}, {
 		key: 'render',
 		value: function render() {
+			var _this10 = this;
+
 			return _react2.default.createElement(
 				'div',
 				{ id: 'down_all', className: 'circle w3-button w3-right w3-col w3-hover-gray w3-button DownAllStyle' },
-				_react2.default.createElement('i', { className: 'fa fa-download', onClick: this.props.onClick })
+				_react2.default.createElement('i', { className: 'fa fa-download', onClick: function onClick() {
+						return _this10.props.onClick();
+					} })
 			);
 		}
 	}]);
@@ -22247,7 +22251,7 @@ function NavTop(props) {
 		{ className: 'w3-row NavTopStyle' },
 		_react2.default.createElement(ProjectLogo, null),
 		_react2.default.createElement(DownAll, { onClick: function onClick() {
-				return props.downLink;
+				return props.downloadAll();
 			} }),
 		_react2.default.createElement(SearchBar, { search: props.search })
 	);
@@ -22261,7 +22265,7 @@ function NavBar(props) {
 			'div',
 			{ className: 'w3-block w3-card NavBarStyle' },
 			_react2.default.createElement(NavTop, {
-				downLink: props.downLink,
+				downloadAll: props.download,
 				search: props.search
 			}),
 			_react2.default.createElement(NavBot, {
@@ -22312,21 +22316,21 @@ var App = function (_React$Component9) {
 	function App() {
 		_classCallCheck(this, App);
 
-		var _this13 = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this));
+		var _this14 = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this));
 
-		_this13.state = {
+		_this14.state = {
 			dirs: [],
 			files: [],
 			path: '',
 			hidden: []
 		};
-		return _this13;
+		return _this14;
 	}
 
 	_createClass(App, [{
 		key: 'get_request',
 		value: function get_request(param) {
-			var _this14 = this;
+			var _this15 = this;
 
 			_axios2.default.post('http://localhost:8000/share/open/', _queryString2.default.stringify({
 				target: param
@@ -22341,7 +22345,7 @@ var App = function (_React$Component9) {
 					path: res.data.path,
 					hidden: res.data.hidden
 				};
-				_this14.setState(newState);
+				_this15.setState(newState);
 			}).catch(function (error) {
 				console.log("Error in request");
 				console.log(error);
@@ -22361,20 +22365,12 @@ var App = function (_React$Component9) {
 			this.get_request(this.state.path + '/' + folder);
 		}
 	}, {
-		key: 'openFile',
-		value: function openFile(address) {
-			_axios2.default.post('http://localhost:8000/share/open/', _queryString2.default.stringify({
-				target: this.state.path + '/' + address
-			}), {
-				headers: {
-					'Content-Type': 'application/x-www-form-urlencoded'
-				}
-			}).then(function (res) {
-				(0, _reactFileDownload2.default)(res, 'js.pdf');
-			}).catch(function (error) {
-				console.log("Error in request");
-				console.log(error);
-			});
+		key: 'download',
+		value: function download(address) {
+			//Use hidden form to send post requests for download
+			var form = document.forms['downloadform'];
+			form.elements[0].value = this.state.path + '/' + address;
+			form.submit();
 		}
 	}, {
 		key: 'componentDidMount',
@@ -22384,7 +22380,7 @@ var App = function (_React$Component9) {
 	}, {
 		key: 'render',
 		value: function render() {
-			var _this15 = this;
+			var _this16 = this;
 
 			var downLink = "/share";
 			return _react2.default.createElement(
@@ -22393,11 +22389,13 @@ var App = function (_React$Component9) {
 				_react2.default.createElement(NavBar, {
 					folders: this.state.path,
 					search: function search(query) {
-						return _this15.handleSearch(query);
+						return _this16.handleSearch(query);
 					},
-					downLink: downLink,
+					download: function download() {
+						return _this16.download(_this16.state.path);
+					},
 					jumpTo: function jumpTo(address) {
-						return _this15.jumpTo(address);
+						return _this16.jumpTo(address);
 					}
 				}),
 				_react2.default.createElement(Icons
@@ -22406,11 +22404,11 @@ var App = function (_React$Component9) {
 				_react2.default.createElement(Content, {
 					folders: this.state.dirs,
 					openFile: function openFile(address) {
-						return _this15.openFile(address);
+						return _this16.download(address);
 					},
 					files: this.state.files,
 					openFolder: function openFolder(address) {
-						return _this15.openFolder(address);
+						return _this16.openFolder(address);
 					}
 				})
 			);
