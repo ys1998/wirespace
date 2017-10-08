@@ -22375,8 +22375,9 @@ var App = function (_React$Component9) {
 		key: 'download',
 		value: function download(address) {
 			//Use hidden form to send post requests for download
+			console.log(address);
 			var form = document.forms['downloadform'];
-			form.elements[0].value = this.state.path + '/' + address;
+			form.elements[0].value = address;
 			form.submit();
 		}
 	}, {
