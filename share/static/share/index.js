@@ -22332,7 +22332,7 @@ var App = function (_React$Component9) {
     value: function get_request(param) {
       var _this15 = this;
 
-      _axios2.default.post('http://localhost:8000/share/open/', _queryString2.default.stringify({
+      _axios2.default.post('open/', _queryString2.default.stringify({
         target: param
       }), {
         headers: {
