@@ -109,18 +109,18 @@ def open_item(request):
 			dir_items = os.listdir(target)
 			context = {
 				"path": addr,
-				"dirs": [],
-				"files": [],
-				"hidden":[]
+				"dirs": {},
+				"files": {},
+				"hidden":{}
 				}
 			for element in dir_items:
 				if not element[0] == '.':
 					if os.path.isdir(os.path.join(target, element)):
-						context["dirs"].append(element)
+						context["dirs"][os.path.join(addr, element)] = element
 					else:
-						context["files"].append(element)
+						context["files"][os.path.join(addr, element)] = element
 				else:
-					context["hidden"].append(element)
+					context["hidden"][os.path.join(addr, element)] = element
 
 			return JsonResponse(context)
 
