@@ -176,14 +176,21 @@ def search(request):
     current_path = request.POST['address']
     query = request.POST['query']
     root_path = os.path.expanduser('~')+'/'
-    result={}
+    context={
+            "dirs":{},
+            "files":{},
+            "hidden":{}
+            }
+    print(os.path.join(root_path,current_path))
     for root,directories,files in os.walk(os.path.join(root_path,current_path)):
         for directory in directories:
             if directory.endswith(query):
-                result[directory]=os.path.join(root,directory)
+                context["dirs"][os.path.join(root,directory)]=directory
         for filename in files:
             if query in filename:
-                result[filename]=os.path.join(root,filename)
-    print(result)
-    context={'SearchResult':result}
+                if filename.startswith('.'):
+                    file_type="hidden"
+                else:
+                    file_type="files"
+                context[file_type][os.path.join(root,filename)]=filename
     return JsonResponse(context)
