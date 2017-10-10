@@ -143,3 +143,42 @@ def download_item(request):
 		else:
 			return get_file(target, "download")
 
+def upload(request):
+    if request.method == 'POST' and request.FILES['myfile']:
+        myfile = request.FILES['myfile']
+        curr_path = request.POST['address']
+        root_path=os.path.expanduser('~')
+        fs = FileSystemStorage()
+        print(myfile.name)
+        filename = fs.save(myfile.name, myfile)
+        os.rename(settings.BASE_DIR+fs.url(filename),root_path+curr_path+'/'+filename)
+        curr_dir_items=os.listdir(os.path.join(root_path,curr_path))
+        curr_dir={}
+        for item in curr_dir_items:
+            if not item[0]=='.':
+                if(os.path.isdir(os.path.join(root_path,curr_path,item))):
+                    curr_dir[item]="dir"
+                else:
+                    curr_dir[item]="file"
+        context={'list':curr_dir,'current_path':curr_path}
+        return render(request,'share/index.html',context)
+    else:
+        return HttpResponse("file not found")
+
+def search(request):
+    if request.method != "POST":
+        return HttpResponseNotFound("Request not sent properly")
+    current_path = request.POST['address']
+    query = request.POST['query']
+    root_path = os.path.expanduser('~')+'/'
+    curr_dir={}
+    curr_dir_items = glob.iglob(root_path+current_path+'**/*'+query+'*',recursive=True)
+    for item in curr_dir_items:
+        if not item[0]=='.':
+            if(os.path.isdir(os.path.join(root_path,current_path,item))):
+                curr_dir[item]="dir"
+            else:
+                curr_dir[item]="file"
+    context={'list':curr_dir,'current_path':current_path}
+    return render(request,'share/index.html',context)
+
