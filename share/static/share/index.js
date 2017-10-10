@@ -22087,13 +22087,18 @@ var ActionButton = function (_React$Component4) {
 	_createClass(ActionButton, [{
 		key: 'render',
 		value: function render() {
+			var _this8 = this;
+
 			return _react2.default.createElement(
 				'div',
 				{ className: 'w3-col w3-left ActionBoxStyle' },
 				_react2.default.createElement(
-					'button',
+					'label',
 					{ id: 'menu', className: 'w3-button google-blue w3-hover-blue Actionbuttonstyle' },
-					'ACTION'
+					_react2.default.createElement('input', { type: 'file', id: 'ufile', onChange: function onChange() {
+							return _this8.props.onClick();
+						} }),
+					'NEW'
 				)
 			);
 		}
@@ -22124,7 +22129,7 @@ var Address = function (_React$Component5) {
 	}, {
 		key: 'renderFolder',
 		value: function renderFolder(name, link, last) {
-			var _this9 = this;
+			var _this10 = this;
 
 			var display = void 0;
 			if (last) display = _react2.default.createElement(
@@ -22135,7 +22140,7 @@ var Address = function (_React$Component5) {
 			return _react2.default.createElement(
 				'button',
 				{ className: 'w3-button w3-hover-white AddressStyle', onClick: function onClick() {
-						return _this9.props.jumpTo(link);
+						return _this10.props.jumpTo(link);
 					} },
 				display
 			);
@@ -22143,7 +22148,7 @@ var Address = function (_React$Component5) {
 	}, {
 		key: 'render',
 		value: function render() {
-			var _this10 = this;
+			var _this11 = this;
 
 			var folders = this.props.folders.split('/');
 			var links = this.genLink(folders);
@@ -22158,7 +22163,7 @@ var Address = function (_React$Component5) {
 						return _react2.default.createElement(
 							'div',
 							{ className: 'AddressOuterStyle', key: name },
-							index + 1 == folders.length ? _this10.renderFolder(name, links[index], true) : _this10.renderFolder(name, links[index], false),
+							index + 1 == folders.length ? _this11.renderFolder(name, links[index], true) : _this11.renderFolder(name, links[index], false),
 							_react2.default.createElement('i', { className: 'fa fa-chevron-right AddressIconStyle' })
 						);
 					})
@@ -22187,13 +22192,13 @@ var DownAll = function (_React$Component6) {
 	}, {
 		key: 'render',
 		value: function render() {
-			var _this12 = this;
+			var _this13 = this;
 
 			return _react2.default.createElement(
 				'div',
 				{ id: 'down_all', className: 'circle w3-button w3-right w3-col w3-hover-gray w3-button DownAllStyle' },
 				_react2.default.createElement('i', { className: 'fa fa-download', onClick: function onClick() {
-						return _this12.props.onClick();
+						return _this13.props.onClick();
 					} })
 			);
 		}
@@ -22262,7 +22267,7 @@ function NavBot(props) {
 	return _react2.default.createElement(
 		'div',
 		{ className: 'w3-row NavBotStyle' },
-		_react2.default.createElement(ActionButton, null),
+		_react2.default.createElement(ActionButton, { onClick: props.upload }),
 		_react2.default.createElement(Address, {
 			folders: props.folders,
 			jumpTo: props.jumpTo
@@ -22295,7 +22300,8 @@ function NavBar(props) {
 			}),
 			_react2.default.createElement(NavBot, {
 				folders: props.folders,
-				jumpTo: props.jumpTo
+				jumpTo: props.jumpTo,
+				upload: props.upload
 			})
 		)
 	);
@@ -22341,24 +22347,24 @@ var App = function (_React$Component9) {
 	function App() {
 		_classCallCheck(this, App);
 
-		var _this16 = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this));
+		var _this17 = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this));
 
-		_this16.state = {
+		_this17.state = {
 			dirs: {},
 			files: {},
 			path: '',
 			hidden: {}
 		};
-		return _this16;
+		return _this17;
 	}
 
 	_createClass(App, [{
 		key: 'get_request',
 		value: function get_request(param) {
-			var _this17 = this;
+			var _this18 = this;
 
 			//Change this when deploying:
-			_axios2.default.post('http://localhost:8000/share/open/', _queryString2.default.stringify({
+			_axios2.default.post('open/', _queryString2.default.stringify({
 				target: param
 			}), {
 				headers: {
@@ -22371,7 +22377,7 @@ var App = function (_React$Component9) {
 					files: res.data.files,
 					hidden: res.data.hidden
 				};
-				_this17.setState(newState);
+				_this18.setState(newState);
 			}).catch(function (error) {
 				console.log("Error in request");
 				console.log(error);
@@ -22401,10 +22407,22 @@ var App = function (_React$Component9) {
 		key: 'download',
 		value: function download(address) {
 			//Use hidden form to send post requests for download
-			console.log(address);
 			var form = document.forms['downloadform'];
 			form.elements[0].value = address;
 			form.submit();
+		}
+	}, {
+		key: 'upload',
+		value: function upload() {
+			var formData = new FormData();
+			var file = document.querySelector('#ufile');
+			formData.append("ufile", file.files[0]);
+			formData.append("address", this.state.path);
+			_axios2.default.post('upload/', formData, {
+				headers: {
+					'Content-Type': 'multipart/form-data'
+				}
+			});
 		}
 	}, {
 		key: 'componentDidMount',
@@ -22414,22 +22432,24 @@ var App = function (_React$Component9) {
 	}, {
 		key: 'render',
 		value: function render() {
-			var _this18 = this;
+			var _this19 = this;
 
-			var downLink = "/share";
 			return _react2.default.createElement(
 				'div',
 				null,
 				_react2.default.createElement(NavBar, {
 					folders: this.state.path,
 					search: function search(query) {
-						return _this18.handleSearch(query);
+						return _this19.handleSearch(query);
 					},
 					download: function download() {
-						return _this18.download(_this18.state.path);
+						return _this19.download(_this19.state.path);
 					},
 					jumpTo: function jumpTo(address) {
-						return _this18.jumpTo(address);
+						return _this19.jumpTo(address);
+					},
+					upload: function upload() {
+						return _this19.upload();
 					}
 				}),
 				_react2.default.createElement(Icons
@@ -22438,11 +22458,11 @@ var App = function (_React$Component9) {
 				_react2.default.createElement(Content, {
 					folders: this.state.dirs,
 					openFile: function openFile(address) {
-						return _this18.openFile(address);
+						return _this19.openFile(address);
 					},
 					files: this.state.files,
 					openFolder: function openFolder(address) {
-						return _this18.openFolder(address);
+						return _this19.openFolder(address);
 					}
 				})
 			);

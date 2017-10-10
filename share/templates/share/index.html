@@ -6,7 +6,6 @@
 <head>
 
     <title> Wirespace </title>
-    <link rel="shortcut icon" type="image/png" href="{% static 'share/images/icon.png' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'share/css/w3.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'share/css/font-awesome.min.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'share/css/custom.css' %}">
@@ -25,21 +24,16 @@
 			<input type="text" name="target" id="otargetlink">
 			<input type="submit" value="submit">
 		</form>
-{% csrf_token %}
-	<form method="post" action="{% url "upload" %}" enctype="multipart/form-data">
-    {% csrf_token %}
-    <input type="file" name="myfile">
-    <input type="hidden" name='address' value='{{current_path}}'>
-    <button type="submit">Upload</button>
-  </form>
+	</div>
+	{% csrf_token %}
 	<div id="list">
 		<form method="POST" action="{% url "search" %}">
 			{% csrf_token %}
-<input type="text" name="query">
-<input type="hidden" name='address' value={{ current_path }}>
-
-<button class="search_button" type="submit">Upload text</button>
-</form>
+			<input type="text" name="query">
+			<input type="hidden" name='address' value={{ current_path }}>
+			<button class="search_button" type="submit">Upload text</button>
+		</form>
+	</div>
     <script src = "{% static 'share/index.js' %}"></script>
 </body>
 </html>

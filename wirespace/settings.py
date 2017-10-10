@@ -14,7 +14,9 @@ import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
+(ROOT_PATH, SHARED_DIR) = os.path.split(os.path.expanduser('~'))
+ROOT_PATH = ROOT_PATH
+SHARED_DIR = SHARED_DIR
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
@@ -44,7 +46,7 @@ INSTALLED_APPS = [
 CORS_ORIGIN_ALLOW_ALL = True
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = os.path.join(ROOT_PATH, 'media')
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',    #CORS Module (Development)

@@ -3,22 +3,23 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 from django.shortcuts import render
-from django.http import HttpResponse, HttpResponseRedirect, StreamingHttpResponse, JsonResponse
+from django.http import StreamingHttpResponse, JsonResponse, HttpResponse
 from django.core.files import File
 from django.views.decorators.csrf import csrf_exempt
 from django.template import loader
 import os
 import mimetypes
 import zipfile
-from django.conf import settings
+from django.conf import settings	#ROOT_DIR, SHARED_DIR, MEDIA_ROOT
 import glob
 from django.core.files.storage import FileSystemStorage
-
-(root_path, shared_dir) = os.path.split(os.path.expanduser('~'))
 
 # Keep CACHE_DIR separate from the shared directory
 # Used for storing generated .zip files
 CACHE_DIR = os.path.expanduser('~/cache')
+SHARED_DIR = getattr(settings, "SHARED_DIR", None)
+ROOT_PATH = getattr(settings, "ROOT_PATH", None)
+MEDIA_ROOT = getattr(settings, "MEDIA_ROOT", None)
 
 def home(request):
 	context={}
@@ -101,9 +102,9 @@ def open_item(request):
 		addr = request.POST["target"]
 		addr = os.path.normpath(addr)
 		if addr == "" or addr == ".":
-			addr = shared_dir
+			addr = SHARED_DIR
 
-		target = os.path.join(root_path, addr)
+		target = os.path.join(ROOT_PATH, addr)
 
 		if os.path.isdir(target):
 			dir_items = os.listdir(target)
@@ -135,14 +136,14 @@ def open_item(request):
 @csrf_exempt
 def download_item(request):
 	if request.method=="POST":
-		# find root_path from request.user and add login_required decorator
+		# find ROOT_PATH from request.user and add login_required decorator
 
 		addr = request.POST["target"]
 		addr = os.path.normpath(addr)
 		if addr == "" or addr == ".":
-			addr = shared_dir
+			addr = SHARED_DIR
 
-		target = os.path.join(root_path, addr)
+		target = os.path.join(ROOT_PATH, addr)
 		if os.path.isdir(target):
 			return get_dir(target)
 		else:
@@ -150,13 +151,17 @@ def download_item(request):
 
 @csrf_exempt
 def upload(request):
-    if request.method == 'POST' and request.FILES['file']:
-        myfile = request.FILES['file']
+    if request.method == 'POST':
+        myfile = request.FILES.get('ufile')
         upload_path = request.POST['address']
-        fs = FileSystemStorage()
+        upload_path = os.path.join(ROOT_PATH, upload_path)
+
+        fs = FileSystemStorage(location = upload_path)	#directly open the required path
         print(myfile.name)
         filename = fs.save(myfile.name, myfile)
-        os.rename(settings.BASE_DIR + fs.url(filename), os.path.join(root_path, upload_path, filename))
+        #os.rename(settings.BASE_DIR + fs.url(filename), os.path.join(ROOT_PATH, upload_path, filename))
+        return HttpResponse("")
+
     else:
         return ValueError("File not found")
 
