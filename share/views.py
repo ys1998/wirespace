@@ -1,3 +1,5 @@
+#https://stackoverflow.com/questions/3437059/does-python-have-a-string-contains-substring-method
+#https://www.quora.com/Whats-the-easiest-way-to-recursively-get-a-list-of-all-the-files-in-a-directory-tree-in-Python
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 from django.shortcuts import render
@@ -9,6 +11,7 @@ import os
 import mimetypes
 import zipfile
 from django.conf import settings
+import glob
 from django.core.files.storage import FileSystemStorage
 
 (root_path, shared_dir) = os.path.split(os.path.expanduser('~'))
@@ -172,13 +175,14 @@ def search(request):
     current_path = request.POST['address']
     query = request.POST['query']
     root_path = os.path.expanduser('~')+'/'
-    curr_dir={}
-    curr_dir_items = glob.iglob(root_path+current_path+'**/*'+query+'*',recursive=True)
-    for item in curr_dir_items:
-        if not item[0]=='.':
-            if(os.path.isdir(os.path.join(root_path,current_path,item))):
-                curr_dir[item]="dir"
-            else:
-                curr_dir[item]="file"
-    context={'list':curr_dir,'current_path':current_path}
-    return render(request,'share/index.html',context)
+    result={}
+    for root,directories,files in os.walk(os.path.join(root_path,current_path)):
+        for directory in directories:
+            if directory.endswith(query):
+                result[directory]=os.path.join(root,directory)
+        for filename in files:
+            if query in filename:
+                result[filename]=os.path.join(root,filename)
+    print(result)
+    context={'SearchResult':result}
+    return JsonResponse(context)
