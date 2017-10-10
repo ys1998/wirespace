@@ -147,25 +147,15 @@ def download_item(request):
 
 @csrf_exempt
 def upload(request):
-    if request.method == 'POST' and request.FILES['myfile']:
-        myfile = request.FILES['myfile']
-        curr_path = request.POST['address']
-        root_path=os.path.expanduser('~')
+    if request.method == 'POST' and request.FILES['file']:
+        myfile = request.FILES['file']
+        upload_path = request.POST['address']
         fs = FileSystemStorage()
         print(myfile.name)
         filename = fs.save(myfile.name, myfile)
-        os.rename(settings.BASE_DIR+fs.url(filename),root_path+curr_path+'/'+filename)
-        curr_dir_items=os.listdir(os.path.join(root_path,curr_path))
-        curr_dir={}
-        for item in curr_dir_items:
-            if not item[0]=='.':
-                if(os.path.isdir(os.path.join(root_path,curr_path,item))):
-                    curr_dir[item]="dir"
-                else:
-                    curr_dir[item]="file"
-        context={}
+        os.rename(settings.BASE_DIR + fs.url(filename), os.path.join(root_path, upload_path, filename))
     else:
-        return ValueError("file not found")
+        return ValueError("File not found")
 
 def search(request):
     if request.method != "POST":
