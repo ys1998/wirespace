@@ -22414,6 +22414,8 @@ var App = function (_React$Component9) {
 	}, {
 		key: 'upload',
 		value: function upload() {
+			var _this19 = this;
+
 			var formData = new FormData();
 			var file = document.querySelector('#ufile');
 			formData.append("ufile", file.files[0]);
@@ -22422,6 +22424,8 @@ var App = function (_React$Component9) {
 				headers: {
 					'Content-Type': 'multipart/form-data'
 				}
+			}).then(function (res) {
+				_this19.get_request(_this19.state.path);
 			});
 		}
 	}, {
@@ -22432,7 +22436,7 @@ var App = function (_React$Component9) {
 	}, {
 		key: 'render',
 		value: function render() {
-			var _this19 = this;
+			var _this20 = this;
 
 			return _react2.default.createElement(
 				'div',
@@ -22440,16 +22444,16 @@ var App = function (_React$Component9) {
 				_react2.default.createElement(NavBar, {
 					folders: this.state.path,
 					search: function search(query) {
-						return _this19.handleSearch(query);
+						return _this20.handleSearch(query);
 					},
 					download: function download() {
-						return _this19.download(_this19.state.path);
+						return _this20.download(_this20.state.path);
 					},
 					jumpTo: function jumpTo(address) {
-						return _this19.jumpTo(address);
+						return _this20.jumpTo(address);
 					},
 					upload: function upload() {
-						return _this19.upload();
+						return _this20.upload();
 					}
 				}),
 				_react2.default.createElement(Icons
@@ -22458,11 +22462,11 @@ var App = function (_React$Component9) {
 				_react2.default.createElement(Content, {
 					folders: this.state.dirs,
 					openFile: function openFile(address) {
-						return _this19.openFile(address);
+						return _this20.openFile(address);
 					},
 					files: this.state.files,
 					openFolder: function openFolder(address) {
-						return _this19.openFolder(address);
+						return _this20.openFolder(address);
 					}
 				})
 			);

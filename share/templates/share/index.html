@@ -26,7 +26,7 @@
 		</form>
 	</div>
 	{% csrf_token %}
-	<div id="list">
+	<div id="list" style="display: none;">
 		<form method="POST" action="{% url "search" %}">
 			{% csrf_token %}
 			<input type="text" name="query">
