@@ -145,6 +145,7 @@ def download_item(request):
 		else:
 			return get_file(target, "download")
 
+@csrf_exempt
 def upload(request):
     if request.method == 'POST' and request.FILES['myfile']:
         myfile = request.FILES['myfile']
