@@ -31,7 +31,7 @@ ALLOWED_HOSTS = ['localhost','10.42.0.1']
 # Application definition
 
 INSTALLED_APPS = [
-    #'corsheaders',          #Cross domain request module (Development)
+    'corsheaders',          #Cross domain request module (Development)
     'share.apps.ShareConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -42,6 +42,9 @@ INSTALLED_APPS = [
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',    #CORS Module (Development)

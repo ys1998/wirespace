@@ -8,8 +8,10 @@ from django.template import loader
 import os
 import mimetypes
 import zipfile
+from django.conf import settings
+from django.core.files.storage import FileSystemStorage
 
-(root_path, shared_dir) = os.path.split(os.path.expanduser('~/Public'))
+(root_path, shared_dir) = os.path.split(os.path.expanduser('~'))
 
 # Keep CACHE_DIR separate from the shared directory
 # Used for storing generated .zip files
@@ -160,10 +162,9 @@ def upload(request):
                     curr_dir[item]="dir"
                 else:
                     curr_dir[item]="file"
-        context={'list':curr_dir,'current_path':curr_path}
-        return render(request,'share/index.html',context)
+        context={}
     else:
-        return HttpResponse("file not found")
+        return ValueError("file not found")
 
 def search(request):
     if request.method != "POST":
@@ -181,4 +182,3 @@ def search(request):
                 curr_dir[item]="file"
     context={'list':curr_dir,'current_path':current_path}
     return render(request,'share/index.html',context)
-
