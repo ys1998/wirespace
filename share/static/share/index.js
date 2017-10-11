@@ -22331,9 +22331,10 @@ var App = function (_React$Component9) {
     key: 'get_request',
     value: function get_request(param) {
       var _this15 = this;
-
+      var t=document.forms['openform'].elements[2].value;
       _axios2.default.post('open/', _queryString2.default.stringify({
-        target: param
+        target: param,
+        token: t
       }), {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'
@@ -22347,6 +22348,7 @@ var App = function (_React$Component9) {
         };
         _this15.setState(newState);
       }).catch(function (error) {
+        alert(error);
         console.log("Error in request");
         console.log(error);
       });

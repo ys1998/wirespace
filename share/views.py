@@ -1,23 +1,67 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-from django.shortcuts import render
+from django.shortcuts import render,redirect
 from django.http import HttpResponse, HttpResponseRedirect, StreamingHttpResponse, JsonResponse
 from django.core.files import File
 from django.views.decorators.csrf import csrf_exempt
 from django.template import loader
-import os
+import os,binascii
 import mimetypes
 import zipfile
+# importing models for authentication purpose
+from .models import *
 
-(root_path, shared_dir) = os.path.split(os.path.expanduser('~/Public'))
+# (root_path, shared_dir) = os.path.split(os.path.expanduser('~/Public'))
 
 # Keep CACHE_DIR separate from the shared directory
 # Used for storing generated .zip files
 CACHE_DIR = os.path.expanduser('~/cache')
 
+def authenticate(request,k):
+	# use request.sessions['token']
+	if Key.objects.filter(key=k).count()==0:
+		return render(request,'share/error.html',{'title':'Access Denied','header':'You don\'t have access','message':'It seems that the authentication key you provided is invalid.\nObtain the correct link from the host and try again.'})
+	else:
+		# Token doesn't exist but key is valid
+		if 'token' not in request.session:
+			key=Key.objects.get(key=k)
+			IP='' # get IP from request here
+			t=Token.objects.create(link=key,ip=IP)
+			print(t.token)
+			request.session['token']=t.token
+		else:
+			# Token exists in request.session
+			try:
+				# When the key is valid but the existing token refers to a different valid key
+				old_t=Token.objects.get(token=request.session['token'])
+				old_key=old_t.link.key
+				if k!=old_key:
+					new_key=Key.objects.get(key=k)
+					IP=''
+					old_t.delete()
+					# del request.session['token']
+					request.session.flush()
+					new_t=Token.objects.create(link=new_key,ip=IP)
+					print(new_t.token)
+					request.session['token']=new_t.token
+			# When the token is no long valid (i.e expired/deleted from database) but key is valid
+			except Token.DoesNotExist:
+				request.session.flush()
+				key=Key.objects.get(key=k)
+				IP='' # get IP from request here
+				t=Token.objects.create(link=key,ip=IP)
+				print(t.token)
+				request.session['token']=t.token
+		request.session.set_expiry(1800) # token expires after 30 minutes
+		print(request.session['token'])
+		return redirect('/share/',permanent=True)
+
 def home(request):
-	context={}
-	return render(request,'share/index.html',context)
+	if 'token' not in request.session:
+		return render(request,'share/error.html',{'title':'Access Denied','header':'Unauthorized access','message':"It seems that the authentication key you provided is invalid.\nObtain the correct link from the host and try again."})
+	else:
+		print(request.session['token'])
+		return render(request,'share/index.html',{'token':request.session.get('token')})
 	
 
 # View to handle file download requests
@@ -91,7 +135,22 @@ def get_dir(dirpath):
 # View to handle 'open' requests
 @csrf_exempt
 def open_item(request):
+	sharedPath=None
 	if request.method == "POST":
+		if 'token' not in request.POST:
+			return JsonResponse({'status':'false','message':"Unauthorized access detected."}, status=403)
+		elif Token.objects.filter(token=request.POST['token']).count()==0:
+			return JsonResponse({'status':'false','message':"Token is unidentifiable."}, status=404)
+		sharedPath=Token.objects.get(token=request.POST['token']).link.path_shared
+	else:
+		if 'token' not in request.session:
+			return JsonResponse({'status':'false','message':"Unauthorized access detected."}, status=403)
+		elif Token.objects.filter(token=request.POST['token']).count()==0:
+			return JsonResponse({'status':'false','message':"Token is unidentifiable."}, status=404)
+		sharedPath=Token.objects.get(token=request.POST['token']).link.path_shared
+
+	if sharedPath!=None:
+		(root_path,shared_dir)=os.path.split(os.path.expanduser(sharedPath))
 		# target - path to requested item
 		addr = request.POST["target"]
 		addr = os.path.normpath(addr)
@@ -123,14 +182,21 @@ def open_item(request):
 			return get_file(target, "open")
 
 		else:
-			return ValueError("'target' field invalid in request")
+			# return ValueError("'target' field invalid in request")
+			return JsonResponse({'status':'false','message':"Could not resolve 'target'."}, status=500)
 
 
 # View to handle 'download' requests
 @csrf_exempt
 def download_item(request):
 	if request.method=="POST":
-		# find root_path from request.user and add login_required decorator
+		if not request.POST.get('token',None):
+			return ValueError("Unauthorized access detected.")
+		elif Token.objects.filter(token=request.POST['token']).count()==0:
+			return ValueError("Token is unidentifiable.")
+
+		sharedPath=Token.objects.get(token=request.POST['token']).link.path_shared	
+		(root_path,shared_dir)=os.path.split(os.path.expanduser(sharedPath))
 
 		addr = request.POST["target"]
 		addr = os.path.normpath(addr)

@@ -42,6 +42,8 @@ INSTALLED_APPS = [
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True
+SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
+SESSION_EXPIRE_AT_BROWSER_CLOSE= True
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',    #CORS Module (Development)
