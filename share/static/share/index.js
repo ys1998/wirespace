@@ -22226,8 +22226,8 @@ var SearchBar = function (_React$PureComponent) {
 			return _react2.default.createElement(
 				'div',
 				{ className: 'w3-rest SearchBarStyle' },
-				_react2.default.createElement('input', { id: 'search', className: 'w3-input w3-light-gray w3-border-0 SearchBarBoxStyle', type: 'text', placeholder: 'Search storage', onChange: function onChange() {
-						return _this15.props.search('Desktop');
+				_react2.default.createElement('input', { id: 'searchBar', className: 'w3-input w3-light-gray w3-border-0 SearchBarBoxStyle', type: 'text', placeholder: 'Search storage', onChange: function onChange() {
+						return _this15.props.search();
 					} })
 			);
 		}
@@ -22392,10 +22392,12 @@ var App = function (_React$Component9) {
 		}
 	}, {
 		key: 'handleSearch',
-		value: function handleSearch(query) {
+		value: function handleSearch() {
 			var _this20 = this;
 
 			console.log("Querying");
+			var query = document.getElementById('searchBar').value;
+			console.log(query);
 			if (query != '') {
 				//console.log(query);
 				_axios2.default.post(this.baseURL + 'search/', _queryString2.default.stringify({
