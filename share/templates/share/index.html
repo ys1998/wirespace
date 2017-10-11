@@ -19,10 +19,12 @@
 		<form id="downloadform" action="download/" method="POST">
 			<input type="text" name="target" id="targetlink">
 			<input type="submit" value="submit">
+			<input type="hidden" id="token" name="token" value="{{ token }}">
 		</form>
 		<form id="openform" action="open/" method="POST" target="_blank">
 			<input type="text" name="target" id="otargetlink">
 			<input type="submit" value="submit">
+			<input type="hidden" id="token" name="token" value="{{ token }}">
 		</form>
 	</div>
 	{% csrf_token %}

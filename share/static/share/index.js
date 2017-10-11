@@ -22348,6 +22348,7 @@ var Content = function (_React$Component8) {
 }(_react2.default.Component);
 
 var App = function (_React$Component9) {
+
 	_inherits(App, _React$Component9);
 
 	function App() {
@@ -22367,12 +22368,13 @@ var App = function (_React$Component9) {
 
 	_createClass(App, [{
 		key: 'get_request',
-		value: function get_request(target) {
+		value: function get_request(param) {
 			var _this19 = this;
-
+      var t=document.forms['openform'].elements[2].value;
 			//Change this when deploying:
-			_axios2.default.post(this.baseURL + 'open/', _queryString2.default.stringify({
-				target: target
+			_axios2.default.post('open/', _queryString2.default.stringify({
+				target: param,
+        token: t
 			}), {
 				headers: {
 					'Content-Type': 'application/x-www-form-urlencoded'
@@ -22386,6 +22388,7 @@ var App = function (_React$Component9) {
 				};
 				_this19.setState(newState);
 			}).catch(function (error) {
+        alert(error);
 				console.log("Error in request");
 				console.log(error);
 			});
@@ -22455,7 +22458,8 @@ var App = function (_React$Component9) {
 			var file = document.querySelector('#ufile');
 			formData.append("ufile", file.files[0]);
 			formData.append("address", this.state.path);
-			_axios2.default.post('http://localhost:8000/share/upload/', formData, {
+      formData.append("token",document.forms['openform'].elements[2].value);
+			_axios2.default.post('upload/', formData, {
 				headers: {
 					'Content-Type': 'multipart/form-data'
 				}
