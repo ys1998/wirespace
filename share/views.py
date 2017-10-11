@@ -253,14 +253,16 @@ def search(request):
 
 		for root,directories,files in os.walk(os.path.join(root_path,current_path)):
 			for directory in directories:
-				if directory.endswith(query):
-					context["dirs"][os.path.join(root,directory)]=directory
+				if query in directory:
+					rel_path=s=os.path.relpath(root,root_path)
+					context["dirs"][os.path.join(rel_path,directory)]=directory
 			for filename in files:
 				if query in filename:
 					if filename.startswith('.'):
 						file_type="hidden"
 					else:
 						file_type="files"
-					context[file_type][os.path.join(root,filename)]=filename
+					rel_path=os.path.relpath(root,root_path)
+					context[file_type][os.path.join(rel_path,filename)]=filename
 		return JsonResponse(context)
 
