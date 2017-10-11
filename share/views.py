@@ -11,12 +11,8 @@ from django.template import loader
 import os,binascii
 import mimetypes
 import zipfile
-<<<<<<< HEAD
 # importing models for authentication purpose
 from .models import *
-=======
-from django.conf import settings	#ROOT_PATH, SHARED_DIR, MEDIA_ROOT
->>>>>>> 022b8326c5b2bccbd62c7748586c08db1beaeea1
 import glob
 from django.core.files.storage import FileSystemStorage
 
@@ -240,7 +236,6 @@ def upload(request):
 
 @csrf_exempt
 def search(request):
-<<<<<<< HEAD
 	if request.method != "POST":
 		return HttpResponseNotFound("Request not sent properly")
 	else:
@@ -268,28 +263,4 @@ def search(request):
 						file_type="files"
 					context[file_type][os.path.join(root,filename)]=filename
 		return JsonResponse(context)
-=======
-    if request.method == "POST":
-        current_path = request.POST['address']
-        query = request.POST['query']
-        context={
-                "dirs":{},
-                "files":{},
-                "hidden":{}
-                }
-        print(os.path.join(ROOT_PATH,current_path))
-        for root,directories,files in os.walk(os.path.join(ROOT_PATH,current_path)):
-            for directory in directories:
-                if query in directory:
-                    context["dirs"][os.path.join(root,directory)]=directory
-            for filename in files:
-                if query in filename:
-                    if filename.startswith('.'):
-                        file_type="hidden"
-                    else:
-                        file_type="files"
-                    context[file_type][os.path.join(root,filename)]=filename
-        return JsonResponse(context)
-    else:
-        return HttpResponseNotFound("Request not sent properly")
->>>>>>> 022b8326c5b2bccbd62c7748586c08db1beaeea1
+

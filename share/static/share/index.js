@@ -22369,7 +22369,7 @@ var App = function (_React$Component9) {
 	_createClass(App, [{
 		key: 'get_request',
 		value: function get_request(param) {
-			var _this18 = this;
+			var _this19 = this;
       var t=document.forms['openform'].elements[2].value;
 			//Change this when deploying:
 			_axios2.default.post('open/', _queryString2.default.stringify({
@@ -22456,12 +22456,8 @@ var App = function (_React$Component9) {
 			var file = document.querySelector('#ufile');
 			formData.append("ufile", file.files[0]);
 			formData.append("address", this.state.path);
-<<<<<<< HEAD
       formData.append("token",document.forms['openform'].elements[2].value);
 			_axios2.default.post('upload/', formData, {
-=======
-			_axios2.default.post('http://localhost:8000/share/upload/', formData, {
->>>>>>> 022b8326c5b2bccbd62c7748586c08db1beaeea1
 				headers: {
 					'Content-Type': 'multipart/form-data'
 				}
