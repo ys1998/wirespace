@@ -1,7 +1,10 @@
+#https://stackoverflow.com/questions/3437059/does-python-have-a-string-contains-substring-method
+#https://www.quora.com/Whats-the-easiest-way-to-recursively-get-a-list-of-all-the-files-in-a-directory-tree-in-Python
+#https://stackoverflow.com/questions/43013858/ajax-post-a-file-from-a-form-with-axios
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 from django.shortcuts import render,redirect
-from django.http import HttpResponse, HttpResponseRedirect, StreamingHttpResponse, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect, StreamingHttpResponse, JsonResponse, HttpResponseNotFound
 from django.core.files import File
 from django.views.decorators.csrf import csrf_exempt
 from django.template import loader
@@ -10,8 +13,9 @@ import mimetypes
 import zipfile
 # importing models for authentication purpose
 from .models import *
+import glob
+from django.core.files.storage import FileSystemStorage
 
-# (root_path, shared_dir) = os.path.split(os.path.expanduser('~/Public'))
 
 # Keep CACHE_DIR separate from the shared directory
 # Used for storing generated .zip files
@@ -27,7 +31,6 @@ def authenticate(request,k):
 			key=Key.objects.get(key=k)
 			IP='' # get IP from request here
 			t=Token.objects.create(link=key,ip=IP)
-			print(t.token)
 			request.session['token']=t.token
 		else:
 			# Token exists in request.session
@@ -50,17 +53,14 @@ def authenticate(request,k):
 				key=Key.objects.get(key=k)
 				IP='' # get IP from request here
 				t=Token.objects.create(link=key,ip=IP)
-				print(t.token)
 				request.session['token']=t.token
 		request.session.set_expiry(1800) # token expires after 30 minutes
-		print(request.session['token'])
 		return redirect('/share/',permanent=True)
 
 def home(request):
 	if 'token' not in request.session:
 		return render(request,'share/error.html',{'title':'Access Denied','header':'Unauthorized access','message':"It seems that the authentication key you provided is invalid.\nObtain the correct link from the host and try again."})
 	else:
-		print(request.session['token'])
 		return render(request,'share/index.html',{'token':request.session.get('token')})
 	
 
@@ -163,18 +163,18 @@ def open_item(request):
 			dir_items = os.listdir(target)
 			context = {
 				"path": addr,
-				"dirs": [],
-				"files": [],
-				"hidden":[]
+				"dirs": {},
+				"files": {},
+				"hidden":{}
 				}
 			for element in dir_items:
 				if not element[0] == '.':
 					if os.path.isdir(os.path.join(target, element)):
-						context["dirs"].append(element)
+						context["dirs"][os.path.join(addr, element)] = element
 					else:
-						context["files"].append(element)
+						context["files"][os.path.join(addr, element)] = element
 				else:
-					context["hidden"].append(element)
+					context["hidden"][os.path.join(addr, element)] = element
 
 			return JsonResponse(context)
 
@@ -197,7 +197,7 @@ def download_item(request):
 
 		sharedPath=Token.objects.get(token=request.POST['token']).link.path_shared	
 		(root_path,shared_dir)=os.path.split(os.path.expanduser(sharedPath))
-
+		
 		addr = request.POST["target"]
 		addr = os.path.normpath(addr)
 		if addr == "" or addr == ".":
@@ -209,3 +209,56 @@ def download_item(request):
 		else:
 			return get_file(target, "download")
 
+@csrf_exempt
+def upload(request):
+	if request.method == 'POST':
+		if 'token' not in request.POST:
+			return JsonResponse({'status':'false','message':"Unauthorized access detected."}, status=403)
+		elif Token.objects.filter(token=request.POST['token']).count()==0:
+			return JsonResponse({'status':'false','message':"Token is unidentifiable."}, status=404)
+
+		sharedPath=Token.objects.get(token=request.POST['token']).link.path_shared
+		can_upload=(Token.objects.get(token=request.POST['token']).link.permission=='w')
+		root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
+		if can_upload:
+			myfile=request.FILES.get('ufile')
+			upload_path = request.POST['address']
+			upload_path = os.path.join(root_path, upload_path)
+
+			# directly open the required path
+			fs=FileSystemStorage(location=upload_path)
+			filename=fs.save(myfile.name,myfile)
+			return HttpResponse("")
+		else:
+			return HttpResponseNotFound("Upload not authororized.")
+	else:
+		return HttpResponseNotFound("Invalid request.")
+
+def search(request):
+	if request.method != "POST":
+		return HttpResponseNotFound("Request not sent properly")
+	else:
+		if 'token' not in request.POST:
+			return JsonResponse({'status':'false','message':"Unauthorized access detected."}, status=403)
+		elif Token.objects.filter(token=request.POST['token']).count()==0:
+			return JsonResponse({'status':'false','message':"Token is unidentifiable."}, status=404)
+
+		sharedPath=Token.objects.get(token=request.POST['token']).link.path_shared
+		root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
+		current_path = request.POST['address']
+		query = request.POST['query']
+
+		context={"dirs":{},"files":{},"hidden":{}}
+
+		for root,directories,files in os.walk(os.path.join(root_path,current_path)):
+			for directory in directories:
+				if directory.endswith(query):
+					context["dirs"][os.path.join(root,directory)]=directory
+			for filename in files:
+				if query in filename:
+					if filename.startswith('.'):
+						file_type="hidden"
+					else:
+						file_type="files"
+					context[file_type][os.path.join(root,filename)]=filename
+		return JsonResponse(context)

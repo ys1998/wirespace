@@ -1,3 +1,5 @@
 **/__pycache__/
+**/*.swp
+media/
 .DS_Store
 **/._.DS_Store

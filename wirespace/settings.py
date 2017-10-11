@@ -15,7 +15,6 @@ import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
@@ -31,7 +30,7 @@ ALLOWED_HOSTS = ['localhost','10.42.0.1']
 # Application definition
 
 INSTALLED_APPS = [
-    #'corsheaders',          #Cross domain request module (Development)
+    'corsheaders',          #Cross domain request module (Development)
     'share.apps.ShareConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -44,6 +43,8 @@ INSTALLED_APPS = [
 CORS_ORIGIN_ALLOW_ALL = True
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
 SESSION_EXPIRE_AT_BROWSER_CLOSE= True
+
+MEDIA_URL = '/media/'
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',    #CORS Module (Development)
