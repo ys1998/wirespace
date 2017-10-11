@@ -1,0 +1,41 @@
+<!-- serve static files -->
+{% load static %}
+<!DOCTYPE HTML>
+<html>
+
+<head>
+
+    <title> Wirespace </title>
+    <link rel="stylesheet" type="text/css" href="{% static 'share/css/w3.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'share/css/font-awesome.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'share/css/custom.css' %}">
+</head>
+
+<body class="w3-light-gray HelFont">
+
+	<div id="body">
+	</div>
+	<div id="form" style="display: none;">
+		<form id="downloadform" action="download/" method="POST">
+			<input type="text" name="target" id="targetlink">
+			<input type="submit" value="submit">
+			<input type="hidden" id="token" name="token" value="{{ token }}">
+		</form>
+		<form id="openform" action="open/" method="POST" target="_blank">
+			<input type="text" name="target" id="otargetlink">
+			<input type="submit" value="submit">
+			<input type="hidden" id="token" name="token" value="{{ token }}">
+		</form>
+	</div>
+	{% csrf_token %}
+	<div id="list" style="display: none;">
+		<form method="POST" action="{% url "search" %}">
+			{% csrf_token %}
+			<input type="text" name="query">
+			<input type="hidden" name='address' value={{ current_path }}>
+			<button class="search_button" type="submit">Upload text</button>
+		</form>
+	</div>
+    <script src = "{% static 'share/index.js' %}"></script>
+</body>
+</html>

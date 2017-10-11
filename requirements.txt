@@ -1,0 +1,6 @@
+pip3
+django
+django-ipware
+django-cors-headers
+python3
+mimetypes
