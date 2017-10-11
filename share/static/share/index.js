@@ -21888,6 +21888,8 @@ var _reactFileDownload2 = _interopRequireDefault(_reactFileDownload);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -22219,10 +22221,14 @@ var SearchBar = function (_React$PureComponent) {
 	_createClass(SearchBar, [{
 		key: 'render',
 		value: function render() {
+			var _this15 = this;
+
 			return _react2.default.createElement(
 				'div',
 				{ className: 'w3-rest SearchBarStyle' },
-				_react2.default.createElement('input', { id: 'search', className: 'w3-input w3-light-gray w3-border-0 SearchBarBoxStyle', type: 'text', placeholder: 'Search storage' })
+				_react2.default.createElement('input', { id: 'search', className: 'w3-input w3-light-gray w3-border-0 SearchBarBoxStyle', type: 'text', placeholder: 'Search storage', onChange: function onChange() {
+						return _this15.props.search('Desktop');
+					} })
 			);
 		}
 	}]);
@@ -22347,25 +22353,26 @@ var App = function (_React$Component9) {
 	function App() {
 		_classCallCheck(this, App);
 
-		var _this17 = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this));
+		var _this18 = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this));
 
-		_this17.state = {
+		_this18.state = {
 			dirs: {},
 			files: {},
 			path: '',
 			hidden: {}
 		};
-		return _this17;
+		_this18.baseURL = 'http://localhost:8000/share/';
+		return _this18;
 	}
 
 	_createClass(App, [{
 		key: 'get_request',
-		value: function get_request(param) {
-			var _this18 = this;
+		value: function get_request(target) {
+			var _this19 = this;
 
 			//Change this when deploying:
-			_axios2.default.post('open/', _queryString2.default.stringify({
-				target: param
+			_axios2.default.post(this.baseURL + 'open/', _queryString2.default.stringify({
+				target: target
 			}), {
 				headers: {
 					'Content-Type': 'application/x-www-form-urlencoded'
@@ -22377,7 +22384,7 @@ var App = function (_React$Component9) {
 					files: res.data.files,
 					hidden: res.data.hidden
 				};
-				_this18.setState(newState);
+				_this19.setState(newState);
 			}).catch(function (error) {
 				console.log("Error in request");
 				console.log(error);
@@ -22385,7 +22392,33 @@ var App = function (_React$Component9) {
 		}
 	}, {
 		key: 'handleSearch',
-		value: function handleSearch(query) {}
+		value: function handleSearch(query) {
+			var _this20 = this;
+
+			console.log("Querying");
+			if (query != '') {
+				//console.log(query);
+				_axios2.default.post(this.baseURL + 'search/', _queryString2.default.stringify({
+					address: this.state.path,
+					query: query
+				}), {
+					headers: {
+						'Content-Type': 'application/x-www-form-urlencoded'
+					}
+				}).then(function (res) {
+					console.log(res);
+					var newState = {
+						dirs: res.data.dirs,
+						files: res.data.files,
+						hidden: res.data.hidden
+					};
+					_this20.setState(newState);
+				}).catch(function (error) {
+					console.log("Error in request");
+					console.log(error);
+				});
+			} else this.get_request(this.state.path);
+		}
 	}, {
 		key: 'jumpTo',
 		value: function jumpTo(address) {
@@ -22414,18 +22447,18 @@ var App = function (_React$Component9) {
 	}, {
 		key: 'upload',
 		value: function upload() {
-			var _this19 = this;
+			var _this21 = this;
 
 			var formData = new FormData();
 			var file = document.querySelector('#ufile');
 			formData.append("ufile", file.files[0]);
 			formData.append("address", this.state.path);
-			_axios2.default.post('upload/', formData, {
+			_axios2.default.post('http://localhost:8000/share/upload/', formData, {
 				headers: {
 					'Content-Type': 'multipart/form-data'
 				}
 			}).then(function (res) {
-				_this19.get_request(_this19.state.path);
+				_this21.get_request(_this21.state.path);
 			});
 		}
 	}, {
@@ -22436,37 +22469,39 @@ var App = function (_React$Component9) {
 	}, {
 		key: 'render',
 		value: function render() {
-			var _this20 = this;
+			var _this22 = this;
 
 			return _react2.default.createElement(
 				'div',
 				null,
-				_react2.default.createElement(NavBar, {
+				_react2.default.createElement(NavBar, _defineProperty({
 					folders: this.state.path,
 					search: function search(query) {
-						return _this20.handleSearch(query);
+						return _this22.handleSearch(query);
 					},
 					download: function download() {
-						return _this20.download(_this20.state.path);
+						return _this22.download(_this22.state.path);
 					},
 					jumpTo: function jumpTo(address) {
-						return _this20.jumpTo(address);
+						return _this22.jumpTo(address);
 					},
 					upload: function upload() {
-						return _this20.upload();
+						return _this22.upload();
 					}
-				}),
+				}, 'search', function search(query) {
+					return _this22.handleSearch(query);
+				})),
 				_react2.default.createElement(Icons
 				/*Handle click events*/
 				, null),
 				_react2.default.createElement(Content, {
 					folders: this.state.dirs,
 					openFile: function openFile(address) {
-						return _this20.openFile(address);
+						return _this22.openFile(address);
 					},
 					files: this.state.files,
 					openFolder: function openFolder(address) {
-						return _this20.openFolder(address);
+						return _this22.openFolder(address);
 					}
 				})
 			);

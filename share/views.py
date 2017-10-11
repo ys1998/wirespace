@@ -11,7 +11,7 @@ from django.template import loader
 import os
 import mimetypes
 import zipfile
-from django.conf import settings	#ROOT_DIR, SHARED_DIR, MEDIA_ROOT
+from django.conf import settings	#ROOT_PATH, SHARED_DIR, MEDIA_ROOT
 import glob
 from django.core.files.storage import FileSystemStorage
 
@@ -166,27 +166,28 @@ def upload(request):
     else:
         return ValueError("File not found")
 
+@csrf_exempt
 def search(request):
-    if request.method != "POST":
+    if request.method == "POST":
+        current_path = request.POST['address']
+        query = request.POST['query']
+        context={
+                "dirs":{},
+                "files":{},
+                "hidden":{}
+                }
+        print(os.path.join(ROOT_PATH,current_path))
+        for root,directories,files in os.walk(os.path.join(ROOT_PATH,current_path)):
+            for directory in directories:
+                if query in directory:
+                    context["dirs"][os.path.join(root,directory)]=directory
+            for filename in files:
+                if query in filename:
+                    if filename.startswith('.'):
+                        file_type="hidden"
+                    else:
+                        file_type="files"
+                    context[file_type][os.path.join(root,filename)]=filename
+        return JsonResponse(context)
+    else:
         return HttpResponseNotFound("Request not sent properly")
-    current_path = request.POST['address']
-    query = request.POST['query']
-    root_path = os.path.expanduser('~')+'/'
-    context={
-            "dirs":{},
-            "files":{},
-            "hidden":{}
-            }
-    print(os.path.join(root_path,current_path))
-    for root,directories,files in os.walk(os.path.join(root_path,current_path)):
-        for directory in directories:
-            if directory.endswith(query):
-                context["dirs"][os.path.join(root,directory)]=directory
-        for filename in files:
-            if query in filename:
-                if filename.startswith('.'):
-                    file_type="hidden"
-                else:
-                    file_type="files"
-                context[file_type][os.path.join(root,filename)]=filename
-    return JsonResponse(context)
