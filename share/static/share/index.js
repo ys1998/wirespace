@@ -22404,7 +22404,7 @@ var App = function (_React$Component9) {
 			if (query != '') {
 				//console.log(query);
         var t=document.forms['openform'].elements[2].value;
-				_axios2.default.post(this.baseURL + 'search/', _queryString2.default.stringify({
+				_axios2.default.post('search/', _queryString2.default.stringify({
 					address: this.state.path,
 					query: query,
           token: t
