@@ -14,7 +14,6 @@ import zipfile
 from .models import *
 import glob
 from django.core.files.storage import FileSystemStorage
-from django.contrib.sessions.models import Session
 
 
 # Keep CACHE_DIR separate from the shared directory
@@ -237,9 +236,9 @@ def upload(request):
 			return JsonResponse({'status':'false','message':"Token is unidentifiable."}, status=404)
 		
 		sharedPath=Token.objects.get(token=token).link.path_shared
-		can_upload=(Token.objects.get(token=token).link.permission=='w')
+		can_edit=(Token.objects.get(token=token).link.permission=='w')
 		root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
-		if can_upload:
+		if can_edit:
 			myfile=request.FILES.get('ufile')
 			upload_path = request.POST['address']
 			upload_path=os.path.normpath(upload_path)
@@ -300,40 +299,65 @@ def search(request):
 
 @csrf_exempt
 def delete(request):
-    if request.method == 'POST':
-        if 'token' not in request.POST:
-            return JsonResponse({'status':'false','message':"Unauthorized access detected."}, status=403)
-        elif Token.objects.filter(token=request.POST['token']).count()==0:
-            return JsonResponse({'status':'false','message':"Token is unidentifiable."}, status=404)
-        sharedPath=Token.objects.get(token=request.POST['token']).link.path_shared
-        can_upload=(Token.objects.get(token=request.POST['token']).link.permission=='w')
-        root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
-        if can_upload:
-            current_path=request.POST['address']
-            obj = request.POST['name']
-            directory = os.path.join(root_path,current_path)
-            directory = os.path.join(directory,obj)
-            if os.path.exists(directory):
-                shutil.rmtree(directory)
-            return HttpResponse("")
+	sharedPath=None
+	if request.method == "POST":
+		token=None
+		if request.session['token']:
+			token=request.session['token']
+		if token is None:
+			return JsonResponse({'status':'false','message':"Unauthorized access detected."}, status=403)
+		elif Token.objects.filter(token=token).count()==0:
+			return JsonResponse({'status':'false','message':"Token is unidentifiable."}, status=404)
+		sharedPath=Token.objects.get(token=token).link.path_shared
+		can_edit=(Token.objects.get(token=token).link.permission=='w')
+		root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
+		if can_edit:
+			current_path=request.POST['address']
+			obj = request.POST['name']
+			if current_path==os.path.join(root_path,current_path):
+				return JsonResponse({'status':'false','message':"Deleting specified path is prohibited."}, status=403)
+			directory = os.path.join(root_path,current_path)
+			if obj==os.path.join(directory,obj):
+				return JsonResponse({'status':'false','message':"Deleting specified path is prohibited."}, status=403)
+			directory = os.path.join(directory,obj)
+			if os.path.exists(directory):
+				shutil.rmtree(directory)
+			return HttpResponse("")
+		else:
+			return JsonResponse({'status':'false','message':"Access denied."}, status=403)
+	else:
+		return JsonResponse({'status':'false','message':"Invalid request format."}, status=404)
 
 @csrf_exempt
 def create_folder(request):
-    if request.method == 'POST':
-        if 'token' not in request.POST:
-            return JsonResponse({'status':'false','message':"Unauthorized access detected."}, status=403)
-        elif Token.objects.filter(token=request.POST['token']).count()==0:
-            return JsonResponse({'status':'false','message':"Token is unidentifiable."}, status=404)
-        sharedPath=Token.objects.get(token=request.POST['token']).link.path_shared
-        can_upload=(Token.objects.get(token=request.POST['token']).link.permission=='w')
-        root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
-        if can_upload:
-            current_path=request.POST['address']
-            folder = request.POST['folder_name']
-            directory = os.path.join(root_path,current_path)
-            directory = os.path.join(directory,folder)
-            if not os.path.exists(directory):
-                os.makedirs(directory)
-            return HttpResponse("")
+	sharedPath=None
+	if request.method == "POST":
+		token=None
+		if request.session['token']:
+			token=request.session['token']
+		if token is None:
+			return JsonResponse({'status':'false','message':"Unauthorized access detected."}, status=403)
+		elif Token.objects.filter(token=token).count()==0:
+			return JsonResponse({'status':'false','message':"Token is unidentifiable."}, status=404)
+		
+		sharedPath=Token.objects.get(token=token).link.path_shared
+		can_edit=(Token.objects.get(token=token).link.permission=='w')
+		root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
+		if can_edit:
+			current_path=request.POST['address']
+			folder = request.POST['folder_name']
+			if current_path==os.path.join(root_path,current_path):
+				return JsonResponse({'status':'false','message':"Access prohibited."}, status=403)
+			directory = os.path.join(root_path,current_path)
+			if folder==os.path.join(directory,folder):
+				return JsonResponse({'status':'false','message':"Access prohibited."}, status=403)
+			directory = os.path.join(directory,folder)
+			if not os.path.exists(directory):
+				os.makedirs(directory)
+			return HttpResponse("")
+		else:
+			return JsonResponse({'status':'false','message':"Access denied."}, status=403)
+	else:
+		return JsonResponse({'status':'false','message':"Invalid request format."}, status=404)
 
 
