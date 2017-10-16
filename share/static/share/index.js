@@ -22347,6 +22347,14 @@ var Content = function (_React$Component8) {
 	return Content;
 }(_react2.default.Component);
 
+/*****************************************
+FUNCTION TO EXTRACT COOKIE FROM DOCUMENT
+*****************************************/
+function getCookie(name) {
+  var cookie_str=document.cookie;
+  console.log(cookie_str);
+}
+
 var App = function (_React$Component9) {
 
 	_inherits(App, _React$Component9);
@@ -22370,11 +22378,12 @@ var App = function (_React$Component9) {
 		key: 'get_request',
 		value: function get_request(param) {
 			var _this19 = this;
-      var t=document.forms['openform'].elements[2].value;
+      // Extract sessionid from cookies and send from here
+      var sid=getCookie('sessionid');
 			//Change this when deploying:
 			_axios2.default.post('open/', _queryString2.default.stringify({
 				target: param,
-        token: t
+        sessionid: sid
 			}), {
 				headers: {
 					'Content-Type': 'application/x-www-form-urlencoded'

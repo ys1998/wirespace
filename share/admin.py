@@ -19,4 +19,4 @@ class KeyAdmin(admin.ModelAdmin):
 
     
 admin.site.register(Key,KeyAdmin)
-admin.site.register(Token)
+# admin.site.register(Token)

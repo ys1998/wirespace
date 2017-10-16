@@ -2,6 +2,7 @@ from django.db import models
 import binascii
 import os
 import datetime
+from django.conf import settings
 
 # Create your models here.
 def gen_key(length=8):
@@ -36,8 +37,8 @@ class Key(models.Model):
 		return "%3.2f%s%s"%(num,'P', suffix)
 
 	def link(self):
-		ip='10.42.0.3' # Obtain IP and initialize it here
-		port='8000' # Obtain the port and initialize it here
+		ip=str(settings.HOST_IP) # Obtain IP and initialize it here
+		port=str(settings.PORT) # Obtain the port and initialize it here
 		return ip+":"+port+"/"+self.key
 
 	def save(self,*args,**kwargs):

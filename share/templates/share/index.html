@@ -19,18 +19,14 @@
 		<form id="downloadform" action="download/" method="POST">
 			<input type="text" name="target" id="targetlink">
 			<input type="submit" value="submit">
-			<input type="hidden" id="token" name="token" value="{{ token }}">
 		</form>
 		<form id="openform" action="open/" method="POST" target="_blank">
 			<input type="text" name="target" id="otargetlink">
 			<input type="submit" value="submit">
-			<input type="hidden" id="token" name="token" value="{{ token }}">
 		</form>
 	</div>
-	{% csrf_token %}
 	<div id="list" style="display: none;">
 		<form method="POST" action="{% url "search" %}">
-			{% csrf_token %}
 			<input type="text" name="query">
 			<input type="hidden" name='address' value={{ current_path }}>
 			<button class="search_button" type="submit">Upload text</button>
