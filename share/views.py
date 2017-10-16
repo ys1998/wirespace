@@ -4,18 +4,18 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 from django.shortcuts import render,redirect
-from django.http import HttpResponse, StreamingHttpResponse, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect, StreamingHttpResponse, JsonResponse, HttpResponseNotFound
 from django.core.files import File
 from django.views.decorators.csrf import csrf_exempt
-import os
+from django.template import loader
+import os,binascii
 import mimetypes
 import zipfile
 # importing models for authentication purpose
 from .models import *
 import glob
 from django.core.files.storage import FileSystemStorage
-from django.contrib.sessions.models import Session
-
+import shutil
 
 # Keep CACHE_DIR separate from the shared directory
 # Used for storing generated .zip files
@@ -42,7 +42,8 @@ def authenticate(request,k):
 					new_key=Key.objects.get(key=k)
 					IP=''
 					old_t.delete()
-					del request.session['token']
+					# del request.session['token']
+					request.session.flush()
 					new_t=Token.objects.create(link=new_key,ip=IP)
 					print(new_t.token)
 					request.session['token']=new_t.token
@@ -101,7 +102,6 @@ def get_dir(dirpath):
 		target = os.path.normpath(CACHE_DIR + dirpath + "/" + dir_name + ".zip")
 		
 		# checking if required .zip file already exists in CACHE_DIR 
-		# Add another check : whether contents of that dir have been updated after the .zip was created
 		if os.path.exists(target):
 			response = StreamingHttpResponse(
 				open(target,'rb'),
@@ -110,8 +110,7 @@ def get_dir(dirpath):
 			response['Content-Disposition'] = " attachment; filename={0}".format(dir_name+".zip")
 			response['Content-Length'] = os.path.getsize(target)
 			return response
-		# creating new .zip file if not already created
-		# if .zip has to be updated, remove existing .zip file and create new one in its place
+		# creating new .zip file if not already created 
 		else:
 			file_to_send = zipfile.ZipFile(target, 'x',zipfile.ZIP_DEFLATED)
 			
@@ -138,147 +137,153 @@ def get_dir(dirpath):
 def open_item(request):
 	sharedPath=None
 	if request.method == "POST":
-		token=None
-		if request.session['token']:
-			token=request.session['token']
-		if token is None:
+		if 'token' not in request.POST:
 			return JsonResponse({'status':'false','message':"Unauthorized access detected."}, status=403)
-		elif Token.objects.filter(token=token).count()==0:
+		elif Token.objects.filter(token=request.POST['token']).count()==0:
 			return JsonResponse({'status':'false','message':"Token is unidentifiable."}, status=404)
-		sharedPath=Token.objects.get(token=token).link.path_shared
-		if sharedPath!=None:
-			(root_path,shared_dir)=os.path.split(os.path.expanduser(sharedPath))
-			# target - path to requested item
-			addr = request.POST["target"]
-			addr = os.path.normpath(addr)
-			if addr == "" or addr == ".":
-				addr = shared_dir
-
-			# To prevent access of directories outside the shared path
-			if addr==os.path.join(root_path,addr):
-				return JsonResponse({'status':'false','message':"Open request prohibited."}, status=403)
-			
-			target = os.path.join(root_path, addr)
-
-			if os.path.isdir(target):
-				dir_items = os.listdir(target)
-				context = {
-					"path": addr,
-					"dirs": {},
-					"files": {},
-					"hidden":{}
-					}
-				for element in dir_items:
-					if not element[0] == '.':
-						if os.path.isdir(os.path.join(target, element)):
-							context["dirs"][os.path.join(addr, element)] = element
-						else:
-							context["files"][os.path.join(addr, element)] = element
-					else:
-						context["hidden"][os.path.join(addr, element)] = element
-
-				return JsonResponse(context)
-
-			elif os.path.exists(target):
-				return get_file(target, "open")
-
-			else:
-				return JsonResponse({'status':'false','message':"Could not resolve 'target'."}, status=500)
-		else:
-			return JsonResponse({'status':'false','message':"Shared path uninitialized."}, status=500)
+		sharedPath=Token.objects.get(token=request.POST['token']).link.path_shared
 	else:
-		return JsonResponse({'status':'false','message':"Invalid request format."}, status=404)
+		if 'token' not in request.session:
+			return JsonResponse({'status':'false','message':"Unauthorized access detected."}, status=403)
+		elif Token.objects.filter(token=request.POST['token']).count()==0:
+			return JsonResponse({'status':'false','message':"Token is unidentifiable."}, status=404)
+		sharedPath=Token.objects.get(token=request.POST['token']).link.path_shared
+
+	if sharedPath!=None:
+		(root_path,shared_dir)=os.path.split(os.path.expanduser(sharedPath))
+		# target - path to requested item
+		addr = request.POST["target"]
+		addr = os.path.normpath(addr)
+		if addr == "" or addr == ".":
+			addr = shared_dir
+
+		target = os.path.join(root_path, addr)
+
+		if os.path.isdir(target):
+			dir_items = os.listdir(target)
+			context = {
+				"path": addr,
+				"dirs": {},
+				"files": {},
+				"hidden":{}
+				}
+			for element in dir_items:
+				if not element[0] == '.':
+					if os.path.isdir(os.path.join(target, element)):
+						context["dirs"][os.path.join(addr, element)] = element
+					else:
+						context["files"][os.path.join(addr, element)] = element
+				else:
+					context["hidden"][os.path.join(addr, element)] = element
+
+			return JsonResponse(context)
+
+		elif os.path.exists(target):
+			return get_file(target, "open")
+
+		else:
+			# return ValueError("'target' field invalid in request")
+			return JsonResponse({'status':'false','message':"Could not resolve 'target'."}, status=500)
 
 
 # View to handle 'download' requests
 @csrf_exempt
 def download_item(request):
-	sharedPath=None
-	if request.method == "POST":
-		token=None
-		if request.session['token']:
-			token=request.session['token']
-		if token is None:
-			return JsonResponse({'status':'false','message':"Unauthorized access detected."}, status=403)
-		elif Token.objects.filter(token=token).count()==0:
-			return JsonResponse({'status':'false','message':"Token is unidentifiable."}, status=404)
-		
-		sharedPath=Token.objects.get(token=token).link.path_shared	
-		root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
+	if request.method=="POST":
+		if not request.POST.get('token',None):
+			return ValueError("Unauthorized access detected.")
+		elif Token.objects.filter(token=request.POST['token']).count()==0:
+			return ValueError("Token is unidentifiable.")
+
+		sharedPath=Token.objects.get(token=request.POST['token']).link.path_shared	
+		(root_path,shared_dir)=os.path.split(os.path.expanduser(sharedPath))
 		
 		addr = request.POST["target"]
 		addr = os.path.normpath(addr)
 		if addr == "" or addr == ".":
 			addr = shared_dir
 
-		# To prevent access of directories outside the shared path
-		if addr==os.path.join(root_path,addr):
-			return JsonResponse({'status':'false','message':"Download prohibited."}, status=403)
-		
 		target = os.path.join(root_path, addr)
-
 		if os.path.isdir(target):
 			return get_dir(target)
 		else:
 			return get_file(target, "download")
-	else:
-		return JsonResponse({'status':'false','message':"Invalid request format."}, status=404)
-
 @csrf_exempt
 def upload(request):
-	sharedPath=None
-	if request.method == "POST":
-		token=None
-		if request.session['token']:
-			token=request.session['token']
-		if token is None:
+	if request.method == 'POST':
+		if 'token' not in request.POST:
 			return JsonResponse({'status':'false','message':"Unauthorized access detected."}, status=403)
-		elif Token.objects.filter(token=token).count()==0:
+		elif Token.objects.filter(token=request.POST['token']).count()==0:
 			return JsonResponse({'status':'false','message':"Token is unidentifiable."}, status=404)
-		
-		sharedPath=Token.objects.get(token=token).link.path_shared
-		can_upload=(Token.objects.get(token=token).link.permission=='w')
+
+		sharedPath=Token.objects.get(token=request.POST['token']).link.path_shared
+		can_upload=(Token.objects.get(token=request.POST['token']).link.permission=='w')
 		root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
 		if can_upload:
 			myfile=request.FILES.get('ufile')
 			upload_path = request.POST['address']
-			upload_path=os.path.normpath(upload_path)
-			
-			# To prevent access of directories outside the shared path
-			if upload_path==os.path.join(root_path,upload_path):
-				return JsonResponse({'status':'false','message':"Upload to specified path prohibited."}, status=403)
-			
 			upload_path = os.path.join(root_path, upload_path)
+
 			# directly open the required path
 			fs=FileSystemStorage(location=upload_path)
 			filename=fs.save(myfile.name,myfile)
-			return HttpResponse('')
+			return HttpResponse("")
 		else:
-			return JsonResponse({'status':'false','message':"Upload prohibited."}, status=403)
+			return HttpResponseNotFound("Upload not authororized.")
 	else:
-		return JsonResponse({'status':'false','message':"Invalid request format."}, status=404)
+		return HttpResponseNotFound("Invalid request.")
+
+@csrf_exempt
+def delete(request):
+    if request.method == 'POST':
+        if 'token' not in request.POST:
+            return JsonResponse({'status':'false','message':"Unauthorized access detected."}, status=403)
+        elif Token.objects.filter(token=request.POST['token']).count()==0:
+            return JsonResponse({'status':'false','message':"Token is unidentifiable."}, status=404)
+        sharedPath=Token.objects.get(token=request.POST['token']).link.path_shared
+        can_upload=(Token.objects.get(token=request.POST['token']).link.permission=='w')
+        root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
+        if can_upload:
+            current_path=request.POST['address']
+            obj = request.POST['name']
+            directory = os.path.join(root_path,current_path)
+            directory = os.path.join(directory,obj)
+            if os.path.exists(directory):
+                shutil.rmtree(directory)
+            return HttpResponse("")
+
+@csrf_exempt
+def create_folder(request):
+    if request.method == 'POST':
+        if 'token' not in request.POST:
+            return JsonResponse({'status':'false','message':"Unauthorized access detected."}, status=403)
+        elif Token.objects.filter(token=request.POST['token']).count()==0:
+            return JsonResponse({'status':'false','message':"Token is unidentifiable."}, status=404)
+        sharedPath=Token.objects.get(token=request.POST['token']).link.path_shared
+        can_upload=(Token.objects.get(token=request.POST['token']).link.permission=='w')
+        root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
+        if can_upload:
+            current_path=request.POST['address']
+            folder = request.POST['folder_name']
+            directory = os.path.join(root_path,current_path)
+            directory = os.path.join(directory,folder)
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+            return HttpResponse("")
 
 @csrf_exempt
 def search(request):
 	if request.method != "POST":
-		return JsonResponse({'status':'false','message':"Invalid request format."}, status=404)
+		return HttpResponseNotFound("Request not sent properly")
 	else:
-		token=None
-		if request.session['token']:
-			token=request.session['token']
-		if token is None:
+		if 'token' not in request.POST:
 			return JsonResponse({'status':'false','message':"Unauthorized access detected."}, status=403)
-		elif Token.objects.filter(token=token).count()==0:
+		elif Token.objects.filter(token=request.POST['token']).count()==0:
 			return JsonResponse({'status':'false','message':"Token is unidentifiable."}, status=404)
-		
-		sharedPath=Token.objects.get(token=token).link.path_shared
+
+		sharedPath=Token.objects.get(token=request.POST['token']).link.path_shared
 		root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
 		current_path = request.POST['address']
-		
-		# To prevent access of directories outside the shared path
-		if current_path==os.path.join(root_path,current_path):
-			current_path=root_path
-
 		query = request.POST['query']
 
 		context={"dirs":{},"files":{},"hidden":{}}
