@@ -155,8 +155,9 @@ def open_item(request):
 				addr = shared_dir
 
 			# To prevent access of directories outside the shared path
-			if addr in root_path:
-				addr=root_path
+			if addr==os.path.join(root_path,addr):
+				return JsonResponse({'status':'false','message':"Open request prohibited."}, status=403)
+			
 			target = os.path.join(root_path, addr)
 
 			if os.path.isdir(target):
@@ -210,8 +211,10 @@ def download_item(request):
 		if addr == "" or addr == ".":
 			addr = shared_dir
 
-		if addr in root_path:
-			addr=root_path
+		# To prevent access of directories outside the shared path
+		if addr==os.path.join(root_path,addr):
+			return JsonResponse({'status':'false','message':"Download prohibited."}, status=403)
+		
 		target = os.path.join(root_path, addr)
 
 		if os.path.isdir(target):
@@ -241,8 +244,9 @@ def upload(request):
 			upload_path = request.POST['address']
 			upload_path=os.path.normpath(upload_path)
 			
-			if upload_path in root_path:
-				upload_path=root_path
+			# To prevent access of directories outside the shared path
+			if upload_path==os.path.join(root_path,upload_path):
+				return JsonResponse({'status':'false','message':"Upload to specified path prohibited."}, status=403)
 			
 			upload_path = os.path.join(root_path, upload_path)
 			# directly open the required path
@@ -270,6 +274,11 @@ def search(request):
 		sharedPath=Token.objects.get(token=token).link.path_shared
 		root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
 		current_path = request.POST['address']
+		
+		# To prevent access of directories outside the shared path
+		if current_path==os.path.join(root_path,current_path):
+			current_path=root_path
+
 		query = request.POST['query']
 
 		context={"dirs":{},"files":{},"hidden":{}}

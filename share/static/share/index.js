@@ -22350,11 +22350,6 @@ var Content = function (_React$Component8) {
 /*****************************************
 FUNCTION TO EXTRACT COOKIE FROM DOCUMENT
 *****************************************/
-function getCookie(name) {
-  var cookie_str=document.cookie;
-  console.log(cookie_str);
-}
-
 var App = function (_React$Component9) {
 
 	_inherits(App, _React$Component9);
@@ -22378,13 +22373,10 @@ var App = function (_React$Component9) {
 		key: 'get_request',
 		value: function get_request(param) {
 			var _this19 = this;
-      // Extract sessionid from cookies and send from here
-      var sid=getCookie('sessionid');
-			//Change this when deploying:
+      //Change this when deploying:
 			_axios2.default.post('open/', _queryString2.default.stringify({
 				target: param,
-        sessionid: sid
-			}), {
+      }), {
 				headers: {
 					'Content-Type': 'application/x-www-form-urlencoded'
 				}
@@ -22406,18 +22398,13 @@ var App = function (_React$Component9) {
 		key: 'handleSearch',
 		value: function handleSearch() {
 			var _this20 = this;
-
-			console.log("Querying");
-			var query = document.getElementById('searchBar').value;
-			console.log(query);
+  		var query = document.getElementById('searchBar').value;
 			if (query != '') {
 				//console.log(query);
-        var t=document.forms['openform'].elements[2].value;
-				_axios2.default.post('search/', _queryString2.default.stringify({
+        _axios2.default.post('search/', _queryString2.default.stringify({
 					address: this.state.path,
 					query: query,
-          token: t
-				}), {
+        }), {
 					headers: {
 						'Content-Type': 'application/x-www-form-urlencoded'
 					}
@@ -22469,8 +22456,7 @@ var App = function (_React$Component9) {
 			var file = document.querySelector('#ufile');
 			formData.append("ufile", file.files[0]);
 			formData.append("address", this.state.path);
-      formData.append("token",document.forms['openform'].elements[2].value);
-			_axios2.default.post('upload/', formData, {
+      _axios2.default.post('upload/', formData, {
 				headers: {
 					'Content-Type': 'multipart/form-data'
 				}
