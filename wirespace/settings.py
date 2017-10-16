@@ -34,8 +34,9 @@ ALLOWED_HOSTS = [HOST_IP,'localhost']
 # Application definition
 
 INSTALLED_APPS = [
-    'corsheaders',          #Cross domain request module (Development)
     'share.apps.ShareConfig',
+    'suit',
+    'corsheaders',          #Cross domain request module (Development)
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -43,7 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',    
 ]
-
+SUIT_CONFIG={'ADMIN_NAME':'Wirespace'}
 CORS_ORIGIN_ALLOW_ALL = True
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
 SESSION_EXPIRE_AT_BROWSER_CLOSE= True
@@ -63,11 +64,10 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'wirespace.urls'
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -118,7 +118,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 

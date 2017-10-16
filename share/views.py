@@ -52,7 +52,7 @@ def authenticate(request,k):
 				IP='' # get IP from request here
 				t=Token.objects.create(link=key,ip=IP)
 				request.session['token']=t.token
-		request.session.set_expiry(1800) # token expires after 30 minutes
+		request.session.set_expiry(3600) # token expires after 60 minutes
 		return redirect('/share/',permanent=True)
 
 def home(request):

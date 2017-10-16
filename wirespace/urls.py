@@ -21,6 +21,6 @@ urlpatterns = [
 	url(r'^(?P<k>[a-f0-9]{16})/$',authenticate,name='authenticate'),
 	url(r'^',include('share.urls')),
     url(r'^share/',include('share.urls')),
-    url(r'^admin/', admin.site.urls),
+    url(r'^host/', admin.site.urls),
 ]
 
