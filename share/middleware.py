@@ -12,7 +12,6 @@ CHECK_LIST = [
 	'/share/search/',
 ]
 IGNORE_LIST = [
-	'/host/',
 	'/share/',
 	r'/[0-9a-f]{16}/',
 ]
@@ -32,7 +31,7 @@ class AuthenticateTokenMiddleware(MiddlewareMixin):
 			else:
 				return JsonResponse({'status':'false','message':"Invalid request format."}, status=404)
 		else:
-			if request.get_full_path() in IGNORE_LIST:
+			if request.get_full_path() in IGNORE_LIST or request.get_full_path().startswith('/host/'):
 				return None
 			else:
 				return JsonResponse({'status':'false','message':"Invalid request to {0}.".format(request.get_full_path())}, status=404)
