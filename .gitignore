@@ -3,3 +3,4 @@
 media/
 .DS_Store
 **/._.DS_Store
+db.sqlite
