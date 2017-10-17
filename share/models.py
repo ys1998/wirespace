@@ -46,6 +46,10 @@ class Key(models.Model):
 			self.created_on=datetime.datetime.now()
 		if self.expires_on==None:
 			self.expires_on=self.created_on+datetime.timedelta(weeks=1)
+		if self.path_shared.strip()=="":
+			self.path_shared="/"
+		else:
+			self.path_shared=self.path_shared.strip()
 		super().save(*args,**kwargs)
 
 # hidden model to maintain tokens

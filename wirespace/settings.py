@@ -61,6 +61,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'share.middleware.AuthenticateTokenMiddleware',
 ]
 
 ROOT_URLCONF = 'wirespace.urls'
