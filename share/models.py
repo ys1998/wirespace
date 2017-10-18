@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone as dj_tz
 import binascii
 import os
 import datetime
@@ -15,17 +16,17 @@ class Key(models.Model):
 	key=models.CharField(max_length=8,default=gen_key,editable=False,	primary_key=True,help_text="This value is temporary. Use the final value after saving.")
 	permission=models.CharField(max_length=1,choices=(('r','Read-only'),('w','Read-and-Write')),default='r')
 	shared_to=models.CharField(max_length=30,default="Anonymous")
-	email=models.EmailField(max_length=254,help_text="E-mail of the person with whom the space is shared",null=True)
+	email=models.EmailField(max_length=254,help_text="E-mail of the person with whom the space is shared",null=True,blank=True)
 	space_allotted=models.BigIntegerField(help_text="Space you want to share in BYTES",default=4096)
 	path_shared=models.TextField(default=os.path.expanduser("~"),max_length=100)
-	created_on=models.DateTimeField(auto_now_add=True)
+	created_on=models.DateTimeField(default=dj_tz.now(),editable=False)
 	expires_on=models.DateTimeField(default=None)
 
 	def __str__(self):
 		return self.shared_to+" -> "+self.path_shared
 
 	def time_slot(self):
-		return "{:%d %b %Y, %X}".format(self.created_on)+" --- "+"{:%d %b %Y, %X}".format(self.expires_on)
+		return "{:%d %b %Y, %I:%M:%S %p}".format(dj_tz.localtime(self.created_on))+" --- "+"{:%d %b %Y, %I:%M:%S %p}".format(dj_tz.localtime(self.expires_on))
 
 	def space_shared(self):
 		suffix='B'
@@ -42,14 +43,16 @@ class Key(models.Model):
 		return ip+":"+port+"/"+self.key
 
 	def save(self,*args,**kwargs):
-		if self.created_on==None:
-			self.created_on=datetime.datetime.now()
+		self.created_on=dj_tz.now()
 		if self.expires_on==None:
 			self.expires_on=self.created_on+datetime.timedelta(weeks=1)
 		if self.path_shared.strip()=="":
 			self.path_shared="/"
 		else:
 			self.path_shared=self.path_shared.strip()
+
+		print(self.created_on)
+		print(self.expires_on)
 		super().save(*args,**kwargs)
 
 # hidden model to maintain tokens
