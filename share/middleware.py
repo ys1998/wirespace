@@ -2,8 +2,10 @@
 from django.http import HttpResponse,JsonResponse
 from django.utils.deprecation import MiddlewareMixin
 from .models import *
+import re
 
 CHECK_LIST = [
+	'/share/',
 	'/share/open/',
 	'/share/upload/',
 	'/share/download/',
@@ -11,10 +13,13 @@ CHECK_LIST = [
 	'/share/create_folder/',
 	'/share/search/',
 ]
-IGNORE_LIST = [
+
+POST_IGNORE_LIST = [
 	'/share/',
-	r'/[0-9a-f]{16}/',
 ]
+
+re_host=re.compile('/host/.*')
+re_key=re.compile('/[0-9a-f]{16}/$')
 
 class AuthenticateTokenMiddleware(MiddlewareMixin):
 	def process_request(self,request):
@@ -29,10 +34,15 @@ class AuthenticateTokenMiddleware(MiddlewareMixin):
 					print("Valid request.")
 					return None
 			else:
-				return JsonResponse({'status':'false','message':"Invalid request format."}, status=404)
+				if request.get_full_path() in POST_IGNORE_LIST:
+					print("Valid request.")
+					return None
+				else:
+					return JsonResponse({'status':'false','message':"Invalid request format."}, status=404)
 		else:
-			# if request.get_full_path() in IGNORE_LIST or request.get_full_path().startswith('/host/'):
-			# 	return None
-			# else:
-			# 	return JsonResponse({'status':'false','message':"Invalid request to {0}.".format(request.get_full_path())}, status=404)
-			return None
+			path=request.get_full_path()
+			if re_host.match(path) is None and re_key.match(path) is None:
+				return JsonResponse({'status':'false','message':"Invalid request to {0}.".format(request.get_full_path())}, status=404)
+			else:
+				return None
+			
