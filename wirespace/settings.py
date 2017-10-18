@@ -15,6 +15,10 @@ import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+# Default port and IP settings
+PORT = 8000
+HOST_IP = '10.42.0.1'
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
@@ -24,14 +28,15 @@ SECRET_KEY = '4n+@8%(55ui*!wn%8+4)s)g4@2nd%mem3c6^@%*rrw_9j8y&qe'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost','10.42.0.1']
+ALLOWED_HOSTS = [HOST_IP,'localhost']
 
 
 # Application definition
 
 INSTALLED_APPS = [
-    'corsheaders',          #Cross domain request module (Development)
     'share.apps.ShareConfig',
+    'suit',
+    'corsheaders',          #Cross domain request module (Development)
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -39,7 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',    
 ]
-
+SUIT_CONFIG={'ADMIN_NAME':'Wirespace'}
 CORS_ORIGIN_ALLOW_ALL = True
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
 SESSION_EXPIRE_AT_BROWSER_CLOSE= True
@@ -47,6 +52,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE= True
 MEDIA_URL = '/media/'
 
 MIDDLEWARE = [
+    # Add custom middleware here
     'corsheaders.middleware.CorsMiddleware',    #CORS Module (Development)
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -55,14 +61,14 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'share.middleware.AuthenticateTokenMiddleware',
 ]
 
 ROOT_URLCONF = 'wirespace.urls'
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -113,7 +119,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 

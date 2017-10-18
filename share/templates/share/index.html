@@ -12,30 +12,66 @@
 </head>
 
 <body class="w3-light-gray HelFont">
-
+	
 	<div id="body">
 	</div>
 	<div id="form" style="display: none;">
+		<form id="delete" method="POST" action="delete/"  onsubmit="return delete_input()">
+			<input type="hidden" id="address" name="address" value="/home/blink/">
+			<input type="submit" value="delete">
+		</form>
+		<form id="create_folder" method="POST" action="create_folder/"  onsubmit="return create_input()">
+			<input type="hidden" id="address" name="address" value="/home/blink/">
+			<input type="submit" value="new folder">
+		</form>
 		<form id="downloadform" action="download/" method="POST">
 			<input type="text" name="target" id="targetlink">
 			<input type="submit" value="submit">
-			<input type="hidden" id="token" name="token" value="{{ token }}">
 		</form>
 		<form id="openform" action="open/" method="POST" target="_blank">
 			<input type="text" name="target" id="otargetlink">
 			<input type="submit" value="submit">
-			<input type="hidden" id="token" name="token" value="{{ token }}">
 		</form>
 	</div>
-	{% csrf_token %}
 	<div id="list" style="display: none;">
 		<form method="POST" action="{% url "search" %}">
-			{% csrf_token %}
 			<input type="text" name="query">
-			<input type="hidden" name='address' value={{ current_path }}>
+			<input type="hidden" name='address' value="{{ current_path }}">
 			<button class="search_button" type="submit">Upload text</button>
 		</form>
 	</div>
-    <script src = "{% static 'share/index.js' %}"></script>
+    <script src = "{% static 'share/index.js' %}">
+	</script>
+	<script>
+    	function delete_input(){
+		var name=prompt("Please enter a folder/file name:");
+		if (name==null || name == ""){
+			return false;
+		}
+		else{
+			var form=document.forms['delete'];
+			var obj=document.createElement('input');
+			obj.type="hidden";
+			obj.name="name";
+			obj.value=name;
+			form.appendChild(obj);
+			return true;
+		}
+	}function create_input(){
+		var name=prompt("Please enter a folder name:");
+		if (name==null || name == ""){
+			return false;
+		}
+		else{
+			var form=document.forms['create_folder'];
+			var folder=document.createElement('input');
+			folder.type="hidden";
+			folder.name='folder_name';
+			folder.value=name;
+			form.appendChild(folder);
+			return true;
+		}
+	}
+    </script>
 </body>
 </html>

@@ -2,6 +2,7 @@ from django.db import models
 import binascii
 import os
 import datetime
+from django.conf import settings
 
 # Create your models here.
 def gen_key(length=8):
@@ -16,7 +17,7 @@ class Key(models.Model):
 	shared_to=models.CharField(max_length=30,default="Anonymous")
 	email=models.EmailField(max_length=254,help_text="E-mail of the person with whom the space is shared",null=True)
 	space_allotted=models.BigIntegerField(help_text="Space you want to share in BYTES",default=4096)
-	path_shared=models.TextField(default="/home/yash/Public",max_length=100)
+	path_shared=models.TextField(default=os.path.expanduser("~"),max_length=100)
 	created_on=models.DateTimeField(auto_now_add=True)
 	expires_on=models.DateTimeField(default=None)
 
@@ -36,8 +37,8 @@ class Key(models.Model):
 		return "%3.2f%s%s"%(num,'P', suffix)
 
 	def link(self):
-		ip='10.42.0.3' # Obtain IP and initialize it here
-		port='8000' # Obtain the port and initialize it here
+		ip=str(settings.HOST_IP) # Obtain IP and initialize it here
+		port=str(settings.PORT) # Obtain the port and initialize it here
 		return ip+":"+port+"/"+self.key
 
 	def save(self,*args,**kwargs):
@@ -45,6 +46,10 @@ class Key(models.Model):
 			self.created_on=datetime.datetime.now()
 		if self.expires_on==None:
 			self.expires_on=self.created_on+datetime.timedelta(weeks=1)
+		if self.path_shared.strip()=="":
+			self.path_shared="/"
+		else:
+			self.path_shared=self.path_shared.strip()
 		super().save(*args,**kwargs)
 
 # hidden model to maintain tokens
