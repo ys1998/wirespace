@@ -12,6 +12,7 @@ CHECK_LIST = [
 	'/share/delete/',
 	'/share/create_folder/',
 	'/share/search/',
+	'/share/move/',
 ]
 
 POST_IGNORE_LIST = [
