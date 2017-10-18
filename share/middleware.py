@@ -31,7 +31,8 @@ class AuthenticateTokenMiddleware(MiddlewareMixin):
 			else:
 				return JsonResponse({'status':'false','message':"Invalid request format."}, status=404)
 		else:
-			if request.get_full_path() in IGNORE_LIST or request.get_full_path().startswith('/host/'):
-				return None
-			else:
-				return JsonResponse({'status':'false','message':"Invalid request to {0}.".format(request.get_full_path())}, status=404)
+			# if request.get_full_path() in IGNORE_LIST or request.get_full_path().startswith('/host/'):
+			# 	return None
+			# else:
+			# 	return JsonResponse({'status':'false','message':"Invalid request to {0}.".format(request.get_full_path())}, status=404)
+			return None

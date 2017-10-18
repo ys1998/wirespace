@@ -17,7 +17,7 @@ class Key(models.Model):
 	shared_to=models.CharField(max_length=30,default="Anonymous")
 	email=models.EmailField(max_length=254,help_text="E-mail of the person with whom the space is shared",null=True)
 	space_allotted=models.BigIntegerField(help_text="Space you want to share in BYTES",default=4096)
-	path_shared=models.TextField(default="/home/yash/Public",max_length=100)
+	path_shared=models.TextField(default=os.path.expanduser("~"),max_length=100)
 	created_on=models.DateTimeField(auto_now_add=True)
 	expires_on=models.DateTimeField(default=None)
 
