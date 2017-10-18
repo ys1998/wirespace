@@ -1,3 +1,4 @@
+
 <!-- serve static files -->
 {% load static %}
 <!DOCTYPE HTML>
@@ -16,12 +17,17 @@
 	<div id="body">
 	</div>
 	<div id="form" style="display: none;">
+		<form id="rename" method="POST" action="move/"  onsubmit="return rename_input()">
+			<input type="hidden" id="source_address" name="source_address" value="">
+			<input type="hidden" id="target_address" name="target_address" value=''>
+			<input type="submit" value="rename">
+		</form>
 		<form id="delete" method="POST" action="delete/"  onsubmit="return delete_input()">
-			<input type="hidden" id="address" name="address" value="/home/blink/">
+			<input type="hidden" id="address" name="address" value="">
 			<input type="submit" value="delete">
 		</form>
 		<form id="create_folder" method="POST" action="create_folder/"  onsubmit="return create_input()">
-			<input type="hidden" id="address" name="address" value="/home/blink/">
+			<input type="hidden" id="address" name="address" value="">
 			<input type="submit" value="new folder">
 		</form>
 		<form id="downloadform" action="download/" method="POST">
@@ -43,7 +49,32 @@
     <script src = "{% static 'share/index.js' %}">
 	</script>
 	<script>
-    	function delete_input(){
+		function rename_input(){
+		var name=prompt("Please enter the source folder/file name:");
+		if (name==null || name == ""){
+			return false;
+		}
+		else{
+			var form=document.forms['rename'];
+			var obj=document.createElement('input');
+			obj.type="hidden";
+			obj.name="source_name";
+			obj.value=name;
+			form.appendChild(obj);
+			tname=prompt("Please enter the target folder/file name:");
+			if (tname==null || tname == ""){
+				return false;
+			}
+			else{
+				var obj2=document.createElement('input');
+				obj2.type="hidden";
+				obj2.name="target_name";
+				obj2.value=tname;
+				form.appendChild(obj2);
+				return true;	
+			}
+		}
+	}function delete_input(){
 		var name=prompt("Please enter a folder/file name:");
 		if (name==null || name == ""){
 			return false;
