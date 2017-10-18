@@ -14,6 +14,7 @@ import zipfile
 # importing models for authentication purpose
 from .models import *
 import glob
+import shutil
 
 
 # Keep CACHE_DIR separate from the shared directory
@@ -288,6 +289,6 @@ def move(request):
 	print(source_path)
 	if not os.path.exists(target_path):
 		shutil.move(source_path,target_path)
-		HttpResponse("")
+		return HttpResponse("")
 	else:
 		return HttpResponseError("file/folder already exists")
