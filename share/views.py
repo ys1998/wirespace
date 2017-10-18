@@ -244,39 +244,50 @@ def search(request):
 @csrf_exempt
 def delete(request):
 	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared
-	can_edit=(Token.objects.get(token=request.session['token']).link.permission=='w')
-	root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
-	if can_edit:
-		current_path=request.POST['address']
-		obj = request.POST['name']
-		if current_path==os.path.join(root_path,current_path):
-			return JsonResponse({'status':'false','message':"Deleting specified path is prohibited."}, status=403)
-		directory = os.path.join(root_path,current_path)
-		if obj==os.path.join(directory,obj):
-			return JsonResponse({'status':'false','message':"Deleting specified path is prohibited."}, status=403)
-		directory = os.path.join(directory,obj)
-		if os.path.exists(directory):
-			shutil.rmtree(directory)
+	
+	current_path=request.POST['address']
+	obj = request.POST['name']
+	
+	directory = os.path.join(sharedPath,current_path)
+	directory = os.path.join(directory,obj)
+	if os.path.isdir(directory):
+		shutil.rmtree(directory)
+		return HttpResponse("")
+	elif os.path.isfile(directory):
+		os.remove(directory)
 		return HttpResponse("")
 	else:
-		return JsonResponse({'status':'false','message':"Access denied."}, status=403)
-
+		return HttpResponseError("not found")
 @csrf_exempt
 def create_folder(request):
-	sharedPath=Token.objects.get(token=token).link.path_shared
-	can_edit=(Token.objects.get(token=token).link.permission=='w')
-	root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
-	if can_edit:
-		current_path=request.POST['address']
-		folder = request.POST['folder_name']
-		if current_path==os.path.join(root_path,current_path):
-			return JsonResponse({'status':'false','message':"Access denied."}, status=403)
-		directory = os.path.join(root_path,current_path)
-		if folder==os.path.join(directory,folder):
-			return JsonResponse({'status':'false','message':"Access denied."}, status=403)
-		directory = os.path.join(directory,folder)
-		if not os.path.exists(directory):
-			os.makedirs(directory)
-		return HttpResponse("")
+	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared	
+	
+	current_path=request.POST['address']
+	folder = request.POST['folder_name']
+	
+	directory = os.path.join(sharedPath,current_path)
+	directory = os.path.join(directory,folder)
+	
+	if not os.path.exists(directory):
+		os.makedirs(directory)
+	return HttpResponse("")
+
+@csrf_exempt
+def move(request):
+	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared	
+	print(sharedPath)
+
+	source_path=request.POST['source_address']
+	target_path=request.POST['target_address']
+	source = request.POST['source_name']
+	target = request.POST['target_name']
+	source_path = os.path.join(sharedPath,source_path)
+	source_path = os.path.join(source_path,source)
+	target_path = os.path.join(sharedPath,target_path)
+	target_path = os.path.join(target_path,target)
+	print(source_path)
+	if not os.path.exists(target_path):
+		shutil.move(source_path,target_path)
+		HttpResponse("")
 	else:
-		return JsonResponse({'status':'false','message':"Access denied."}, status=403)
+		return HttpResponseError("file/folder already exists")

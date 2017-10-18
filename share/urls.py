@@ -9,5 +9,6 @@ urlpatterns=[
         url(r'^upload/$',views.upload,name='upload'),
         url(r'^create_folder/$',views.create_folder,name='create_folder'),
         url(r'^delete/$',views.delete,name='delete'),
+        url(r'^move/$',views.move,name='move'),
         #url(r'^admin/$',views.home,name='home'),
 ]
