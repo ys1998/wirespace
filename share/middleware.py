@@ -14,6 +14,7 @@ CHECK_LIST = [
 	'/share/delete/',
 	'/share/create_folder/',
 	'/share/search/',
+	'/share/move/',
 ]
 
 MEMORY_CHECK_LIST = [
