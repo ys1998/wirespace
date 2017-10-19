@@ -300,15 +300,20 @@ def move(request):
 def uploadFolder(request):
 	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared	
 	
+	#Get the base address, list of addresses corresponding to each file in the uploaded folder
 	address = request.POST['address']
 	address_list = request.POST['address_list'].split(',')
 	contents = request.FILES.getlist('directory');
+	
 	for path,file in zip(address_list,contents):
-		directory = os.path.dirname(path)
+		directory = os.path.dirname(os.path.join(address,path))
 		directory = os.path.join(sharedPath,directory)
+		#if the directories do not exist, create the directories
 		if not os.path.exists(directory):
 			os.makedirs(directory)
-		if not os.path.isfile(os.path.join(sharedPath,path)):
+		#if a file with the same name does not exist previously, create the file
+		if not os.path.exists(os.path.join(directory,file.name)):
 			fs=FileSystemStorage(location=directory)
-			fs.save(file.name,file)	
+			fs.save(file.name,file)
+
 	return HttpResponse('');
