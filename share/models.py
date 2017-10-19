@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone as dj_tz
+from django.core.validators import ValidationError
 import binascii
 import os
 import datetime
@@ -19,7 +20,7 @@ class Key(models.Model):
 	email=models.EmailField(max_length=254,help_text="E-mail of the person with whom the space is shared",null=True,blank=True)
 	space_allotted=models.BigIntegerField(help_text="Space you want to share in BYTES",default=4096)
 	path_shared=models.TextField(default=os.path.expanduser("~"),max_length=100)
-	created_on=models.DateTimeField(default=dj_tz.now(),editable=False)
+	created_on=models.DateTimeField(auto_now_add=True)
 	expires_on=models.DateTimeField(default=None)
 
 	def __str__(self):
@@ -42,8 +43,14 @@ class Key(models.Model):
 		port=str(settings.PORT) # Obtain the port and initialize it here
 		return ip+":"+port+"/"+self.key
 
+	def clean(self):
+		if dj_tz.localtime(self.expires_on)<=dj_tz.localtime(self.created_on):
+			raise ValidationError("expires_on : Expiration time must come after creation time.")
+
+		if not os.path.isdir(self.path_shared):
+			raise ValidationError("path_shared : Enter a valid directory for sharing.")
+
 	def save(self,*args,**kwargs):
-		self.created_on=dj_tz.now()
 		if self.expires_on==None:
 			self.expires_on=self.created_on+datetime.timedelta(weeks=1)
 		if self.path_shared.strip()=="":
@@ -51,8 +58,6 @@ class Key(models.Model):
 		else:
 			self.path_shared=self.path_shared.strip()
 
-		print(self.created_on)
-		print(self.expires_on)
 		super().save(*args,**kwargs)
 
 # hidden model to maintain tokens

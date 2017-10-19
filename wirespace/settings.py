@@ -17,7 +17,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Default port and IP settings
 PORT = 8000
-HOST_IP = '10.42.0.1'
+HOST_IP = '0.0.0.0'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
@@ -52,7 +52,6 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE= True
 MEDIA_URL = '/media/'
 
 MIDDLEWARE = [
-    # Add custom middleware here
     'corsheaders.middleware.CorsMiddleware',    #CORS Module (Development)
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -61,7 +60,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # Add custom middleware here
     'share.middleware.AuthenticateTokenMiddleware',
+    'share.middleware.ExpireKeyMiddleware',    
 ]
 
 ROOT_URLCONF = 'wirespace.urls'
