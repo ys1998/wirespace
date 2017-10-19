@@ -267,17 +267,25 @@ def delete(request):
 def create_folder(request):
 	sharedPath = Token.objects.get(token=request.session['token']).link.path_shared	
 	root_path = os.path.dirname(sharedPath)
-
-	current_path=request.POST['address']
-	folder = request.POST['folder_name']
-	
-	directory = os.path.join(root_path, current_path)
-	directory = os.path.join(directory, folder)
-	print(current_path)
-	print(folder)
-	if not os.path.exists(directory):
-		os.makedirs(directory)
-	return HttpResponse("")
+	can_edit=(Token.objects.get(token=request.session['token']).link.permission=='w')
+	if can_edit:
+		current_path=request.POST['address']
+		folder = request.POST['folder_name']
+		
+		if current_path==os.path.join(root_path, current_path):
+			return JsonResponse({'status':'false','message':"Folder creation in specified path denied."}, status=403)
+		
+		directory = os.path.join(root_path, current_path)
+		
+		if folder==os.path.join(directory, folder):
+			return JsonResponse({'status':'false','message':"Folder creation in specified path denied."}, status=403)
+		
+		directory = os.path.join(directory, folder)
+		if not os.path.exists(directory):
+			os.makedirs(directory)
+		return HttpResponse("")
+	else:
+		return JsonResponse({'status':'false','message':"Folder creation denied."}, status=403)
 
 @csrf_exempt
 def move(request):
