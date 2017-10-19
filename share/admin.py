@@ -8,7 +8,7 @@ from .models import Key,Token
 class KeyAdmin(admin.ModelAdmin):
     readonly_fields=('key','created_on')
     fields=['key','created_on','expires_on','path_shared','permission','space_allotted','shared_to','email']
-    list_display=('link','shared_to','path_shared','time_slot','space_shared','permission')
+    list_display=('link','shared_to','path_shared','time_slot','space_available','permission')
     formfield_overrides = {
     	models.TextField: {
     		'widget': Textarea(

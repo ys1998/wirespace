@@ -81,12 +81,3 @@ class ExpireKeyMiddleware(MiddlewareMixin):
 				return None
 		else:
 			return None
-
-# class ManageSpaceMiddleware(MiddlewareMixin):
-# 	def process_request(self,request):
-
-
-# 	def process_response():
-
-
-			

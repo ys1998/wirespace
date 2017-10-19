@@ -29,7 +29,7 @@ class Key(models.Model):
 	def time_slot(self):
 		return "{:%d %b %Y, %I:%M:%S %p}".format(dj_tz.localtime(self.created_on))+" --- "+"{:%d %b %Y, %I:%M:%S %p}".format(dj_tz.localtime(self.expires_on))
 
-	def space_shared(self):
+	def space_available(self):
 		suffix='B'
 		num=self.space_allotted
 		for unit in ['','K','M','G','T']:

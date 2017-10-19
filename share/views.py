@@ -194,10 +194,19 @@ def download_item(request):
 @csrf_exempt
 def upload(request):
 	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared
-	can_edit=(Token.objects.get(token=request.session['token']).link.permission=='w')
 	root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
+
+	can_edit=(Token.objects.get(token=request.session['token']).link.permission=='w')
 	if can_edit:
+		t_Object=Token.objects.get(token=request.session['token'])
+		k_Object=t_Object.link
+		space_available=k_Object.space_allotted
+		
 		myfile=request.FILES.get('ufile')
+		# Checking for available space
+		if myfile.size>space_available:
+			return JsonResponse({'status':'false','message':"Upload denied."}, status=413)
+
 		upload_path = request.POST['address']
 		upload_path=os.path.normpath(upload_path)
 		
@@ -209,6 +218,10 @@ def upload(request):
 		# directly open the required path
 		fs=FileSystemStorage(location=upload_path)
 		filename=fs.save(myfile.name,myfile)
+
+		# Update available space
+		k_Object.space_allotted-=myfile.size
+		k_Object.save()
 		return HttpResponse('')
 	else:
 		return JsonResponse({'status':'false','message':"Upload denied."}, status=403)
