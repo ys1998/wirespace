@@ -17,6 +17,10 @@
 	<div id="body">
 	</div>
 	<div id="form" style="display: none;">
+		<form id="uploadFolder" method="POST" action="uploadFolder/" enctype="multipart/form-data" >
+			<input type="hidden" id="address" name="address" value=''>
+			<input style="display:block;" id="uploadDir" type="file" name="directory" webkitdirectory>
+		</form>
 		<form id="rename" method="POST" action="move/"  onsubmit="return rename_input()">
 			<input type="hidden" id="source_address" name="source_address" value="">
 			<input type="hidden" id="target_address" name="target_address" value=''>
@@ -38,7 +42,21 @@
     <script src = "{% static 'share/index.js' %}">
 	</script>
 	<script>
-		function rename_input(){
+		document.getElementById("uploadDir").addEventListener("change", function(event) {
+			  var files = event.target.files;
+			  var address_list=[];
+			  for (var i=0; i<files.length; i++) {
+			    address_list.push(files[i].webkitRelativePath);
+			  };
+			  	var form=document.forms['uploadFolder'];
+				var obj=document.createElement('input');
+				obj.type="hidden";
+				obj.name="address_list";
+				obj.value=address_list;
+				form.appendChild(obj);
+				form.submit();
+			}, false);
+	function rename_input(){
 		var name=prompt("Please enter the source folder/file name:");
 		if (name==null || name == ""){
 			return false;

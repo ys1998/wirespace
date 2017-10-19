@@ -10,6 +10,7 @@ CHECK_LIST = [
 	'/share/',
 	'/share/open/',
 	'/share/upload/',
+	'/share/uploadFolder/',
 	'/share/download/',
 	'/share/delete/',
 	'/share/create_folder/',

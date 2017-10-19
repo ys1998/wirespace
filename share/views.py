@@ -294,3 +294,21 @@ def move(request):
 		return HttpResponse("")
 	else:
 		return HttpResponseError("file/folder already exists")
+
+
+@csrf_exempt
+def uploadFolder(request):
+	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared	
+	
+	address = request.POST['address']
+	address_list = request.POST['address_list'].split(',')
+	contents = request.FILES.getlist('directory');
+	for path,file in zip(address_list,contents):
+		directory = os.path.dirname(path)
+		directory = os.path.join(sharedPath,directory)
+		if not os.path.exists(directory):
+			os.makedirs(directory)
+		if not os.path.isfile(os.path.join(sharedPath,path)):
+			fs=FileSystemStorage(location=directory)
+			fs.save(file.name,file)	
+	return HttpResponse('');
