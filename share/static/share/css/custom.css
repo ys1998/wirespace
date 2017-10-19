@@ -7,11 +7,27 @@ input[type="file"] {
 }
 
 .Actionbuttonstyle{
-	height: 35px; margin-left: 18%; width: 60%; font-size: 11pt; font-weight: bold; padding-top: 7px;
+	height: 35px; margin-left: 18%; width: 60%; 
+}
+
+.Actionbold{
+	font-size: 11pt; font-weight: bold;
 }
 
 .ActionBoxStyle {
 	width: 200px;
+}
+
+.Actionlong {
+	min-width: 150px;
+}
+
+.ActionIcon {
+	color: gray; padding-right: 10px;
+}
+
+.light-emph:hover {
+	color:#000!important; background-color:#f8f8f8!important;
 }
 
 .AddressStyle {
@@ -62,7 +78,7 @@ input[type="file"] {
 }
 
 .NavBarStyle {
-	padding-top: 10px; padding-bottom: 10px; overflow: auto;
+	padding-top: 10px; padding-bottom: 10px;
 }
 
 .ContentStyle {

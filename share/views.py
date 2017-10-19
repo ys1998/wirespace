@@ -261,14 +261,16 @@ def delete(request):
 		return HttpResponseError("not found")
 @csrf_exempt
 def create_folder(request):
-	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared	
-	
+	sharedPath = Token.objects.get(token=request.session['token']).link.path_shared	
+	root_path = os.path.dirname(sharedPath)
+
 	current_path=request.POST['address']
 	folder = request.POST['folder_name']
 	
-	directory = os.path.join(sharedPath,current_path)
-	directory = os.path.join(directory,folder)
-	
+	directory = os.path.join(root_path, current_path)
+	directory = os.path.join(directory, folder)
+	print(current_path)
+	print(folder)
 	if not os.path.exists(directory):
 		os.makedirs(directory)
 	return HttpResponse("")
