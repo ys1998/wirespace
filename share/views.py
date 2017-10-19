@@ -197,7 +197,7 @@ def upload(request):
 	can_edit=(Token.objects.get(token=request.session['token']).link.permission=='w')
 	root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
 	if can_edit:
-		myfile=request.FILES.get('ufile')
+		file=request.FILES.getlist('ufile')
 		upload_path = request.POST['address']
 		upload_path=os.path.normpath(upload_path)
 		
@@ -205,10 +205,14 @@ def upload(request):
 		if upload_path==os.path.join(root_path,upload_path):
 			return JsonResponse({'status':'false','message':"Upload to specified path denied."}, status=403)
 		
-		upload_path = os.path.join(root_path, upload_path)
+		#upload_path = os.path.join(root_path, upload_path)
+		upload_path = os.path.join(sharedPath, upload_path)
 		# directly open the required path
-		fs=FileSystemStorage(location=upload_path)
-		filename=fs.save(myfile.name,myfile)
+		for myfile in file:
+			#if the file does not exist, place the file there
+			if not os.path.exists(os.path.join(upload_path,myfile.name)):
+				fs=FileSystemStorage(location=upload_path)
+				filename=fs.save(myfile.name,myfile)
 		return HttpResponse('')
 	else:
 		return JsonResponse({'status':'false','message':"Upload denied."}, status=403)
