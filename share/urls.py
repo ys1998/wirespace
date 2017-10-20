@@ -7,7 +7,9 @@ urlpatterns=[
         url(r'^download/$',views.download_item,name='download'),
         url(r'^search/$',views.search,name='search'),
         url(r'^upload/$',views.upload,name='upload'),
+        url(r'^uploadFolder/$',views.uploadFolder,name='uploadFolder'),
         url(r'^create_folder/$',views.create_folder,name='create_folder'),
         url(r'^delete/$',views.delete,name='delete'),
+        url(r'^move/$',views.move,name='move'),
         #url(r'^admin/$',views.home,name='home'),
 ]

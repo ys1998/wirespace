@@ -1,6 +1,8 @@
 from django.db import models
+from django.utils import timezone as dj_tz
+from django.core.validators import ValidationError
 import binascii
-import os
+import os,subprocess
 import datetime
 from django.conf import settings
 
@@ -15,9 +17,9 @@ class Key(models.Model):
 	key=models.CharField(max_length=8,default=gen_key,editable=False,	primary_key=True,help_text="This value is temporary. Use the final value after saving.")
 	permission=models.CharField(max_length=1,choices=(('r','Read-only'),('w','Read-and-Write')),default='r')
 	shared_to=models.CharField(max_length=30,default="Anonymous")
-	email=models.EmailField(max_length=254,help_text="E-mail of the person with whom the space is shared",null=True)
-	space_allotted=models.BigIntegerField(help_text="Space you want to share in BYTES",default=4096)
-	path_shared=models.TextField(default=os.path.expanduser("~"),max_length=100)
+	email=models.EmailField(max_length=254,help_text="E-mail of the person with whom the space is shared",null=True,blank=True)
+	space_allotted=models.BigIntegerField(help_text="Space to be shared, in BYTES",default=4096)
+	path_shared=models.TextField(default=os.path.expanduser("~/Desktop"),max_length=100)
 	created_on=models.DateTimeField(auto_now_add=True)
 	expires_on=models.DateTimeField(default=None)
 
@@ -25,31 +27,46 @@ class Key(models.Model):
 		return self.shared_to+" -> "+self.path_shared
 
 	def time_slot(self):
-		return "{:%d %b %Y, %X}".format(self.created_on)+" --- "+"{:%d %b %Y, %X}".format(self.expires_on)
+		return "{:%d %b %Y, %I:%M:%S %p}".format(dj_tz.localtime(self.created_on))+" --- "+"{:%d %b %Y, %I:%M:%S %p}".format(dj_tz.localtime(self.expires_on))
 
-	def space_shared(self):
+	def space_available(self):
 		suffix='B'
-		num=self.space_allotted
+		current_space=int(subprocess.check_output(['sudo','du','-s',self.path_shared]).split()[0])
+		num=max(self.space_allotted-current_space,0)
 		for unit in ['','K','M','G','T']:
 			if abs(num)<1024.0:
 				return "%3.2f%s%s"%(num, " "+unit, suffix)
 			num /= 1024.0
 		return "%3.2f%s%s"%(num,'P', suffix)
 
+	# Link generating function
 	def link(self):
 		ip=str(settings.HOST_IP) # Obtain IP and initialize it here
 		port=str(settings.PORT) # Obtain the port and initialize it here
 		return ip+":"+port+"/"+self.key
 
+	# Form validation function
+	def clean(self):
+		if dj_tz.localtime(self.expires_on)<=dj_tz.localtime(self.created_on):
+			raise ValidationError("expires_on : Expiration time must come after creation time.")
+
+		if not os.path.isdir(self.path_shared):
+			raise ValidationError("path_shared : Enter a valid directory for sharing.")
+
+	# Save function with some modifications
 	def save(self,*args,**kwargs):
-		if self.created_on==None:
-			self.created_on=datetime.datetime.now()
 		if self.expires_on==None:
 			self.expires_on=self.created_on+datetime.timedelta(weeks=1)
 		if self.path_shared.strip()=="":
-			self.path_shared="/"
+			self.path_shared=os.path.expanduser('~')
 		else:
 			self.path_shared=self.path_shared.strip()
+
+		if Key.objects.filter(key=self.key).count()==0:
+			# Convert space shared to TOTAL space shared - i.e. account for already consumed space
+			dir_space=int(subprocess.check_output(['sudo','du','-sb',self.path_shared]).split()[0])
+			self.space_allotted+=dir_space
+
 		super().save(*args,**kwargs)
 
 # hidden model to maintain tokens

@@ -8,12 +8,13 @@ from django.http import HttpResponse, StreamingHttpResponse, JsonResponse
 from django.core.files import File
 from django.core.files.storage import FileSystemStorage
 from django.views.decorators.csrf import csrf_exempt
-import os
+import os,subprocess
 import mimetypes
 import zipfile
 # importing models for authentication purpose
 from .models import *
 import glob
+import shutil
 
 
 # Keep CACHE_DIR separate from the shared directory
@@ -193,10 +194,23 @@ def download_item(request):
 @csrf_exempt
 def upload(request):
 	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared
-	can_edit=(Token.objects.get(token=request.session['token']).link.permission=='w')
 	root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
+
+	can_edit=(Token.objects.get(token=request.session['token']).link.permission=='w')
 	if can_edit:
-		myfile=request.FILES.get('ufile')
+		t_Object=Token.objects.get(token=request.session['token'])
+		k_Object=t_Object.link
+		space_available=k_Object.space_allotted-int(subprocess.check_output(['sudo','du','-sb',k_Object.path_shared]).split()[0])
+		print(space_available)
+		file=request.FILES.getlist('ufile')
+		total_size=0
+		for myfile in file:
+			total_size+=myfile.size
+
+		# Checking for available space
+		if total_size>space_available:
+			return JsonResponse({'status':'false','message':"Upload denied."}, status=413)
+		
 		upload_path = request.POST['address']
 		upload_path=os.path.normpath(upload_path)
 		
@@ -205,9 +219,14 @@ def upload(request):
 			return JsonResponse({'status':'false','message':"Upload to specified path denied."}, status=403)
 		
 		upload_path = os.path.join(root_path, upload_path)
-		# directly open the required path
-		fs=FileSystemStorage(location=upload_path)
-		filename=fs.save(myfile.name,myfile)
+		# upload_path = os.path.join(sharedPath, upload_path)
+		
+		for myfile in file:
+			#if the file does not exist, place the file there
+			if not os.path.exists(os.path.join(upload_path,myfile.name)):
+				fs=FileSystemStorage(location=upload_path)
+				filename=fs.save(myfile.name,myfile)
+
 		return HttpResponse('')
 	else:
 		return JsonResponse({'status':'false','message':"Upload denied."}, status=403)
@@ -244,39 +263,83 @@ def search(request):
 @csrf_exempt
 def delete(request):
 	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared
-	can_edit=(Token.objects.get(token=request.session['token']).link.permission=='w')
-	root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
-	if can_edit:
-		current_path=request.POST['address']
-		obj = request.POST['name']
-		if current_path==os.path.join(root_path,current_path):
-			return JsonResponse({'status':'false','message':"Deleting specified path is prohibited."}, status=403)
-		directory = os.path.join(root_path,current_path)
-		if obj==os.path.join(directory,obj):
-			return JsonResponse({'status':'false','message':"Deleting specified path is prohibited."}, status=403)
-		directory = os.path.join(directory,obj)
-		if os.path.exists(directory):
-			shutil.rmtree(directory)
+	
+	current_path=request.POST['address']
+	obj = request.POST['name']
+	
+	directory = os.path.join(sharedPath,current_path)
+	directory = os.path.join(directory,obj)
+	if os.path.isdir(directory):
+		shutil.rmtree(directory)
+		return HttpResponse("")
+	elif os.path.isfile(directory):
+		os.remove(directory)
 		return HttpResponse("")
 	else:
-		return JsonResponse({'status':'false','message':"Access denied."}, status=403)
-
+		return HttpResponseError("not found")
 @csrf_exempt
 def create_folder(request):
-	sharedPath=Token.objects.get(token=token).link.path_shared
-	can_edit=(Token.objects.get(token=token).link.permission=='w')
-	root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
+	sharedPath = Token.objects.get(token=request.session['token']).link.path_shared	
+	root_path = os.path.dirname(sharedPath)
+	can_edit=(Token.objects.get(token=request.session['token']).link.permission=='w')
 	if can_edit:
 		current_path=request.POST['address']
 		folder = request.POST['folder_name']
-		if current_path==os.path.join(root_path,current_path):
-			return JsonResponse({'status':'false','message':"Access denied."}, status=403)
-		directory = os.path.join(root_path,current_path)
-		if folder==os.path.join(directory,folder):
-			return JsonResponse({'status':'false','message':"Access denied."}, status=403)
-		directory = os.path.join(directory,folder)
+		
+		if current_path==os.path.join(root_path, current_path):
+			return JsonResponse({'status':'false','message':"Folder creation in specified path denied."}, status=403)
+		
+		directory = os.path.join(root_path, current_path)
+		
+		if folder==os.path.join(directory, folder):
+			return JsonResponse({'status':'false','message':"Folder creation in specified path denied."}, status=403)
+		
+		directory = os.path.join(directory, folder)
 		if not os.path.exists(directory):
 			os.makedirs(directory)
 		return HttpResponse("")
 	else:
-		return JsonResponse({'status':'false','message':"Access denied."}, status=403)
+		return JsonResponse({'status':'false','message':"Folder creation denied."}, status=403)
+
+@csrf_exempt
+def move(request):
+	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared	
+	print(sharedPath)
+
+	source_path=request.POST['source_address']
+	target_path=request.POST['target_address']
+	source = request.POST['source_name']
+	target = request.POST['target_name']
+	source_path = os.path.join(sharedPath,source_path)
+	source_path = os.path.join(source_path,source)
+	target_path = os.path.join(sharedPath,target_path)
+	target_path = os.path.join(target_path,target)
+	print(source_path)
+	if not os.path.exists(target_path):
+		shutil.move(source_path,target_path)
+		return HttpResponse("")
+	else:
+		return HttpResponseError("file/folder already exists")
+
+
+@csrf_exempt
+def uploadFolder(request):
+	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared	
+	
+	#Get the base address, list of addresses corresponding to each file in the uploaded folder
+	address = request.POST['address']
+	address_list = request.POST['address_list'].split(',')
+	contents = request.FILES.getlist('directory');
+	
+	for path,file in zip(address_list,contents):
+		directory = os.path.dirname(os.path.join(address,path))
+		directory = os.path.join(sharedPath,directory)
+		#if the directories do not exist, create the directories
+		if not os.path.exists(directory):
+			os.makedirs(directory)
+		#if a file with the same name does not exist previously, create the file
+		if not os.path.exists(os.path.join(directory,file.name)):
+			fs=FileSystemStorage(location=directory)
+			fs.save(file.name,file)
+
+	return HttpResponse('');

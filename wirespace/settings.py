@@ -15,9 +15,9 @@ import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# Default port and IP settings
+# Default port and IP
 PORT = 8000
-HOST_IP = '10.42.0.1'
+HOST_IP = '192.168.42.200'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
@@ -26,9 +26,9 @@ HOST_IP = '10.42.0.1'
 SECRET_KEY = '4n+@8%(55ui*!wn%8+4)s)g4@2nd%mem3c6^@%*rrw_9j8y&qe'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = [HOST_IP,'localhost']
+ALLOWED_HOSTS = ['192.168.42.200']
 
 
 # Application definition
@@ -52,7 +52,6 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE= True
 MEDIA_URL = '/media/'
 
 MIDDLEWARE = [
-    # Add custom middleware here
     'corsheaders.middleware.CorsMiddleware',    #CORS Module (Development)
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -61,7 +60,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # Add custom middleware here
     'share.middleware.AuthenticateTokenMiddleware',
+    'share.middleware.ExpireKeyMiddleware',    
 ]
 
 ROOT_URLCONF = 'wirespace.urls'
