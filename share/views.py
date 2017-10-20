@@ -8,7 +8,7 @@ from django.http import HttpResponse, StreamingHttpResponse, JsonResponse
 from django.core.files import File
 from django.core.files.storage import FileSystemStorage
 from django.views.decorators.csrf import csrf_exempt
-import os
+import os,subprocess
 import mimetypes
 import zipfile
 # importing models for authentication purpose
@@ -200,13 +200,17 @@ def upload(request):
 	if can_edit:
 		t_Object=Token.objects.get(token=request.session['token'])
 		k_Object=t_Object.link
-		space_available=k_Object.space_allotted
-		
-		myfile=request.FILES.get('ufile')
-		# Checking for available space
-		if myfile.size>space_available:
-			return JsonResponse({'status':'false','message':"Upload denied."}, status=413)
+		space_available=k_Object.space_allotted-int(subprocess.check_output(['sudo','du','-sb',k_Object.path_shared]).split()[0])
+		print(space_available)
+		file=request.FILES.getlist('ufile')
+		total_size=0
+		for myfile in file:
+			total_size+=myfile.size
 
+		# Checking for available space
+		if total_size>space_available:
+			return JsonResponse({'status':'false','message':"Upload denied."}, status=413)
+		
 		upload_path = request.POST['address']
 		upload_path=os.path.normpath(upload_path)
 		
@@ -215,13 +219,14 @@ def upload(request):
 			return JsonResponse({'status':'false','message':"Upload to specified path denied."}, status=403)
 		
 		upload_path = os.path.join(root_path, upload_path)
-		# directly open the required path
-		fs=FileSystemStorage(location=upload_path)
-		filename=fs.save(myfile.name,myfile)
+		# upload_path = os.path.join(sharedPath, upload_path)
+		
+		for myfile in file:
+			#if the file does not exist, place the file there
+			if not os.path.exists(os.path.join(upload_path,myfile.name)):
+				fs=FileSystemStorage(location=upload_path)
+				filename=fs.save(myfile.name,myfile)
 
-		# Update available space
-		k_Object.space_allotted-=myfile.size
-		k_Object.save()
 		return HttpResponse('')
 	else:
 		return JsonResponse({'status':'false','message':"Upload denied."}, status=403)
