@@ -41,8 +41,8 @@ class Key(models.Model):
 
 	# Link generating function
 	def link(self):
-		ip=str(settings.HOST_IP) # Obtain IP and initialize it here
-		port=str(settings.PORT) # Obtain the port and initialize it here
+		ip=str(settings.HOST_IP) # Obtain IP from settings.py
+		port=str(settings.PORT) # Obtain the port from settings.py
 		return ip+":"+port+"/"+self.key
 
 	# Form validation function
@@ -79,7 +79,7 @@ def gen_token(length=16):
 class Token(models.Model):
 	link=models.ForeignKey(Key,on_delete=models.CASCADE,default=None)
 	token=models.CharField(max_length=16,default=gen_token,editable=False,primary_key=True)
-	ip=models.CharField(max_length=15,default=None)
+	IP=models.CharField(max_length=15,default=None)
 
 	def __str__(self):
 		return self.token
@@ -92,6 +92,6 @@ class Token(models.Model):
 			while Token.objects.filter(token=new_token).count()>0:
 				new_token=binascii.hexlify(os.urandom(16))
 			self.token=new_token
-		if not self.ip:
-			self.ip=''
+		if not self.IP:
+			self.IP=''
 		super().save(*args,**kwargs)

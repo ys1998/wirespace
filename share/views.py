@@ -8,6 +8,7 @@ from django.http import HttpResponse, StreamingHttpResponse, JsonResponse
 from django.core.files import File
 from django.core.files.storage import FileSystemStorage
 from django.views.decorators.csrf import csrf_exempt
+from ipware.ip import get_ip
 import os,subprocess
 import mimetypes
 import zipfile
@@ -29,8 +30,8 @@ def authenticate(request,k):
 		# Token doesn't exist but key is valid
 		if 'token' not in request.session:
 			key=Key.objects.get(key=k)
-			IP='' # get IP from request here
-			t=Token.objects.create(link=key,ip=IP)
+			IP=get_ip(request)
+			t=Token.objects.create(link=key,IP=IP)
 			request.session['token']=t.token
 		else:
 			# Token exists in request.session
@@ -43,7 +44,7 @@ def authenticate(request,k):
 					IP=''
 					old_t.delete()
 					del request.session['token']
-					new_t=Token.objects.create(link=new_key,ip=IP)
+					new_t=Token.objects.create(link=new_key,IP=IP)
 					print(new_t.token)
 					request.session['token']=new_t.token
 			# When the token is no long valid (i.e expired/deleted from database) but key is valid
@@ -51,7 +52,7 @@ def authenticate(request,k):
 				request.session.flush()
 				key=Key.objects.get(key=k)
 				IP='' # get IP from request here
-				t=Token.objects.create(link=key,ip=IP)
+				t=Token.objects.create(link=key,IP=IP)
 				request.session['token']=t.token
 		request.session.set_expiry(3600) # token expires after 60 minutes
 		return redirect('/share/',permanent=True)
