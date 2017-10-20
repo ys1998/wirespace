@@ -1,7 +1,3 @@
-pip3
 django
-django-ipware
 django-cors-headers
 django-suit
-python3
-mimetypes

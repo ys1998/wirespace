@@ -15,9 +15,9 @@ import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# Default port and IP settings
+# Default port and IP
 PORT = 8000
-HOST_IP = '0.0.0.0'
+HOST_IP = 'localhost'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
@@ -28,7 +28,7 @@ SECRET_KEY = '4n+@8%(55ui*!wn%8+4)s)g4@2nd%mem3c6^@%*rrw_9j8y&qe'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [HOST_IP,'localhost']
+ALLOWED_HOSTS = ['localhost']
 
 
 # Application definition
