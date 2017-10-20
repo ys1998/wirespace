@@ -17,7 +17,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Default port and IP
 PORT = 8000
-HOST_IP = '192.168.42.200'
+HOST_IP = '192.168.42.191'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
@@ -28,7 +28,7 @@ SECRET_KEY = '4n+@8%(55ui*!wn%8+4)s)g4@2nd%mem3c6^@%*rrw_9j8y&qe'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['192.168.42.200']
+ALLOWED_HOSTS = ['192.168.42.191']
 
 
 # Application definition
@@ -36,6 +36,7 @@ ALLOWED_HOSTS = ['192.168.42.200']
 INSTALLED_APPS = [
     'share.apps.ShareConfig',
     'suit',
+    'ipware',
     'corsheaders',          #Cross domain request module (Development)
     'django.contrib.admin',
     'django.contrib.auth',

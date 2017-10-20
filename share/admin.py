@@ -26,6 +26,11 @@ class KeyAdmin(admin.ModelAdmin):
         else:
             return ('key','created_on')
 
+class TokenAdmin(admin.ModelAdmin):
+    readonly_fields=('link','token','IP')
+    fields=['link','token','IP']
+    list_display=('token','link')   
+    
     
 admin.site.register(Key,KeyAdmin)
-# admin.site.register(Token)
+admin.site.register(Token, TokenAdmin)

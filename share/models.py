@@ -31,8 +31,8 @@ class Key(models.Model):
 
 	def space_available(self):
 		suffix='B'
-		current_space=int(subprocess.check_output(['sudo','du','-s',self.path_shared]).split()[0])
-		num=max(self.space_allotted-current_space,0)
+		current_space=int(subprocess.check_output(['sudo','du','-sb',self.path_shared]).split()[0])
+		num=max(0,self.space_allotted-current_space)
 		for unit in ['','K','M','G','T']:
 			if abs(num)<1024.0:
 				return "%3.2f%s%s"%(num, " "+unit, suffix)
@@ -41,8 +41,8 @@ class Key(models.Model):
 
 	# Link generating function
 	def link(self):
-		ip=str(settings.HOST_IP) # Obtain IP and initialize it here
-		port=str(settings.PORT) # Obtain the port and initialize it here
+		ip=str(settings.HOST_IP) # Obtain IP from settings.py
+		port=str(settings.PORT) # Obtain the port from settings.py
 		return ip+":"+port+"/"+self.key
 
 	# Form validation function
@@ -79,7 +79,7 @@ def gen_token(length=16):
 class Token(models.Model):
 	link=models.ForeignKey(Key,on_delete=models.CASCADE,default=None)
 	token=models.CharField(max_length=16,default=gen_token,editable=False,primary_key=True)
-	ip=models.CharField(max_length=15,default=None)
+	IP=models.CharField(max_length=15,default=None)
 
 	def __str__(self):
 		return self.token
@@ -92,6 +92,6 @@ class Token(models.Model):
 			while Token.objects.filter(token=new_token).count()>0:
 				new_token=binascii.hexlify(os.urandom(16))
 			self.token=new_token
-		if not self.ip:
-			self.ip=''
+		if not self.IP:
+			self.IP=''
 		super().save(*args,**kwargs)
