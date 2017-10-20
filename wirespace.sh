@@ -40,12 +40,14 @@ else
 		sudo python3 manage.py runserver "$ip:$port" --insecure
 
 	elif [[ $1 == "--help" || $1 == "-h" ]]; then
-		echo "--- WIRESPACE HELP ---"
-		echo -e "Command\t\tDescription"
-		echo -e "--install,-i\tInstalls all dependencies and sets up Wirespace"
-		echo -e "--local,-l\tHosts Wirespace locally in debug mode"
-		echo -e "--start,-s\tAutodetects IP address and hosts Wirespace over default port number 8000"
-		echo -e "--custom,-c\tHosts wirespace after manual setup of IP address and port number"
-		echo -e "--help,-h\tDisplays this help and exit"
+		echo "Wirespace v1.0"
+		echo "Developed by Saurav, Yash and Saunack"
+		echo -e "Licensed under GNU GPL v3.0\n"
+		echo -e "Usage: ./wirespace.sh [OPTION]\n"
+		echo -e "-i,--install\tInstalls all dependencies and sets up Wirespace"
+		echo -e "-l,--local\tHosts Wirespace locally in debug mode"
+		echo -e "-s,--start\tAutodetects IP address and hosts Wirespace over port 8000"
+		echo -e "-c,--custom\tHosts Wirespace after manual setup of IP address and port"
+		echo -e "-h,--help\tDisplays this help and exit"
 	fi
 fi

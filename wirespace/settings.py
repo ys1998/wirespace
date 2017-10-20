@@ -17,7 +17,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Default port and IP
 PORT = 8000
-HOST_IP = 'localhost'
+HOST_IP = '192.168.42.200'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
@@ -26,9 +26,9 @@ HOST_IP = 'localhost'
 SECRET_KEY = '4n+@8%(55ui*!wn%8+4)s)g4@2nd%mem3c6^@%*rrw_9j8y&qe'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['localhost']
+ALLOWED_HOSTS = ['192.168.42.200']
 
 
 # Application definition
