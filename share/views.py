@@ -8,7 +8,8 @@ from django.http import HttpResponse, StreamingHttpResponse, JsonResponse
 from django.core.files import File
 from django.core.files.storage import FileSystemStorage
 from django.views.decorators.csrf import csrf_exempt
-import os
+from ipware.ip import get_ip
+import os,subprocess
 import mimetypes
 import zipfile
 # importing models for authentication purpose
@@ -29,8 +30,8 @@ def authenticate(request,k):
 		# Token doesn't exist but key is valid
 		if 'token' not in request.session:
 			key=Key.objects.get(key=k)
-			IP='' # get IP from request here
-			t=Token.objects.create(link=key,ip=IP)
+			IP=get_ip(request)
+			t=Token.objects.create(link=key,IP=IP)
 			request.session['token']=t.token
 		else:
 			# Token exists in request.session
@@ -43,7 +44,7 @@ def authenticate(request,k):
 					IP=''
 					old_t.delete()
 					del request.session['token']
-					new_t=Token.objects.create(link=new_key,ip=IP)
+					new_t=Token.objects.create(link=new_key,IP=IP)
 					print(new_t.token)
 					request.session['token']=new_t.token
 			# When the token is no long valid (i.e expired/deleted from database) but key is valid
@@ -51,7 +52,7 @@ def authenticate(request,k):
 				request.session.flush()
 				key=Key.objects.get(key=k)
 				IP='' # get IP from request here
-				t=Token.objects.create(link=key,ip=IP)
+				t=Token.objects.create(link=key,IP=IP)
 				request.session['token']=t.token
 		request.session.set_expiry(3600) # token expires after 60 minutes
 		return redirect('/share/',permanent=True)
@@ -194,10 +195,23 @@ def download_item(request):
 @csrf_exempt
 def upload(request):
 	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared
-	can_edit=(Token.objects.get(token=request.session['token']).link.permission=='w')
 	root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
+
+	can_edit=(Token.objects.get(token=request.session['token']).link.permission=='w')
 	if can_edit:
-		myfile=request.FILES.get('ufile')
+		t_Object=Token.objects.get(token=request.session['token'])
+		k_Object=t_Object.link
+		space_available=k_Object.space_allotted-int(subprocess.check_output(['sudo','du','-sb',k_Object.path_shared]).split()[0])
+		print(space_available)
+		file=request.FILES.getlist('ufile')
+		total_size=0
+		for myfile in file:
+			total_size+=myfile.size
+
+		# Checking for available space
+		if total_size>space_available:
+			return JsonResponse({'status':'false','message':"Upload denied."}, status=413)
+		
 		upload_path = request.POST['address']
 		upload_path=os.path.normpath(upload_path)
 		
@@ -206,9 +220,14 @@ def upload(request):
 			return JsonResponse({'status':'false','message':"Upload to specified path denied."}, status=403)
 		
 		upload_path = os.path.join(root_path, upload_path)
-		# directly open the required path
-		fs=FileSystemStorage(location=upload_path)
-		filename=fs.save(myfile.name,myfile)
+		# upload_path = os.path.join(sharedPath, upload_path)
+		
+		for myfile in file:
+			#if the file does not exist, place the file there
+			if not os.path.exists(os.path.join(upload_path,myfile.name)):
+				fs=FileSystemStorage(location=upload_path)
+				filename=fs.save(myfile.name,myfile)
+
 		return HttpResponse('')
 	else:
 		return JsonResponse({'status':'false','message':"Upload denied."}, status=403)
@@ -262,17 +281,25 @@ def delete(request):
 def create_folder(request):
 	sharedPath = Token.objects.get(token=request.session['token']).link.path_shared	
 	root_path = os.path.dirname(sharedPath)
-
-	current_path=request.POST['address']
-	folder = request.POST['folder_name']
-	
-	directory = os.path.join(root_path, current_path)
-	directory = os.path.join(directory, folder)
-	print(current_path)
-	print(folder)
-	if not os.path.exists(directory):
-		os.makedirs(directory)
-	return HttpResponse("")
+	can_edit=(Token.objects.get(token=request.session['token']).link.permission=='w')
+	if can_edit:
+		current_path=request.POST['address']
+		folder = request.POST['folder_name']
+		
+		if current_path==os.path.join(root_path, current_path):
+			return JsonResponse({'status':'false','message':"Folder creation in specified path denied."}, status=403)
+		
+		directory = os.path.join(root_path, current_path)
+		
+		if folder==os.path.join(directory, folder):
+			return JsonResponse({'status':'false','message':"Folder creation in specified path denied."}, status=403)
+		
+		directory = os.path.join(directory, folder)
+		if not os.path.exists(directory):
+			os.makedirs(directory)
+		return HttpResponse("")
+	else:
+		return JsonResponse({'status':'false','message':"Folder creation denied."}, status=403)
 
 @csrf_exempt
 def move(request):
