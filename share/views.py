@@ -57,6 +57,82 @@ def authenticate(request,k):
 		request.session.set_expiry(3600) # token expires after 60 minutes
 		return redirect('/share/',permanent=True)
 
+@csrf_exempt
+def editor_authenticate(request,k):
+	if Key.objects.filter(key=k).count()==0:
+		return JsonResponse({'message':"The key you provided doesn't exist."},status=404)
+	else:
+		key=Key.objects.get(key=k)
+		if key.permission=='r':
+			return JsonResponse({'message':"You don't have editing rights."},status=403)
+		IP=get_ip(request)
+		t=Token.objects.create(link=key,IP=IP)
+
+		root_path,shared_dir=os.path.split(key.path_shared)
+		response_data={}
+		response_data['token']=t.token
+		response_data['path']=shared_dir
+		response_data['files']=[]
+		response_data['dirs']=[]
+		items=os.listdir(key.path_shared)
+		for element in items:
+			if os.path.isdir(os.path.join(key.path_shared, element)):
+					response_data['dirs'].append(element)
+			else:
+				response_data['files'].append(element)
+		return JsonResponse(response_data)
+
+@csrf_exempt
+def editor(request):
+	if request.method=="POST":
+		if 'token' not in request.POST:
+			return JsonResponse({'message':"Invalid request format."},status=404)
+		token=request.POST['token']
+		if Token.objects.filter(token=token).count()==0:
+			return JsonResponse({'message':"Token not identifiable."},status=403)
+		else:
+			t_Object=Token.objects.get(token=token)
+			k_Object=t_Object.link
+			sharedPath=k_Object.path_shared
+			root_path,shared_dir=os.path.split(sharedPath)
+			if request.POST['action']=="open":
+				context={}
+				context['path']=request.POST['target']
+				context['dirs']=[]
+				context['files']=[]
+				for item in os.listdir(os.path.join(root_path,context['path'])):
+					if os.path.isdir(os.path.join(root_path,context['path'],item)):
+						context['dirs'].append(item)
+					else:
+						context['files'].append(item)
+				return JsonResponse(context)
+			elif request.POST['action']=="download":
+				filepath=os.path.join(root_path,request.POST['target'])
+				return get_file(filepath,"download")
+			elif request.POST['action']=="upload":
+				for fname in request.FILES:
+					save_path=os.path.join(root_path,os.path.split(fname)[0])
+					#if the directories do not exist, create the directories
+					if not os.path.exists(save_path):
+						os.makedirs(save_path)
+					if os.path.exists(os.path.join(root_path,fname)):
+						mode=os.stat(os.path.join(root_path,fname)).st_mode
+						fs=FileSystemStorage(location=save_path,file_permissions_mode=mode)
+						fs.delete(os.path.split(fname)[1])
+						fs.save(os.path.split(fname)[1],request.FILES[fname])
+					else:
+						fs=FileSystemStorage(location=save_path)
+						fs.save(os.path.split(fname)[1],request.FILES[fname])
+				return JsonResponse({'message':"Save successful."},status=200)
+			elif request.POST['action']=="destroy":
+				t_Object.delete()
+				print("Token deleted.")
+			else:
+				return JsonResponse({'message':"Invalid request format."},status=404)
+	else:
+		return JsonResponse({'message':"Invalid request format."},status=404)
+			
+
 def home(request):
 	if 'token' not in request.session:
 		return render(request,'share/error.html',{'title':'Access Denied','header':'Unauthorized access','message':"It seems that the authentication key you provided is invalid.\nObtain the correct link from the host and try again."})
@@ -78,13 +154,13 @@ def get_file(filepath,mode):
 		elif mode == "download":
 			response['Content-Disposition'] = " attachment; filename={0}".format(os.path.basename(filepath))
 		else:
-			return HttpResponse("Invalid mode!")
+			return JsonResponse({'message':"Invalid mode!"},status=404)
 
 		response['Content-Length'] = os.path.getsize(filepath)
 		return response
 
 	else:
-		return HttpResponse("{0} file does not exist.".format(filepath))
+		return JsonResponse({'message':"{0} file does not exist.".format(filepath)},status=403)
 	
 # View to handle directory download requests
 # CACHE_DIR is used for storing generated .zip files for future use - 
@@ -132,7 +208,7 @@ def get_dir(dirpath):
 			response['Content-Length'] = os.path.getsize(target)
 			return response
 	else:
-		return HttpResponse("This directory does not exist.")
+		return JsonResponse({'message':"This directory does not exist."},status=404)
 
 # View to handle 'open' requests
 @csrf_exempt

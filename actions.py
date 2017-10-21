@@ -16,3 +16,6 @@ elif action=="configure":
 	subprocess.call(["sed","-i","s/^PORT.*$/PORT = "+port+"/g", "wirespace/settings.py"])
 	subprocess.call(["sed","-i","s/^HOST_IP.*$/HOST_IP = '"+ip+"'/g", "wirespace/settings.py"])
 	subprocess.call(["sed","-i","s/^DEBUG.*$/DEBUG = "+debug+"/g", "wirespace/settings.py"])
+
+elif action=="editor":
+	subprocess.call(["python3","editor/editor.py"])

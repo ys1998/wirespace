@@ -2,3 +2,4 @@ django
 django-cors-headers
 django-suit
 django-ipware
+requests
