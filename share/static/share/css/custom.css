@@ -1,5 +1,13 @@
-input[type="file"] {
+.hidden, input[type="file"] {
 	display: none;
+}
+
+.context-menu {
+  position: absolute; z-index: 10; min-width: 100px; min-height: 25px;
+}
+
+.full-body {
+	min-height: 100vh;
 }
 
 .AddressIconStyle {
@@ -19,7 +27,7 @@ input[type="file"] {
 }
 
 .Actionlong {
-	min-width: 150px;
+	min-width: 180px;
 }
 
 .ActionIcon {

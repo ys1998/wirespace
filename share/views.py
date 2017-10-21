@@ -245,12 +245,11 @@ def search(request):
 @csrf_exempt
 def delete(request):
 	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared
-	
+	root_path = os.path.dirname(sharedPath)
+
 	current_path=request.POST['address']
-	obj = request.POST['name']
 	
-	directory = os.path.join(sharedPath,current_path)
-	directory = os.path.join(directory,obj)
+	directory = os.path.join(root_path, current_path)
 	if os.path.isdir(directory):
 		shutil.rmtree(directory)
 		return HttpResponse("")
@@ -278,15 +277,15 @@ def create_folder(request):
 @csrf_exempt
 def move(request):
 	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared	
-	print(sharedPath)
+	root_path = os.path.dirname(sharedPath)
 
 	source_path=request.POST['source_address']
 	target_path=request.POST['target_address']
-	source = request.POST['source_name']
+	#source = request.POST['source_name']
 	target = request.POST['target_name']
-	source_path = os.path.join(sharedPath,source_path)
-	source_path = os.path.join(source_path,source)
-	target_path = os.path.join(sharedPath,target_path)
+	source_path = os.path.join(root_path, source_path)
+	#source_path = os.path.join(source_path,source)
+	target_path = os.path.join(root_path, target_path)
 	target_path = os.path.join(target_path,target)
 	print(source_path)
 	if not os.path.exists(target_path):
