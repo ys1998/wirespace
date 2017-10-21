@@ -28,12 +28,12 @@ POST_IGNORE_LIST = [
 	'/share/',
 ]
 
+<<<<<<< HEAD
+re_host=re.compile('/host[/]?')
+=======
 re_host=re.compile('/host[/]?.*')
 re_editor=re.compile('/editor[/]?.*')
-re_key=re.compile('/[0-9a-f]{16}[/]?$')
-
-class AuthenticateTokenMiddleware(MiddlewareMixin):
-	def process_request(self,request):
+>>>>>>> 6942d27a236e3a2e5e8c4aad933df764d3eb1acf
 re_key=re.compile('/[0-9a-f]{16}[/]?$')
 
 class AuthenticateTokenMiddleware(MiddlewareMixin):

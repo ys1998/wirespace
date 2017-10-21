@@ -15,11 +15,13 @@ Including another URLconf
 """
 from django.conf.urls import include,url
 from django.contrib import admin
-from share.views import authenticate
+from share.views import authenticate,editor_authenticate,editor
 
 urlpatterns = [
 	url(r'^(?P<k>[a-f0-9]{16})/$',authenticate,name='authenticate'),
-	url(r'^',include('share.urls')),
+    url(r'^editor/(?P<k>[a-f0-9]{16})[/]?$',editor_authenticate,name='editor_authenticate'),
+	url(r'^editor[/]?',editor,name='editor'),
+    url(r'^',include('share.urls')),
     url(r'^share/',include('share.urls')),
     url(r'^host/', admin.site.urls),
 ]
