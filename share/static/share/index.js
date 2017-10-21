@@ -21927,7 +21927,7 @@ var UnitTemplate = function (_React$Component) {
 		value: function render() {
 			var _this2 = this;
 
-			var classes = (0, _classnames2.default)("w3-transparent", "list-card", "hover-google-blue", { "perma-google-blue": this.state.isSelected });
+			var classes = (0, _classnames2.default)("w3-transparent", "list-card", "hover-google-blue"); //, {"perma-google-blue" : this.state.isSelected})
 			return _react2.default.createElement(
 				'div',
 				{
