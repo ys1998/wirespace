@@ -277,9 +277,8 @@ def upload(request):
 	if can_edit:
 		t_Object=Token.objects.get(token=request.session['token'])
 		k_Object=t_Object.link
-		#space_available=k_Object.space_allotted-int(subprocess.check_output(['sudo','du','-sb',k_Object.path_shared]).split()[0])
-		#print(space_available)
-		space_available=4000000
+		space_available=k_Object.space_allotted-int(subprocess.check_output(['sudo','du','-sb',k_Object.path_shared]).split()[0])
+		print(space_available)
 		file=request.FILES.getlist('ufile')
 		total_size=0
 		for myfile in file:
@@ -287,14 +286,14 @@ def upload(request):
 
 		# Checking for available space
 		if total_size>space_available:
-			return HttpResponse(status=413)
+			return JsonResponse({'status':'false','message':"Upload denied."}, status=413)
 		
 		upload_path = request.POST['address']
 		upload_path=os.path.normpath(upload_path)
 		
 		# To prevent access of directories outside the shared path
 		if upload_path==os.path.join(root_path,upload_path):
-			return HttpResponse(status=403)
+			return JsonResponse({'status':'false','message':"Upload to specified path denied."}, status=403)
 		
 		upload_path = os.path.join(root_path, upload_path)
 		# upload_path = os.path.join(sharedPath, upload_path)
@@ -307,7 +306,7 @@ def upload(request):
 
 		return HttpResponse('')
 	else:
-		return HttpResponse(status=403)
+		return JsonResponse({'status':'false','message':"Upload denied."}, status=403)
 
 @csrf_exempt
 def search(request):
