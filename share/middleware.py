@@ -28,7 +28,7 @@ POST_IGNORE_LIST = [
 	'/share/',
 ]
 
-re_host=re.compile('/host/.*')
+re_host=re.compile('/host[/]?')
 re_key=re.compile('/[0-9a-f]{16}[/]?$')
 
 class AuthenticateTokenMiddleware(MiddlewareMixin):

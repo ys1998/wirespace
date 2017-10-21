@@ -310,6 +310,7 @@ def move(request):
 	target_path=request.POST['target_address']
 	#source = request.POST['source_name']
 	target = request.POST['target_name']
+	print(source_path, target_path, target)
 	source_path = os.path.join(root_path, source_path)
 	#source_path = os.path.join(source_path,source)
 	target_path = os.path.join(root_path, target_path)

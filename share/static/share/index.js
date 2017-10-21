@@ -21931,12 +21931,19 @@ var UnitTemplate = function (_React$Component) {
 			var classes = (0, _classnames2.default)("w3-transparent", "list-card", "hover-google-blue", { "perma-google-blue": this.state.isSelected });
 			return _react2.default.createElement(
 				'div',
-				{ className: classes, onClick: function onClick() {
+				{
+					className: classes,
+					onClick: function onClick() {
 						return _this2.handleClick();
-					}, onDoubleClick: function onDoubleClick() {
+					},
+					onDoubleClick: function onDoubleClick() {
 						return _this2.props.open(_this2.props.link);
-					} },
-				_react2.default.createElement('i', { className: "fa " + this.props.icon + " fa-5x fa-fw icon" }),
+					},
+					onContextMenu: function onContextMenu(e) {
+						console.log("UnitTemplate:", _this2.props.link);_this2.props.renderMenu(e, _this2.props.actions, _this2.props.link);
+					}
+				},
+				_react2.default.createElement('i', { className: (0, _classnames2.default)("fa", this.props.icon, "fa-5x", "fa-fw", "icon") }),
 				_react2.default.createElement(
 					'div',
 					{ className: 'w3-container w3-center itemlabel' },
@@ -21960,7 +21967,9 @@ function ContentTemplate(props) {
 				icon: object['icon'],
 				open: object['open'],
 				link: object['link'],
-				key: object['link'] + props.heading
+				key: object['link'] + props.heading,
+				actions: object['actions'],
+				renderMenu: props.renderMenu
 			});
 		})
 	);
@@ -21983,8 +21992,17 @@ var Folders = function (_React$Component2) {
 				name: this.genName(folder),
 				icon: this.genIcon(folder),
 				link: key,
-				open: this.props.open
+				open: this.props.open,
+				actions: this.genAction(key)
 			};
+		}
+	}, {
+		key: 'genAction',
+		value: function genAction(file_link) {
+			return [{
+				action: this.props.rename,
+				name: 'Rename'
+			}];
 		}
 	}, {
 		key: 'genName',
@@ -22009,7 +22027,8 @@ var Folders = function (_React$Component2) {
 			});
 			return _react2.default.createElement(ContentTemplate, {
 				heading: 'Folders',
-				objects: objects
+				objects: objects,
+				renderMenu: this.props.renderMenu
 			});
 		}
 	}]);
@@ -22034,8 +22053,17 @@ var Files = function (_React$Component3) {
 				name: this.genName(file),
 				icon: this.genIcon(file),
 				link: key,
-				open: this.props.open
+				open: this.props.open,
+				actions: this.genAction(key)
 			};
+		}
+	}, {
+		key: 'genAction',
+		value: function genAction(file_link) {
+			return [{
+				action: this.props.rename,
+				name: 'Rename'
+			}];
 		}
 	}, {
 		key: 'genIcon',
@@ -22073,7 +22101,8 @@ var Files = function (_React$Component3) {
 			});
 			return _react2.default.createElement(ContentTemplate, {
 				heading: 'Files',
-				objects: objects
+				objects: objects,
+				renderMenu: this.props.renderMenu
 			});
 		}
 	}]);
@@ -22115,7 +22144,7 @@ var ActionButton = function (_React$Component4) {
 							_react2.default.createElement('i', { className: (0, _classnames2.default)('fa', 'fa-upload', 'ActionIcon') }),
 							_react2.default.createElement('input', { type: 'file', id: 'ufile', onChange: function onChange() {
 									return _this8.props.uploadFile();
-								} }),
+								}, multiple: true }),
 							'Upload File'
 						),
 						_react2.default.createElement(
@@ -22379,11 +22408,15 @@ var Content = function (_React$Component8) {
 				{ className: 'w3-container w3-light-gray ContentStyle' },
 				_react2.default.createElement(Folders, {
 					folders: this.props.folders,
-					open: this.props.openFolder
+					open: this.props.openFolder,
+					rename: this.props.rename,
+					renderMenu: this.props.renderMenu
 				}),
 				_react2.default.createElement(Files, {
 					files: this.props.files,
-					open: this.props.openFile
+					open: this.props.openFile,
+					rename: this.props.rename,
+					renderMenu: this.props.renderMenu
 				})
 			);
 		}
@@ -22405,7 +22438,7 @@ var App = function (_React$Component9) {
 			files: {},
 			path: '',
 			hidden: {},
-			menuHidden: false
+			menuHidden: true
 		};
 		_this18.baseURL = '';
 		return _this18;
@@ -22441,9 +22474,7 @@ var App = function (_React$Component9) {
 		value: function handleSearch() {
 			var _this20 = this;
 
-			console.log("Querying");
 			var query = document.getElementById('searchBar').value;
-			console.log(query);
 			if (query != '') {
 				//console.log(query);
 				_axios2.default.post(this.baseURL + 'search/', _queryString2.default.stringify({
@@ -22454,7 +22485,6 @@ var App = function (_React$Component9) {
 						'Content-Type': 'application/x-www-form-urlencoded'
 					}
 				}).then(function (res) {
-					console.log(res);
 					var newState = {
 						dirs: res.data.dirs,
 						files: res.data.files,
@@ -22571,6 +22601,7 @@ var App = function (_React$Component9) {
 			var _this25 = this;
 
 			var name = prompt("Enter new name");
+			console.log(link);
 			_axios2.default.post(this.baseURL + 'move/', _queryString2.default.stringify({
 				source_address: link,
 				target_address: this.state.path,
@@ -22583,44 +22614,55 @@ var App = function (_React$Component9) {
 				_this25.get_request(_this25.state.path);
 			}).catch(function (error) {
 				console.log(error);
-				alert(error);
+				alert("Error in renaming. Please check console for more details");
 			});
 		}
 	}, {
 		key: 'menu',
-		value: function menu(attr) {
-			var classes = (0, _classnames2.default)("context-menu", "w3-green", { "hidden": this.state.menuHidden });
+		value: function menu(event, list, target) {
+			var _this26 = this;
+
+			if (this.state.menuHidden || list == null) _reactDom2.default.render(_react2.default.createElement('div', { id: 'menu', className: 'hidden' }), document.getElementById('menu'));
+
+			var classes = (0, _classnames2.default)("context-menu", "w3-bar-block", "w3-card-2", "w3-white");
 			var dStyle = {
-				top: e.clientX,
-				left: e.clientY
-				//Instead of 
-			};_reactDom2.default.render(_react2.default.createElement(
+				position: 'absolute',
+				top: event.clientY,
+				left: event.clientX
+			};
+			console.log("Menu");
+			_reactDom2.default.render(_react2.default.createElement(
 				'div',
 				{ id: 'menu', className: classes, style: dStyle },
-				_react2.default.createElement('i', { src: 'fa fa-folder fa-4x' })
+				list.map(function (object, index) {
+					console.log(object['action']);
+					console.log(target);
+					return _react2.default.createElement(
+						'div',
+						{
+							className: 'w3-button w3-bar-item',
+							onClick: function onClick() {
+								object['action'](target), _this26.hideMenu();
+							},
+							key: index
+						},
+						object['name']
+					);
+				})
 			), document.getElementById('menu'));
 		}
 	}, {
 		key: 'renderMenu',
-		value: function renderMenu(e) {
-			e.preventDefault();
+		value: function renderMenu(event, list, target) {
+			console.log("Rendering:", target);
 			this.setState({ menuHidden: !this.state.menuHidden });
-			if (this.state.menuHidden) console.log("Hidden");else console.log("Visible");
-			menu(e);
+			this.menu(event, list, target);
 		}
 	}, {
 		key: 'hideMenu',
-		value: function hideMenu(e) {
-			console.log("Hiding menu?");
-			if (!this.state.menuHidden) {
-				this.setState({ menuHidden: !this.state.menuHidden });
-				menu(e);
-			}
-		}
-	}, {
-		key: 'onContextMenu',
-		value: function onContextMenu(e) {
-			e.preventDefault();
+		value: function hideMenu(event) {
+			this.setState({ menuHidden: true });
+			this.menu(event, null, null);
 		}
 	}, {
 		key: 'componentDidMount',
@@ -22630,60 +22672,78 @@ var App = function (_React$Component9) {
 	}, {
 		key: 'render',
 		value: function render() {
-			var _this26 = this;
+			var _this27 = this,
+			    _React$createElement;
 
 			return _react2.default.createElement(
 				'div',
-				{
-					className: 'full-body',
-					onContextMenu: function onContextMenu(e) {
-						return _this26.renderMenu(e);
-					},
-					onClickCapture: function onClickCapture(e) {
-						return _this26.hideMenu();
+				{ className: 'full-body', onClick: function onClick(e) {
+						return _this27.hideMenu(e);
 					} },
 				_react2.default.createElement(
 					'div',
-					{ onContextMenu: function onContextMenu(e) {
+					{
+						onContextMenu: function onContextMenu(e) {
 							e.preventDefault();
-						} },
-					_react2.default.createElement(NavBar, _defineProperty({
+						},
+						onClick: function onClick(e) {
+							return _this27.hideMenu(e);
+						}
+					},
+					_react2.default.createElement(NavBar, (_React$createElement = {
 						folders: this.state.path,
 						search: function search(query) {
-							return _this26.handleSearch(query);
+							return _this27.handleSearch(query);
 						},
 						download: function download() {
-							return _this26.download(_this26.state.path);
+							return _this27.download(_this27.state.path);
 						},
 						jumpTo: function jumpTo(address) {
-							return _this26.jumpTo(address);
+							return _this27.jumpTo(address);
 						},
 						uploadFile: function uploadFile() {
-							return _this26.uploadFile();
+							return _this27.uploadFile();
 						},
 						uploadFolder: function uploadFolder() {
-							return _this26.uploadFolder();
+							return _this27.uploadFolder();
 						},
 						createFolder: function createFolder() {
-							return _this26.createFolder();
+							return _this27.createFolder();
 						}
-					}, 'search', function search(query) {
-						return _this26.handleSearch(query);
-					}))
+					}, _defineProperty(_React$createElement, 'search', function search(query) {
+						return _this27.handleSearch(query);
+					}), _defineProperty(_React$createElement, 'hide', function hide(e) {
+						return _this27.hideMenu(e);
+					}), _React$createElement))
 				),
 				_react2.default.createElement(Icons
 				/*Handle click events*/
 				, null),
-				_react2.default.createElement(Content, {
-					folders: this.state.dirs,
-					openFile: function openFile(address) {
-						return _this26.openFile(address);
+				_react2.default.createElement(
+					'div',
+					{
+						onContextMenu: function onContextMenu(e) {
+							e.preventDefault();
+						}
 					},
-					files: this.state.files,
-					openFolder: function openFolder(address) {
-						return _this26.openFolder(address);
-					}
-				})
+					_react2.default.createElement(Content, {
+						folders: this.state.dirs,
+						openFile: function openFile(address) {
+							return _this27.openFile(address);
+						},
+						files: this.state.files,
+						openFolder: function openFolder(address) {
+							return _this27.openFolder(address);
+						},
+						rename: function rename(address) {
+							return _this27.rename(address);
+						},
+						renderMenu: function renderMenu(e, l, t) {
+							return _this27.renderMenu(e, l, t);
+						}
+						//onClick={(e) => this.hideMenu(e)}
+					})
+				)
 			);
 		}
 	}]);

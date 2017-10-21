@@ -31,7 +31,8 @@ class Key(models.Model):
 
 	def space_available(self):
 		suffix='B'
-		current_space=int(subprocess.check_output(['sudo','du','-sb',self.path_shared]).split()[0])
+		#current_space=int(subprocess.check_output(['sudo','du','-s',self.path_shared]).split()[0])
+		current_space=10240
 		num=max(0,self.space_allotted-current_space)
 		for unit in ['','K','M','G','T']:
 			if abs(num)<1024.0:
