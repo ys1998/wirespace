@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [[ ! $# -eq 1 ]]; then
-	echo "No matching command found."
+	echo "No command found."
 	echo "Try 'wirespace --help' for a list of all commands."
 	exit
 else
@@ -19,35 +19,50 @@ else
 		echo "Wirespace installation complete."
 
 	elif [[ $1 == "--start" || $1 == "-s" ]]; then
-		ip=$( python3 get_ip.py )
+		ip=$( python3 actions.py get_ip )
 		port=8000
-		bash configure.sh $ip $port False
-		sudo python3 manage.py runserver "$ip:$port" --insecure
+		python3 actions.py configure $ip $port False
+		echo -e "Hosting Wirespace admin on http://$ip:$port/host ...\n"
+		python3 manage.py runserver "$ip:$port" --insecure
 
 	elif [[ $1 == "--local" || $1 == "-l" ]]; then
 		ip="localhost"
 		port=8000
-		bash configure.sh $ip $port True
-		sudo python3 manage.py runserver "$ip:$port" --insecure
+		python3 actions.py configure $ip $port True
+		echo -e "Hosting Wirespace admin on http://$ip:$port/host ...\n"
+		python3 manage.py runserver "$ip:$port" --insecure
 
 	elif [[ $1 == "--custom" || $1 == "-c" ]]; then
 		echo -n "Enter IP address : "
 		read ip
 		echo -n "Enter port number : "
 		read port
-		bash configure.sh $ip $port False
-		echo -e "\nHosting Wirespace on $ip:$port ...\n"
-		sudo python3 manage.py runserver "$ip:$port" --insecure
+		python3 actions.py configure $ip $port False
+		echo -e "\nHosting Wirespace admin on http://$ip:$port/host ...\n"
+		python3 manage.py runserver "$ip:$port" --insecure
+
+	elif [[ $1 == "--editor" || $1 == "-e" ]]; then
+		python3 actions.py editor
 
 	elif [[ $1 == "--help" || $1 == "-h" ]]; then
 		echo "Wirespace v1.0"
-		echo "Developed by Saurav, Yash and Saunack"
+		echo "Developed by Yash, Saurav and Saunack"
 		echo -e "Licensed under GNU GPL v3.0\n"
 		echo -e "Usage: ./wirespace.sh [OPTION]\n"
-		echo -e "-i,--install\tInstalls all dependencies and sets up Wirespace"
+		echo -e "****** Installation ******"
+		echo -e "-i,--install\tInstalls all dependencies and sets up Wirespace\n"
+		echo -e "****** Server-side ******"
 		echo -e "-l,--local\tHosts Wirespace locally in debug mode"
 		echo -e "-s,--start\tAutodetects IP address and hosts Wirespace over port 8000"
-		echo -e "-c,--custom\tHosts Wirespace after manual setup of IP address and port"
+		echo -e "-c,--custom\tHosts Wirespace after manual setup of IP address and port\n"
+		echo -e "****** Client-side ******"
+		echo -e "-e,--editor\tOpens Wirespace-Editor for local editing and remote saving"
+		echo ""
 		echo -e "-h,--help\tDisplays this help and exit"
+		
+	else
+		echo "No matching command found."
+		echo "Try 'wirespace --help' for a list of all supported commands."
+		exit
 	fi
 fi

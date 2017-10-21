@@ -28,7 +28,8 @@ POST_IGNORE_LIST = [
 	'/share/',
 ]
 
-re_host=re.compile('/host/.*')
+re_host=re.compile('/host[/]?.*')
+re_editor=re.compile('/editor[/]?.*')
 re_key=re.compile('/[0-9a-f]{16}[/]?$')
 
 class AuthenticateTokenMiddleware(MiddlewareMixin):
@@ -51,7 +52,7 @@ class AuthenticateTokenMiddleware(MiddlewareMixin):
 					return JsonResponse({'status':'false','message':"Invalid request format."}, status=404)
 		else:
 			path=request.get_full_path()
-			if re_host.match(path) is None and re_key.match(path) is None:
+			if re_host.match(path) is None and re_key.match(path) is None and re_editor.match(path) is None:
 				return JsonResponse({'status':'false','message':"Invalid request to {0}.".format(request.get_full_path())}, status=404)
 			else:
 				return None
