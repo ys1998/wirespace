@@ -21882,10 +21882,6 @@ var _queryString = __webpack_require__(60);
 
 var _queryString2 = _interopRequireDefault(_queryString);
 
-var _reactFileDownload = __webpack_require__(63);
-
-var _reactFileDownload2 = _interopRequireDefault(_reactFileDownload);
-
 var _reactDom = __webpack_require__(12);
 
 var _reactDom2 = _interopRequireDefault(_reactDom);
@@ -21903,6 +21899,9 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 //stringify - for content type application/x-www-form-urlencoded
 
 
+//https://developer.mozilla.org/en-US/docs/Web/API/FormData/append
+
+//Hadnling each file and folder
 var UnitTemplate = function (_React$Component) {
 	_inherits(UnitTemplate, _React$Component);
 
@@ -21956,6 +21955,9 @@ var UnitTemplate = function (_React$Component) {
 	return UnitTemplate;
 }(_react2.default.Component);
 
+//rendering files and folders
+
+
 function ContentTemplate(props) {
 	return _react2.default.createElement(
 		'div',
@@ -21973,6 +21975,8 @@ function ContentTemplate(props) {
 		})
 	);
 }
+
+//process folders for rendering
 
 var Folders = function (_React$Component2) {
 	_inherits(Folders, _React$Component2);
@@ -21999,8 +22003,14 @@ var Folders = function (_React$Component2) {
 		key: 'genAction',
 		value: function genAction(file_link) {
 			return [{
+				action: this.props.open,
+				name: 'Open'
+			}, {
 				action: this.props.rename,
 				name: 'Rename'
+			}, {
+				action: this.props.download,
+				name: 'Download'
 			}, {
 				action: this.props.delete,
 				name: 'Delete'
@@ -22038,6 +22048,9 @@ var Folders = function (_React$Component2) {
 	return Folders;
 }(_react2.default.Component);
 
+//Process files for rendering
+
+
 var Files = function (_React$Component3) {
 	_inherits(Files, _React$Component3);
 
@@ -22052,19 +22065,25 @@ var Files = function (_React$Component3) {
 		value: function process(key) {
 			var file = this.props.files[key];
 			return {
-				name: this.genName(file),
-				icon: this.genIcon(file),
-				link: key,
-				open: this.props.open,
-				actions: this.genAction(key)
+				name: this.genName(file), //Name to be displayed
+				icon: this.genIcon(file), //Icon
+				link: key, //Complete path
+				open: this.props.open, //Open method
+				actions: this.genAction(key) //All possible actions for given entity
 			};
 		}
 	}, {
 		key: 'genAction',
 		value: function genAction(file_link) {
 			return [{
+				open: this.props.open,
+				name: 'Open'
+			}, {
 				action: this.props.rename,
 				name: 'Rename'
+			}, {
+				action: this.props.download,
+				name: 'Download'
 			}, {
 				action: this.props.delete,
 				name: 'Delete'
@@ -22115,6 +22134,9 @@ var Files = function (_React$Component3) {
 	return Files;
 }(_react2.default.Component);
 
+//Options for uploading files and creating folders
+
+
 var ActionButton = function (_React$Component4) {
 	_inherits(ActionButton, _React$Component4);
 
@@ -22147,7 +22169,7 @@ var ActionButton = function (_React$Component4) {
 							'label',
 							{ className: 'w3-button w3-bar-item light-emph' },
 							_react2.default.createElement('i', { className: (0, _classnames2.default)('fa', 'fa-upload', 'ActionIcon') }),
-							_react2.default.createElement('input', { type: 'file', id: 'ufile', onChange: function onChange() {
+							_react2.default.createElement('input', { type: 'file', id: 'uplist', onChange: function onChange() {
 									return _this8.props.uploadFile();
 								}, multiple: true }),
 							'Upload File'
@@ -22181,6 +22203,9 @@ var ActionButton = function (_React$Component4) {
 
 	return ActionButton;
 }(_react2.default.Component);
+
+//The address bar - each path is clickable and redirects to contents of that folder
+
 
 var Address = function (_React$Component5) {
 	_inherits(Address, _React$Component5);
@@ -22250,6 +22275,9 @@ var Address = function (_React$Component5) {
 	return Address;
 }(_react2.default.Component);
 
+//Download all contents of open directory
+
+
 var DownAll = function (_React$Component6) {
 	_inherits(DownAll, _React$Component6);
 
@@ -22282,6 +22310,9 @@ var DownAll = function (_React$Component6) {
 	return DownAll;
 }(_react2.default.Component);
 
+//Search bar - search as you type : currently suffers from overload
+
+
 var SearchBar = function (_React$PureComponent) {
 	_inherits(SearchBar, _React$PureComponent);
 
@@ -22308,6 +22339,9 @@ var SearchBar = function (_React$PureComponent) {
 
 	return SearchBar;
 }(_react2.default.PureComponent);
+
+//WIRESPACE (github link)
+
 
 var ProjectLogo = function (_React$Component7) {
 	_inherits(ProjectLogo, _React$Component7);
@@ -22342,6 +22376,9 @@ var ProjectLogo = function (_React$Component7) {
 	return ProjectLogo;
 }(_react2.default.Component);
 
+//Action button, address
+
+
 function NavBot(props) {
 	return _react2.default.createElement(
 		'div',
@@ -22358,6 +22395,7 @@ function NavBot(props) {
 	);
 }
 
+//Title, search bar and download all
 function NavTop(props) {
 	return _react2.default.createElement(
 		'div',
@@ -22370,6 +22408,7 @@ function NavTop(props) {
 	);
 }
 
+//The white header/navigation bar
 function NavBar(props) {
 	return _react2.default.createElement(
 		'div',
@@ -22416,6 +22455,7 @@ var Content = function (_React$Component8) {
 					open: this.props.openFolder,
 					rename: this.props.rename,
 					'delete': this.props.delete,
+					download: this.props.download,
 					renderMenu: this.props.renderMenu
 				}),
 				_react2.default.createElement(Files, {
@@ -22423,6 +22463,7 @@ var Content = function (_React$Component8) {
 					open: this.props.openFile,
 					rename: this.props.rename,
 					'delete': this.props.delete,
+					download: this.props.download,
 					renderMenu: this.props.renderMenu
 				})
 			);
@@ -22513,18 +22554,24 @@ var App = function (_React$Component9) {
 			} else this.get_request(this.state.path);
 		}
 
-		//Open new file/folder
+		//Open new file/folder (for search results)
 
 	}, {
 		key: 'jumpTo',
 		value: function jumpTo(address) {
 			this.get_request(address);
 		}
+
+		//Open folder
+
 	}, {
 		key: 'openFolder',
 		value: function openFolder(folder) {
 			this.get_request(folder);
 		}
+
+		//Open file
+
 	}, {
 		key: 'openFile',
 		value: function openFile(address) {
@@ -22532,6 +22579,9 @@ var App = function (_React$Component9) {
 			form.elements[0].value = address;
 			form.submit();
 		}
+
+		//Download files
+
 	}, {
 		key: 'download',
 		value: function download(address) {
@@ -22540,15 +22590,20 @@ var App = function (_React$Component9) {
 			form.elements[0].value = address;
 			form.submit();
 		}
+
+		//Upload multiple files
+
 	}, {
 		key: 'uploadFile',
 		value: function uploadFile() {
 			var _this21 = this;
 
 			var formData = new FormData();
-			var file = document.querySelector('#ufile');
-			formData.append("ufile", file.files);
-			formData.append("address", this.state.path);
+			var file = document.querySelector('#uplist');
+			//This does not work: formData.appen('uplist[]', file.files)
+			for (var i = 0; i < file.files.length; i++) {
+				formData.append("uplist[]", file.files[i]);
+			}formData.append("address", this.state.path);
 			_axios2.default.post(this.baseURL + 'upload/', formData, {
 				headers: {
 					'Content-Type': 'multipart/form-data'
@@ -22557,6 +22612,9 @@ var App = function (_React$Component9) {
 				_this21.get_request(_this21.state.path);
 			});
 		}
+
+		//Upload folder. Supported in very few browsers
+
 	}, {
 		key: 'uploadFolder',
 		value: function uploadFolder() {
@@ -22564,8 +22622,9 @@ var App = function (_React$Component9) {
 
 			var formData = new FormData();
 			var file = document.querySelector('#ufolder');
-			formData.append("directory", file.files);
-			formData.append("webkitdirectory address", this.state.path);
+			for (var i = 0; i < file.files.length; i++) {
+				formData.append("directory[]", file.files[i]);
+			}formData.append("address", this.state.path);
 			_axios2.default.post(this.baseURL + 'uploadFolder/', formData, {
 				headers: {
 					'Content-Type': 'multipart/form-data'
@@ -22574,6 +22633,9 @@ var App = function (_React$Component9) {
 				_this22.get_request(_this22.state.path);
 			});
 		}
+
+		//Create folders
+
 	}, {
 		key: 'createFolder',
 		value: function createFolder() {
@@ -22595,6 +22657,9 @@ var App = function (_React$Component9) {
 				alert("Error in creating folder. Please check console for more details");
 			});
 		}
+
+		//Delete file/folder
+
 	}, {
 		key: 'delete',
 		value: function _delete(link) {
@@ -22615,6 +22680,9 @@ var App = function (_React$Component9) {
 				alert("Error in deleting. Please check console for more details");
 			});
 		}
+
+		//Rename
+
 	}, {
 		key: 'rename',
 		value: function rename(link) {
@@ -22637,6 +22705,9 @@ var App = function (_React$Component9) {
 				alert("Error in renaming. Please check console for more details");
 			});
 		}
+
+		//Render the context menu
+
 	}, {
 		key: 'renderMenu',
 		value: function renderMenu(event, list, target) {
@@ -22671,12 +22742,18 @@ var App = function (_React$Component9) {
 				})
 			), document.getElementById('menu'));
 		}
+
+		//Hide the context menu
+
 	}, {
 		key: 'hideMenu',
 		value: function hideMenu(event) {
 			this.setState({ menuHidden: true });
 			_reactDom2.default.render(_react2.default.createElement('div', { id: 'menu', className: 'hidden' }), document.getElementById('menu'));
 		}
+
+		//Request for data at shared directory on mounting
+
 	}, {
 		key: 'componentDidMount',
 		value: function componentDidMount() {
@@ -22698,10 +22775,10 @@ var App = function (_React$Component9) {
 					{
 						onContextMenu: function onContextMenu(e) {
 							e.preventDefault();
-						},
-						onClick: function onClick(e) {
+						} //Override default right-click behavior
+						, onClick: function onClick(e) {
 							return _this27.hideMenu(e);
-						}
+						} //Hide menu on left-clicking
 					},
 					_react2.default.createElement(NavBar, (_React$createElement = {
 						folders: this.state.path,
@@ -22754,10 +22831,12 @@ var App = function (_React$Component9) {
 						'delete': function _delete(address) {
 							return _this27.delete(address);
 						},
+						download: function download(address) {
+							return _this27.download(address);
+						},
 						renderMenu: function renderMenu(e, l, t) {
 							return _this27.renderMenu(e, l, t);
 						}
-						//onClick={(e) => this.hideMenu(e)}
 					})
 				)
 			);
@@ -24023,42 +24102,6 @@ module.exports = function (encodedURI) {
 		return customDecodeURIComponent(encodedURI);
 	}
 };
-
-
-/***/ }),
-/* 63 */
-/***/ (function(module, exports) {
-
-module.exports = function(data, filename, mime) {
-    var blob = new Blob([data], {type: mime || 'application/octet-stream'});
-    if (typeof window.navigator.msSaveBlob !== 'undefined') {
-        // IE workaround for "HTML7007: One or more blob URLs were 
-        // revoked by closing the blob for which they were created. 
-        // These URLs will no longer resolve as the data backing 
-        // the URL has been freed."
-        window.navigator.msSaveBlob(blob, filename);
-    }
-    else {
-        var blobURL = window.URL.createObjectURL(blob);
-        var tempLink = document.createElement('a');
-        tempLink.style.display = 'none';
-        tempLink.href = blobURL;
-        tempLink.setAttribute('download', filename); 
-        
-        // Safari thinks _blank anchor are pop ups. We only want to set _blank
-        // target if the browser does not support the HTML5 download attribute.
-        // This allows you to download files in desktop safari if pop up blocking 
-        // is enabled.
-        if (typeof tempLink.download === 'undefined') {
-            tempLink.setAttribute('target', '_blank');
-        }
-        
-        document.body.appendChild(tempLink);
-        tempLink.click();
-        document.body.removeChild(tempLink);
-        window.URL.revokeObjectURL(blobURL);
-    }
-}
 
 
 /***/ })

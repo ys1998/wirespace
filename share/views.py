@@ -289,7 +289,7 @@ def upload(request):
 		#space_available=k_Object.space_allotted-int(subprocess.check_output(['sudo','du','-sb',k_Object.path_shared]).split()[0])
 		#print(space_available)
 		space_available=400000
-		file=request.FILES.getlist('ufile')
+		file=request.FILES.getlist('uplist[]')
 		total_size=0
 		for myfile in file:
 			total_size+=myfile.size
@@ -314,7 +314,7 @@ def upload(request):
 				fs=FileSystemStorage(location=upload_path)
 				filename=fs.save(myfile.name,myfile)
 
-		return JsonResponse(status=200)
+		return JsonResponse({'message':'Success'}, status=200)
 	else:
 		return JsonResponse({'message': 'Insufficient priveleges'},status=403)
 
@@ -368,7 +368,7 @@ def delete(request):
 	else:
 		return JsonResponse({'message': 'Unable to ascertain file/folder'},status=403)
 
-	return JsonResponse(status=200)
+	return JsonResponse({'message':'Success'}, status=200)
 
 @csrf_exempt
 def create_folder(request):
@@ -394,7 +394,7 @@ def create_folder(request):
 		directory = os.path.join(directory, folder)
 		if not os.path.exists(directory):
 			os.makedirs(directory)
-			return JsonResponse(status=200)
+			return JsonResponse({'message':'Success'}, status=200)
 	else:
 		return JsonResponse({'message': 'Insufficient priveleges'},status=403)
 
@@ -418,7 +418,7 @@ def move(request):
 
 	if not os.path.exists(target_path):
 		shutil.move(source_path,target_path)
-		return JsonResponse(status=200)
+		return JsonResponse({'message':'Success'}, status=200)
 	else:
 		return JsonResponse({'message': 'Destination already exists'},status=403)
 
@@ -431,7 +431,7 @@ def uploadFolder(request):
 	try:
 		address = request.POST['address']
 		address_list = request.POST['address_list'].split(',')
-		contents = request.FILES.getlist('directory');
+		contents = request.FILES.getlist('directory[]');
 	except:
 		return JsonResponse({'message': 'Invalid parameters'},status=403)
 	
