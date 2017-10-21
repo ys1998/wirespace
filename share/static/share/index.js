@@ -21961,7 +21961,6 @@ function ContentTemplate(props) {
 		'div',
 		{ id: props.heading },
 		props.objects.map(function (object, index) {
-			console.log();
 			return _react2.default.createElement(UnitTemplate, {
 				name: object['name'],
 				icon: object['icon'],
@@ -22433,6 +22432,9 @@ var Content = function (_React$Component8) {
 	return Content;
 }(_react2.default.Component);
 
+//Root of rendering the entire GUI
+
+
 var App = function (_React$Component9) {
 	_inherits(App, _React$Component9);
 
@@ -22452,12 +22454,14 @@ var App = function (_React$Component9) {
 		return _this18;
 	}
 
+	//Request template for opening folders
+
+
 	_createClass(App, [{
 		key: 'get_request',
 		value: function get_request(target) {
 			var _this19 = this;
 
-			//Change this when deploying:
 			_axios2.default.post(this.baseURL + 'open/', _queryString2.default.stringify({
 				target: target
 			}), {
@@ -22473,10 +22477,13 @@ var App = function (_React$Component9) {
 				};
 				_this19.setState(newState);
 			}).catch(function (error) {
-				console.log("Error in request");
+				console.log("Error in opening");
 				console.log(error);
 			});
 		}
+
+		//Handling search
+
 	}, {
 		key: 'handleSearch',
 		value: function handleSearch() {
@@ -22505,6 +22512,9 @@ var App = function (_React$Component9) {
 				});
 			} else this.get_request(this.state.path);
 		}
+
+		//Open new file/folder
+
 	}, {
 		key: 'jumpTo',
 		value: function jumpTo(address) {
@@ -22537,7 +22547,7 @@ var App = function (_React$Component9) {
 
 			var formData = new FormData();
 			var file = document.querySelector('#ufile');
-			formData.append("ufile", file.files[0]);
+			formData.append("ufile", file.files);
 			formData.append("address", this.state.path);
 			_axios2.default.post(this.baseURL + 'upload/', formData, {
 				headers: {
@@ -22611,7 +22621,7 @@ var App = function (_React$Component9) {
 			var _this25 = this;
 
 			var name = prompt("Enter new name");
-			console.log(link);
+			if (name == null || name == "") return;
 			_axios2.default.post(this.baseURL + 'move/', _queryString2.default.stringify({
 				source_address: link,
 				target_address: this.state.path,

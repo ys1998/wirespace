@@ -219,14 +219,14 @@ def open_item(request):
 	try:
 		addr = request.POST["target"]
 	except:
-		return HttpResponse(status=400)
+		return JsonResponse({'message': 'Invalid request parameters'},status=400)
 
 	addr = os.path.normpath(addr)
 	if addr == "" or addr == ".":
 		addr = shared_dir
 	# To prevent access of directories outside the shared path
 	if addr==os.path.join(root_path,addr):
-		return HttpResponse(status=403)
+		return JsonResponse({'message': 'Insufficient priveleges'},status=403)
 
 	target = os.path.join(root_path, addr)
 	if os.path.isdir(target):
@@ -249,7 +249,7 @@ def open_item(request):
 	elif os.path.exists(target):
 		return get_file(target, "open")
 	else:
-		return HttpResponse(status=500)
+		return JsonResponse({'message': 'Unable to ascertain file/folder'},status=500)
 
 # View to handle 'download' requests
 @csrf_exempt
@@ -260,7 +260,7 @@ def download_item(request):
 	try:
 		addr = request.POST["target"]
 	except:
-		return HttpResponse(status=400)
+		return JsonResponse({'message': 'Invalid request parameters'},status=400)
 
 	addr = os.path.normpath(addr)
 	if addr == "" or addr == ".":
@@ -268,7 +268,7 @@ def download_item(request):
 
 	# To prevent access of directories outside the shared path
 	if addr==os.path.join(root_path,addr):
-		return JsonResponse(status=403)
+		return JsonResponse({'message': 'Insufficient priveleges'},status=403)
 	
 	target = os.path.join(root_path, addr)
 
@@ -296,14 +296,14 @@ def upload(request):
 
 		# Checking for available space
 		if total_size>space_available:
-			return HttpResponse(status=413)
+			return JsonResponse({'message': 'Insufficient space'},status=413)
 		
 		upload_path = request.POST['address']
 		upload_path=os.path.normpath(upload_path)
 		
 		# To prevent access of directories outside the shared path
 		if upload_path==os.path.join(root_path,upload_path):
-			return HttpResponse(status=403)
+			return JsonResponse({'message': 'Insufficient priveleges'},status=403)
 		
 		upload_path = os.path.join(root_path, upload_path)
 		# upload_path = os.path.join(sharedPath, upload_path)
@@ -314,9 +314,9 @@ def upload(request):
 				fs=FileSystemStorage(location=upload_path)
 				filename=fs.save(myfile.name,myfile)
 
-		return HttpResponse('')
+		return JsonResponse(status=200)
 	else:
-		return HttpResponse(status=403)
+		return JsonResponse({'message': 'Insufficient priveleges'},status=403)
 
 @csrf_exempt
 def search(request):
@@ -325,11 +325,11 @@ def search(request):
 	try:
 		current_path = request.POST['address']
 	except:
-		return HttpResponse(status=400)
+		return JsonResponse({'message': 'Invalid request parameters'},status=400)
 	
 	# To prevent access of directories outside the shared path
 	if current_path==os.path.join(root_path,current_path):
-		current_path=root_path
+		return JsonResponse({'message': 'Insufficient priveleges'}, status=403)
 
 	query = request.POST['query']
 
@@ -358,7 +358,7 @@ def delete(request):
 	try:
 		current_path=request.POST['address']
 	except:
-		return HttpResponse(status=400)
+		return JsonResponse({'message': 'Insufficient priveleges'},status=400)
 	
 	directory = os.path.join(root_path, current_path)
 	if os.path.isdir(directory):
@@ -366,9 +366,9 @@ def delete(request):
 	elif os.path.isfile(directory):
 		os.remove(directory)
 	else:
-		return HttpResponse(status=403)
+		return JsonResponse({'message': 'Unable to ascertain file/folder'},status=403)
 
-	return HttpResponse(status=200)
+	return JsonResponse(status=200)
 
 @csrf_exempt
 def create_folder(request):
@@ -381,22 +381,22 @@ def create_folder(request):
 			current_path=request.POST['address']
 			folder = request.POST['folder_name']
 		except:
-			return HttpResponse(status=403)
+			return JsonResponse({'message': 'Invalid parameters'},status=403)
 		
 		if current_path==os.path.join(root_path, current_path):
-			return HttpResponse(status=403)
+			return JsonResponse({'message': 'Insufficient priveleges'},status=403)
 		
 		directory = os.path.join(root_path, current_path)
 		
 		if folder==os.path.join(directory, folder):
-			return HttpResponse(status=403)
+			return JsonResponse({'message': 'Folder already exists'},status=403)
 		
 		directory = os.path.join(directory, folder)
 		if not os.path.exists(directory):
 			os.makedirs(directory)
-			return HttpResponse(status=200)
+			return JsonResponse(status=200)
 	else:
-		return HttpResponse(status=403)
+		return JsonResponse({'message': 'Insufficient priveleges'},status=403)
 
 @csrf_exempt
 def move(request):
@@ -409,18 +409,18 @@ def move(request):
 		#source = request.POST['source_name']
 		target = request.POST['target_name']
 	except:
-		return HttpResponse(status=403)
+		return JsonResponse({'message': 'Invalid parameters'},status=403)
 
 	source_path = os.path.join(root_path, source_path)
 	#source_path = os.path.join(source_path,source)
 	target_path = os.path.join(root_path, target_path)
 	target_path = os.path.join(target_path,target)
-	print(source_path)
+
 	if not os.path.exists(target_path):
 		shutil.move(source_path,target_path)
-		return HttpResponse(status=200)
+		return JsonResponse(status=200)
 	else:
-		return HttpResponse(status=403)
+		return JsonResponse({'message': 'Destination already exists'},status=403)
 
 
 @csrf_exempt
@@ -433,7 +433,7 @@ def uploadFolder(request):
 		address_list = request.POST['address_list'].split(',')
 		contents = request.FILES.getlist('directory');
 	except:
-		return HttpResponse(status=403)
+		return JsonResponse({'message': 'Invalid parameters'},status=403)
 	
 	for path,file in zip(address_list,contents):
 		directory = os.path.dirname(os.path.join(address,path))
