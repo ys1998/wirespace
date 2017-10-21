@@ -60,32 +60,7 @@
 				form.appendChild(obj);
 				form.submit();
 			}, false);
-	function rename_input(){
-		var name=prompt("Please enter the source folder/file name:");
-		if (name==null || name == ""){
-			return false;
-		}
-		else{
-			var form=document.forms['rename'];
-			var obj=document.createElement('input');
-			obj.type="hidden";
-			obj.name="source_name";
-			obj.value=name;
-			form.appendChild(obj);
-			tname=prompt("Please enter the target folder/file name:");
-			if (tname==null || tname == ""){
-				return false;
-			}
-			else{
-				var obj2=document.createElement('input');
-				obj2.type="hidden";
-				obj2.name="target_name";
-				obj2.value=tname;
-				form.appendChild(obj2);
-				return true;	
-			}
-		}
-	}function delete_input(){
+		function delete_input(){
 		var name=prompt("Please enter a folder/file name:");
 		if (name==null || name == ""){
 			return false;

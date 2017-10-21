@@ -22002,6 +22002,9 @@ var Folders = function (_React$Component2) {
 			return [{
 				action: this.props.rename,
 				name: 'Rename'
+			}, {
+				action: this.props.delete,
+				name: 'Delete'
 			}];
 		}
 	}, {
@@ -22063,6 +22066,9 @@ var Files = function (_React$Component3) {
 			return [{
 				action: this.props.rename,
 				name: 'Rename'
+			}, {
+				action: this.props.delete,
+				name: 'Delete'
 			}];
 		}
 	}, {
@@ -22410,12 +22416,14 @@ var Content = function (_React$Component8) {
 					folders: this.props.folders,
 					open: this.props.openFolder,
 					rename: this.props.rename,
+					'delete': this.props.delete,
 					renderMenu: this.props.renderMenu
 				}),
 				_react2.default.createElement(Files, {
 					files: this.props.files,
 					open: this.props.openFile,
 					rename: this.props.rename,
+					'delete': this.props.delete,
 					renderMenu: this.props.renderMenu
 				})
 			);
@@ -22574,7 +22582,7 @@ var App = function (_React$Component9) {
 				_this23.get_request(_this23.state.path);
 			}).catch(function (error) {
 				console.log(error);
-				alert(error);
+				alert("Error in creating folder. Please check console for more details");
 			});
 		}
 	}, {
@@ -22582,7 +22590,9 @@ var App = function (_React$Component9) {
 		value: function _delete(link) {
 			var _this24 = this;
 
-			_axios2.default.post(this.baseURL + 'create_folder/', _queryString2.default.stringify({
+			var sure = confirm("Warning: Contents will be permanently deleted. Are you sure you want to delete this?");
+			if (!sure) return;
+			_axios2.default.post(this.baseURL + 'delete/', _queryString2.default.stringify({
 				address: link
 			}), {
 				headers: {
@@ -22592,7 +22602,7 @@ var App = function (_React$Component9) {
 				_this24.get_request(_this24.state.path);
 			}).catch(function (error) {
 				console.log(error);
-				alert(error);
+				alert("Error in deleting. Please check console for more details");
 			});
 		}
 	}, {
@@ -22730,6 +22740,9 @@ var App = function (_React$Component9) {
 						},
 						rename: function rename(address) {
 							return _this27.rename(address);
+						},
+						'delete': function _delete(address) {
+							return _this27.delete(address);
 						},
 						renderMenu: function renderMenu(e, l, t) {
 							return _this27.renderMenu(e, l, t);

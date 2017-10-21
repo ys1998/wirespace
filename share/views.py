@@ -347,12 +347,13 @@ def delete(request):
 	directory = os.path.join(root_path, current_path)
 	if os.path.isdir(directory):
 		shutil.rmtree(directory)
-		return HttpResponse("")
 	elif os.path.isfile(directory):
 		os.remove(directory)
-		return HttpResponse("")
 	else:
-		return HttpResponseError("not found")
+		return HttpResponse(status=403)
+
+	return HttpResponse(status=200)
+
 @csrf_exempt
 def create_folder(request):
 	sharedPath = Token.objects.get(token=request.session['token']).link.path_shared	
@@ -363,19 +364,19 @@ def create_folder(request):
 		folder = request.POST['folder_name']
 		
 		if current_path==os.path.join(root_path, current_path):
-			return JsonResponse({'status':'false','message':"Folder creation in specified path denied."}, status=403)
+			return HttpResponse("Insufficient access level", status=403)
 		
 		directory = os.path.join(root_path, current_path)
 		
 		if folder==os.path.join(directory, folder):
-			return JsonResponse({'status':'false','message':"Folder creation in specified path denied."}, status=403)
+			return HttpResponse("Folder already exists", status=403)
 		
 		directory = os.path.join(directory, folder)
 		if not os.path.exists(directory):
 			os.makedirs(directory)
-		return HttpResponse("")
+			return HttpResponse(status=200)
 	else:
-		return JsonResponse({'status':'false','message':"Folder creation denied."}, status=403)
+		return HttpResponse("Editing priveleges not allowed", status=403)
 
 @csrf_exempt
 def move(request):
@@ -394,9 +395,9 @@ def move(request):
 	print(source_path)
 	if not os.path.exists(target_path):
 		shutil.move(source_path,target_path)
-		return HttpResponse("")
+		return HttpResponse(status=200)
 	else:
-		return HttpResponseError("file/folder already exists")
+		return HttpResponse("File/Folder already exists", status=403)
 
 
 @csrf_exempt
