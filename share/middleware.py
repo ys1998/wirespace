@@ -34,7 +34,7 @@ re_key=re.compile('/[0-9a-f]{16}[/]?$')
 
 class AuthenticateTokenMiddleware(MiddlewareMixin):
 	def process_request(self,request):
-re_key=re.compile('/[0-9a-f]{16}[/]?$')
+		re_key=re.compile('/[0-9a-f]{16}[/]?$')
 
 class AuthenticateTokenMiddleware(MiddlewareMixin):
 	def process_request(self,request):

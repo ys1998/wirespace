@@ -21940,7 +21940,7 @@ var UnitTemplate = function (_React$Component) {
 						return _this2.props.open(_this2.props.link);
 					},
 					onContextMenu: function onContextMenu(e) {
-						console.log("UnitTemplate:", _this2.props.link);_this2.props.renderMenu(e, _this2.props.actions, _this2.props.link);
+						_this2.props.renderMenu(e, _this2.props.actions, _this2.props.link);
 					}
 				},
 				_react2.default.createElement('i', { className: (0, _classnames2.default)("fa", this.props.icon, "fa-5x", "fa-fw", "icon") }),
@@ -22618,25 +22618,25 @@ var App = function (_React$Component9) {
 			});
 		}
 	}, {
-		key: 'menu',
-		value: function menu(event, list, target) {
+		key: 'renderMenu',
+		value: function renderMenu(event, list, target) {
 			var _this26 = this;
 
-			if (this.state.menuHidden || list == null) _reactDom2.default.render(_react2.default.createElement('div', { id: 'menu', className: 'hidden' }), document.getElementById('menu'));
-
+			this.setState({ menuHidden: false });
 			var classes = (0, _classnames2.default)("context-menu", "w3-bar-block", "w3-card-2", "w3-white");
 			var dStyle = {
 				position: 'absolute',
 				top: event.clientY,
 				left: event.clientX
 			};
-			console.log("Menu");
 			_reactDom2.default.render(_react2.default.createElement(
 				'div',
 				{ id: 'menu', className: classes, style: dStyle },
-				list.map(function (object, index) {
-					console.log(object['action']);
-					console.log(target);
+				list == null ? _react2.default.createElement(
+					'div',
+					{ className: 'w3-button w3-bar-item' },
+					'No option'
+				) : list.map(function (object, index) {
 					return _react2.default.createElement(
 						'div',
 						{
@@ -22652,17 +22652,10 @@ var App = function (_React$Component9) {
 			), document.getElementById('menu'));
 		}
 	}, {
-		key: 'renderMenu',
-		value: function renderMenu(event, list, target) {
-			console.log("Rendering:", target);
-			this.setState({ menuHidden: !this.state.menuHidden });
-			this.menu(event, list, target);
-		}
-	}, {
 		key: 'hideMenu',
 		value: function hideMenu(event) {
 			this.setState({ menuHidden: true });
-			this.menu(event, null, null);
+			_reactDom2.default.render(_react2.default.createElement('div', { id: 'menu', className: 'hidden' }), document.getElementById('menu'));
 		}
 	}, {
 		key: 'componentDidMount',

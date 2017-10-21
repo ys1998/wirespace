@@ -27,11 +27,6 @@
 			<input type="hidden" id="address" name="address" value=''>
 			<input style="display:block;" id="uploadDir" type="file" name="directory" webkitdirectory>
 		</form>
-		<form id="rename" method="POST" action="move/"  onsubmit="return rename_input()">
-			<input type="hidden" id="source_address" name="source_address" value="">
-			<input type="hidden" id="target_address" name="target_address" value=''>
-			<input type="submit" value="rename">
-		</form>
 		<form id="delete" method="POST" action="delete/"  onsubmit="return delete_input()">
 			<input type="hidden" id="address" name="address" value="">
 			<input type="submit" value="delete">
