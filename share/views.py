@@ -216,13 +216,18 @@ def open_item(request):
 	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared
 	(root_path,shared_dir)=os.path.split(os.path.expanduser(sharedPath))
 	# target - path to requested item
-	addr = request.POST["target"]
+	try:
+		addr = request.POST["target"]
+	except:
+		return HttpResponse(status=400)
+
 	addr = os.path.normpath(addr)
 	if addr == "" or addr == ".":
 		addr = shared_dir
 	# To prevent access of directories outside the shared path
 	if addr==os.path.join(root_path,addr):
-		return JsonResponse({'status':'false','message':"Open request denied."}, status=403)
+		return HttpResponse(status=403)
+
 	target = os.path.join(root_path, addr)
 	if os.path.isdir(target):
 		dir_items = os.listdir(target)
@@ -244,7 +249,7 @@ def open_item(request):
 	elif os.path.exists(target):
 		return get_file(target, "open")
 	else:
-		return JsonResponse({'status':'false','message':"Could not resolve 'target'."}, status=500)
+		return HttpResponse(status=500)
 
 # View to handle 'download' requests
 @csrf_exempt
@@ -252,14 +257,18 @@ def download_item(request):
 	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared	
 	root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
 	
-	addr = request.POST["target"]
+	try:
+		addr = request.POST["target"]
+	except:
+		return HttpResponse(status=400)
+
 	addr = os.path.normpath(addr)
 	if addr == "" or addr == ".":
 		addr = shared_dir
 
 	# To prevent access of directories outside the shared path
 	if addr==os.path.join(root_path,addr):
-		return JsonResponse({'status':'false','message':"Download denied."}, status=403)
+		return JsonResponse(status=403)
 	
 	target = os.path.join(root_path, addr)
 
@@ -313,7 +322,10 @@ def upload(request):
 def search(request):
 	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared
 	root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
-	current_path = request.POST['address']
+	try:
+		current_path = request.POST['address']
+	except:
+		return HttpResponse(status=400)
 	
 	# To prevent access of directories outside the shared path
 	if current_path==os.path.join(root_path,current_path):
@@ -343,7 +355,10 @@ def delete(request):
 	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared
 	root_path = os.path.dirname(sharedPath)
 
-	current_path=request.POST['address']
+	try:
+		current_path=request.POST['address']
+	except:
+		return HttpResponse(status=400)
 	
 	directory = os.path.join(root_path, current_path)
 	if os.path.isdir(directory):
@@ -361,8 +376,12 @@ def create_folder(request):
 	root_path = os.path.dirname(sharedPath)
 	can_edit=(Token.objects.get(token=request.session['token']).link.permission=='w')
 	if can_edit:
-		current_path=request.POST['address']
-		folder = request.POST['folder_name']
+		
+		try:
+			current_path=request.POST['address']
+			folder = request.POST['folder_name']
+		except:
+			return HttpResponse(status=403)
 		
 		if current_path==os.path.join(root_path, current_path):
 			return HttpResponse("Insufficient access level", status=403)
@@ -384,11 +403,14 @@ def move(request):
 	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared	
 	root_path = os.path.dirname(sharedPath)
 
-	source_path=request.POST['source_address']
-	target_path=request.POST['target_address']
-	#source = request.POST['source_name']
-	target = request.POST['target_name']
-	print(source_path, target_path, target)
+	try:
+		source_path=request.POST['source_address']
+		target_path=request.POST['target_address']
+		#source = request.POST['source_name']
+		target = request.POST['target_name']
+	except:
+		return HttpResponse(status=403)
+
 	source_path = os.path.join(root_path, source_path)
 	#source_path = os.path.join(source_path,source)
 	target_path = os.path.join(root_path, target_path)
@@ -406,9 +428,12 @@ def uploadFolder(request):
 	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared	
 	
 	#Get the base address, list of addresses corresponding to each file in the uploaded folder
-	address = request.POST['address']
-	address_list = request.POST['address_list'].split(',')
-	contents = request.FILES.getlist('directory');
+	try:
+		address = request.POST['address']
+		address_list = request.POST['address_list'].split(',')
+		contents = request.FILES.getlist('directory');
+	except:
+		return HttpResponse(status=403)
 	
 	for path,file in zip(address_list,contents):
 		directory = os.path.dirname(os.path.join(address,path))
