@@ -286,8 +286,9 @@ def upload(request):
 	if can_edit:
 		t_Object=Token.objects.get(token=request.session['token'])
 		k_Object=t_Object.link
-		space_available=k_Object.space_allotted-int(subprocess.check_output(['sudo','du','-sb',k_Object.path_shared]).split()[0])
-		print(space_available)
+		#space_available=k_Object.space_allotted-int(subprocess.check_output(['sudo','du','-sb',k_Object.path_shared]).split()[0])
+		#print(space_available)
+		space_available=400000
 		file=request.FILES.getlist('ufile')
 		total_size=0
 		for myfile in file:
@@ -295,14 +296,14 @@ def upload(request):
 
 		# Checking for available space
 		if total_size>space_available:
-			return JsonResponse({'status':'false','message':"Upload denied."}, status=413)
+			return HttpResponse(status=413)
 		
 		upload_path = request.POST['address']
 		upload_path=os.path.normpath(upload_path)
 		
 		# To prevent access of directories outside the shared path
 		if upload_path==os.path.join(root_path,upload_path):
-			return JsonResponse({'status':'false','message':"Upload to specified path denied."}, status=403)
+			return HttpResponse(status=403)
 		
 		upload_path = os.path.join(root_path, upload_path)
 		# upload_path = os.path.join(sharedPath, upload_path)
@@ -315,7 +316,7 @@ def upload(request):
 
 		return HttpResponse('')
 	else:
-		return JsonResponse({'status':'false','message':"Upload denied."}, status=403)
+		return HttpResponse(status=403)
 
 @csrf_exempt
 def search(request):
@@ -383,19 +384,19 @@ def create_folder(request):
 			return HttpResponse(status=403)
 		
 		if current_path==os.path.join(root_path, current_path):
-			return HttpResponse("Insufficient access level", status=403)
+			return HttpResponse(status=403)
 		
 		directory = os.path.join(root_path, current_path)
 		
 		if folder==os.path.join(directory, folder):
-			return HttpResponse("Folder already exists", status=403)
+			return HttpResponse(status=403)
 		
 		directory = os.path.join(directory, folder)
 		if not os.path.exists(directory):
 			os.makedirs(directory)
 			return HttpResponse(status=200)
 	else:
-		return HttpResponse("Editing priveleges not allowed", status=403)
+		return HttpResponse(status=403)
 
 @csrf_exempt
 def move(request):
@@ -419,7 +420,7 @@ def move(request):
 		shutil.move(source_path,target_path)
 		return HttpResponse(status=200)
 	else:
-		return HttpResponse("File/Folder already exists", status=403)
+		return HttpResponse(status=403)
 
 
 @csrf_exempt
