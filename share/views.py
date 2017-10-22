@@ -289,7 +289,7 @@ def upload(request):
 		k_Object=t_Object.link
 		#space_available=k_Object.space_allotted-int(subprocess.check_output(['sudo','du','-sb',k_Object.path_shared]).split()[0])
 		#print('in edit')
-		space_available=400000
+		space_available=40000000
 		files = request.FILES.getlist('uplist[]')
 		total_size = 0
 		for myfile in files:
@@ -302,13 +302,12 @@ def upload(request):
 		addresses = request.POST.getlist('address[]')
 		
 		for address, file in zip(addresses, files):
-			directory = os.path.join(sharedPath,address)
-			print('2')
+			directory = os.path.join(root_path,address)
+			
 			if directory == address:
 				return JsonResponse({'message': 'Insufficient priveleges'},status=403)
-			print(directory)
 			directory = os.path.dirname(directory)
-			print(directory)
+
 			#if the directories do not exist, create the directories
 			if not os.path.exists(directory):
 				os.makedirs(directory)

@@ -22276,7 +22276,7 @@ var ActionButton = function (_React$Component6) {
 							_react2.default.createElement('input', { type: 'file', id: 'ufolder', onChange: function onChange() {
 									return _this12.props.uploadFolder();
 								}, ref: function ref(e) {
-									if (e != null) e.setAttribute.webkitdirectory = true;
+									if (e != null) e.setAttribute('webkitdirectory', '');
 								} }),
 							'Upload Folder'
 						),
@@ -22668,7 +22668,7 @@ var App = function (_React$Component10) {
 			}).then(function (res) {
 				_this24.get_request(_this24.state.path);
 			}).catch(function (err) {
-				console.log("Error in uploading files");
+				alert("Error in uploading files. See console log for more details");
 			});
 		}
 
@@ -22680,7 +22680,7 @@ var App = function (_React$Component10) {
 			var files = document.querySelector('#uplist').files;
 			var addr = [];
 			for (var i = 0; i < files.length; i++) {
-				addr[i] = this.state.path;
+				addr[i] = this.state.path + '/' + files[i].name;
 			}this.upload(files, addr);
 		}
 
@@ -22693,6 +22693,7 @@ var App = function (_React$Component10) {
 			var addr = [];
 			for (var i = 0; i < files.length; i++) {
 				addr[i] = this.state.path + '/' + files[i].webkitRelativePath;
+				console.log(addr[i]);
 			}
 			this.upload(files, addr);
 		}
