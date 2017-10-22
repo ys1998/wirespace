@@ -22076,7 +22076,7 @@ var Files = function (_React$Component3) {
 		key: 'genAction',
 		value: function genAction(file_link) {
 			return [{
-				open: this.props.open,
+				action: this.props.open,
 				name: 'Open'
 			}, {
 				action: this.props.rename,

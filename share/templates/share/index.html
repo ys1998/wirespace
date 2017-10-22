@@ -50,17 +50,9 @@
 	<div id="menu">
 	</div>
 	<div id="form" style="display: none;">
-		<form id="uploadFile" method="POST" action="upload/" enctype="multipart/form-data" >
-			<input type="hidden" id="address" name="address" value=''>
-			<input style="display:block;" type="file" name="ufile" multiple>
-		</form>
 		<form id="uploadFolder" method="POST" action="uploadFolder/" enctype="multipart/form-data" >
 			<input type="hidden" id="address" name="address" value=''>
 			<input style="display:block;" id="uploadDir" type="file" name="directory" webkitdirectory>
-		</form>
-		<form id="delete" method="POST" action="delete/"  onsubmit="return delete_input()">
-			<input type="hidden" id="address" name="address" value="">
-			<input type="submit" value="delete">
 		</form>
 		<form id="downloadform" action="download/" method="POST">
 			<input type="text" name="target" id="targetlink">
@@ -74,9 +66,6 @@
     <script src = "{% static 'share/index.js' %}">
 	</script>
 	<script>
-		document.getElementById("uploadFile").addEventListener("change", function(event) {
-			  document.forms['uploadFile'].submit();
-			}, false);
 		document.getElementById("uploadDir").addEventListener("change", function(event) {
 			  var files = event.target.files;
 			  var address_list=[];
@@ -91,21 +80,6 @@
 				form.appendChild(obj);
 				form.submit();
 			}, false);
-		function delete_input(){
-		var name=prompt("Please enter a folder/file name:");
-		if (name==null || name == ""){
-			return false;
-		}
-		else{
-			var form=document.forms['delete'];
-			var obj=document.createElement('input');
-			obj.type="hidden";
-			obj.name="name";
-			obj.value=name;
-			form.appendChild(obj);
-			return true;
-		}
-	}
     </script>
 </body>
 </html>
