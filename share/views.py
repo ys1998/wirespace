@@ -20,7 +20,8 @@ import shutil
 
 # Keep CACHE_DIR separate from the shared directory
 # Used for storing generated .zip files
-CACHE_DIR = os.path.expanduser('~/cache')
+# CACHE_DIR = os.path.expanduser('~/cache')
+CACHE_DIR='/tmp/wirespace/cache'
 
 def authenticate(request,k):
 	# use request.sessions['token']
@@ -283,12 +284,13 @@ def upload(request):
 	root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
 
 	can_edit=(Token.objects.get(token=request.session['token']).link.permission=='w')
+	#print('in upload')
 	if can_edit:
 		t_Object=Token.objects.get(token=request.session['token'])
 		k_Object=t_Object.link
 		#space_available=k_Object.space_allotted-int(subprocess.check_output(['sudo','du','-sb',k_Object.path_shared]).split()[0])
-		#print(space_available)
-		space_available=400000
+		#print('in edit')
+		space_available=40000000
 		files = request.FILES.getlist('uplist[]')
 		total_size = 0
 		for myfile in files:
@@ -297,15 +299,16 @@ def upload(request):
 		# Checking for available space
 		if total_size > space_available:
 			return JsonResponse({'message': 'Insufficient space'},status=413)
+		print(files)
+		addresses = request.POST.getlist('address[]')
 		
-		addresses = request.POST['address[]']
-
 		for address, file in zip(addresses, files):
-			directory = os.path.join(sharedPath,address)
+			directory = os.path.join(root_path,address)
+			
 			if directory == address:
 				return JsonResponse({'message': 'Insufficient priveleges'},status=403)
-			
 			directory = os.path.dirname(directory)
+
 			#if the directories do not exist, create the directories
 			if not os.path.exists(directory):
 				os.makedirs(directory)
@@ -316,6 +319,8 @@ def upload(request):
 				fs.save(file.name,file)
 
 		return JsonResponse({'message': 'Success'},status=200);
+	else:
+		return JsonResponse({'message': 'Insufficient priveleges'},status=403)
 
 @csrf_exempt
 def search(request):
