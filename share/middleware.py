@@ -72,7 +72,7 @@ class ExpireKeyMiddleware(MiddlewareMixin):
 						temp_t=Token.objects.get(token=s_data['token'])
 						if temp_t.link.key==k_Object.key:
 							s_Object.delete()
-					except Token.DoesNotExist:
+					except:
 						s_Object.delete()
 				
 				# Delete key and all associated tokens

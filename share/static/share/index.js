@@ -1,659 +1,4 @@
 /******/ (function(modules) { // webpackBootstrap
-/******/ 	function hotDisposeChunk(chunkId) {
-/******/ 		delete installedChunks[chunkId];
-/******/ 	}
-/******/ 	var parentHotUpdateCallback = this["webpackHotUpdate"];
-/******/ 	this["webpackHotUpdate"] = 
-/******/ 	function webpackHotUpdateCallback(chunkId, moreModules) { // eslint-disable-line no-unused-vars
-/******/ 		hotAddUpdateChunk(chunkId, moreModules);
-/******/ 		if(parentHotUpdateCallback) parentHotUpdateCallback(chunkId, moreModules);
-/******/ 	} ;
-/******/ 	
-/******/ 	function hotDownloadUpdateChunk(chunkId) { // eslint-disable-line no-unused-vars
-/******/ 		var head = document.getElementsByTagName("head")[0];
-/******/ 		var script = document.createElement("script");
-/******/ 		script.type = "text/javascript";
-/******/ 		script.charset = "utf-8";
-/******/ 		script.src = __webpack_require__.p + "" + chunkId + "." + hotCurrentHash + ".hot-update.js";
-/******/ 		head.appendChild(script);
-/******/ 	}
-/******/ 	
-/******/ 	function hotDownloadManifest(requestTimeout) { // eslint-disable-line no-unused-vars
-/******/ 		requestTimeout = requestTimeout || 10000;
-/******/ 		return new Promise(function(resolve, reject) {
-/******/ 			if(typeof XMLHttpRequest === "undefined")
-/******/ 				return reject(new Error("No browser support"));
-/******/ 			try {
-/******/ 				var request = new XMLHttpRequest();
-/******/ 				var requestPath = __webpack_require__.p + "" + hotCurrentHash + ".hot-update.json";
-/******/ 				request.open("GET", requestPath, true);
-/******/ 				request.timeout = requestTimeout;
-/******/ 				request.send(null);
-/******/ 			} catch(err) {
-/******/ 				return reject(err);
-/******/ 			}
-/******/ 			request.onreadystatechange = function() {
-/******/ 				if(request.readyState !== 4) return;
-/******/ 				if(request.status === 0) {
-/******/ 					// timeout
-/******/ 					reject(new Error("Manifest request to " + requestPath + " timed out."));
-/******/ 				} else if(request.status === 404) {
-/******/ 					// no update available
-/******/ 					resolve();
-/******/ 				} else if(request.status !== 200 && request.status !== 304) {
-/******/ 					// other failure
-/******/ 					reject(new Error("Manifest request to " + requestPath + " failed."));
-/******/ 				} else {
-/******/ 					// success
-/******/ 					try {
-/******/ 						var update = JSON.parse(request.responseText);
-/******/ 					} catch(e) {
-/******/ 						reject(e);
-/******/ 						return;
-/******/ 					}
-/******/ 					resolve(update);
-/******/ 				}
-/******/ 			};
-/******/ 		});
-/******/ 	}
-/******/
-/******/ 	
-/******/ 	
-/******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "cdc2d5ceefd0d4d09c43"; // eslint-disable-line no-unused-vars
-/******/ 	var hotRequestTimeout = 10000;
-/******/ 	var hotCurrentModuleData = {};
-/******/ 	var hotCurrentChildModule; // eslint-disable-line no-unused-vars
-/******/ 	var hotCurrentParents = []; // eslint-disable-line no-unused-vars
-/******/ 	var hotCurrentParentsTemp = []; // eslint-disable-line no-unused-vars
-/******/ 	
-/******/ 	function hotCreateRequire(moduleId) { // eslint-disable-line no-unused-vars
-/******/ 		var me = installedModules[moduleId];
-/******/ 		if(!me) return __webpack_require__;
-/******/ 		var fn = function(request) {
-/******/ 			if(me.hot.active) {
-/******/ 				if(installedModules[request]) {
-/******/ 					if(installedModules[request].parents.indexOf(moduleId) < 0)
-/******/ 						installedModules[request].parents.push(moduleId);
-/******/ 				} else {
-/******/ 					hotCurrentParents = [moduleId];
-/******/ 					hotCurrentChildModule = request;
-/******/ 				}
-/******/ 				if(me.children.indexOf(request) < 0)
-/******/ 					me.children.push(request);
-/******/ 			} else {
-/******/ 				console.warn("[HMR] unexpected require(" + request + ") from disposed module " + moduleId);
-/******/ 				hotCurrentParents = [];
-/******/ 			}
-/******/ 			return __webpack_require__(request);
-/******/ 		};
-/******/ 		var ObjectFactory = function ObjectFactory(name) {
-/******/ 			return {
-/******/ 				configurable: true,
-/******/ 				enumerable: true,
-/******/ 				get: function() {
-/******/ 					return __webpack_require__[name];
-/******/ 				},
-/******/ 				set: function(value) {
-/******/ 					__webpack_require__[name] = value;
-/******/ 				}
-/******/ 			};
-/******/ 		};
-/******/ 		for(var name in __webpack_require__) {
-/******/ 			if(Object.prototype.hasOwnProperty.call(__webpack_require__, name) && name !== "e") {
-/******/ 				Object.defineProperty(fn, name, ObjectFactory(name));
-/******/ 			}
-/******/ 		}
-/******/ 		fn.e = function(chunkId) {
-/******/ 			if(hotStatus === "ready")
-/******/ 				hotSetStatus("prepare");
-/******/ 			hotChunksLoading++;
-/******/ 			return __webpack_require__.e(chunkId).then(finishChunkLoading, function(err) {
-/******/ 				finishChunkLoading();
-/******/ 				throw err;
-/******/ 			});
-/******/ 	
-/******/ 			function finishChunkLoading() {
-/******/ 				hotChunksLoading--;
-/******/ 				if(hotStatus === "prepare") {
-/******/ 					if(!hotWaitingFilesMap[chunkId]) {
-/******/ 						hotEnsureUpdateChunk(chunkId);
-/******/ 					}
-/******/ 					if(hotChunksLoading === 0 && hotWaitingFiles === 0) {
-/******/ 						hotUpdateDownloaded();
-/******/ 					}
-/******/ 				}
-/******/ 			}
-/******/ 		};
-/******/ 		return fn;
-/******/ 	}
-/******/ 	
-/******/ 	function hotCreateModule(moduleId) { // eslint-disable-line no-unused-vars
-/******/ 		var hot = {
-/******/ 			// private stuff
-/******/ 			_acceptedDependencies: {},
-/******/ 			_declinedDependencies: {},
-/******/ 			_selfAccepted: false,
-/******/ 			_selfDeclined: false,
-/******/ 			_disposeHandlers: [],
-/******/ 			_main: hotCurrentChildModule !== moduleId,
-/******/ 	
-/******/ 			// Module API
-/******/ 			active: true,
-/******/ 			accept: function(dep, callback) {
-/******/ 				if(typeof dep === "undefined")
-/******/ 					hot._selfAccepted = true;
-/******/ 				else if(typeof dep === "function")
-/******/ 					hot._selfAccepted = dep;
-/******/ 				else if(typeof dep === "object")
-/******/ 					for(var i = 0; i < dep.length; i++)
-/******/ 						hot._acceptedDependencies[dep[i]] = callback || function() {};
-/******/ 				else
-/******/ 					hot._acceptedDependencies[dep] = callback || function() {};
-/******/ 			},
-/******/ 			decline: function(dep) {
-/******/ 				if(typeof dep === "undefined")
-/******/ 					hot._selfDeclined = true;
-/******/ 				else if(typeof dep === "object")
-/******/ 					for(var i = 0; i < dep.length; i++)
-/******/ 						hot._declinedDependencies[dep[i]] = true;
-/******/ 				else
-/******/ 					hot._declinedDependencies[dep] = true;
-/******/ 			},
-/******/ 			dispose: function(callback) {
-/******/ 				hot._disposeHandlers.push(callback);
-/******/ 			},
-/******/ 			addDisposeHandler: function(callback) {
-/******/ 				hot._disposeHandlers.push(callback);
-/******/ 			},
-/******/ 			removeDisposeHandler: function(callback) {
-/******/ 				var idx = hot._disposeHandlers.indexOf(callback);
-/******/ 				if(idx >= 0) hot._disposeHandlers.splice(idx, 1);
-/******/ 			},
-/******/ 	
-/******/ 			// Management API
-/******/ 			check: hotCheck,
-/******/ 			apply: hotApply,
-/******/ 			status: function(l) {
-/******/ 				if(!l) return hotStatus;
-/******/ 				hotStatusHandlers.push(l);
-/******/ 			},
-/******/ 			addStatusHandler: function(l) {
-/******/ 				hotStatusHandlers.push(l);
-/******/ 			},
-/******/ 			removeStatusHandler: function(l) {
-/******/ 				var idx = hotStatusHandlers.indexOf(l);
-/******/ 				if(idx >= 0) hotStatusHandlers.splice(idx, 1);
-/******/ 			},
-/******/ 	
-/******/ 			//inherit from previous dispose call
-/******/ 			data: hotCurrentModuleData[moduleId]
-/******/ 		};
-/******/ 		hotCurrentChildModule = undefined;
-/******/ 		return hot;
-/******/ 	}
-/******/ 	
-/******/ 	var hotStatusHandlers = [];
-/******/ 	var hotStatus = "idle";
-/******/ 	
-/******/ 	function hotSetStatus(newStatus) {
-/******/ 		hotStatus = newStatus;
-/******/ 		for(var i = 0; i < hotStatusHandlers.length; i++)
-/******/ 			hotStatusHandlers[i].call(null, newStatus);
-/******/ 	}
-/******/ 	
-/******/ 	// while downloading
-/******/ 	var hotWaitingFiles = 0;
-/******/ 	var hotChunksLoading = 0;
-/******/ 	var hotWaitingFilesMap = {};
-/******/ 	var hotRequestedFilesMap = {};
-/******/ 	var hotAvailableFilesMap = {};
-/******/ 	var hotDeferred;
-/******/ 	
-/******/ 	// The update info
-/******/ 	var hotUpdate, hotUpdateNewHash;
-/******/ 	
-/******/ 	function toModuleId(id) {
-/******/ 		var isNumber = (+id) + "" === id;
-/******/ 		return isNumber ? +id : id;
-/******/ 	}
-/******/ 	
-/******/ 	function hotCheck(apply) {
-/******/ 		if(hotStatus !== "idle") throw new Error("check() is only allowed in idle status");
-/******/ 		hotApplyOnUpdate = apply;
-/******/ 		hotSetStatus("check");
-/******/ 		return hotDownloadManifest(hotRequestTimeout).then(function(update) {
-/******/ 			if(!update) {
-/******/ 				hotSetStatus("idle");
-/******/ 				return null;
-/******/ 			}
-/******/ 			hotRequestedFilesMap = {};
-/******/ 			hotWaitingFilesMap = {};
-/******/ 			hotAvailableFilesMap = update.c;
-/******/ 			hotUpdateNewHash = update.h;
-/******/ 	
-/******/ 			hotSetStatus("prepare");
-/******/ 			var promise = new Promise(function(resolve, reject) {
-/******/ 				hotDeferred = {
-/******/ 					resolve: resolve,
-/******/ 					reject: reject
-/******/ 				};
-/******/ 			});
-/******/ 			hotUpdate = {};
-/******/ 			var chunkId = 0;
-/******/ 			{ // eslint-disable-line no-lone-blocks
-/******/ 				/*globals chunkId */
-/******/ 				hotEnsureUpdateChunk(chunkId);
-/******/ 			}
-/******/ 			if(hotStatus === "prepare" && hotChunksLoading === 0 && hotWaitingFiles === 0) {
-/******/ 				hotUpdateDownloaded();
-/******/ 			}
-/******/ 			return promise;
-/******/ 		});
-/******/ 	}
-/******/ 	
-/******/ 	function hotAddUpdateChunk(chunkId, moreModules) { // eslint-disable-line no-unused-vars
-/******/ 		if(!hotAvailableFilesMap[chunkId] || !hotRequestedFilesMap[chunkId])
-/******/ 			return;
-/******/ 		hotRequestedFilesMap[chunkId] = false;
-/******/ 		for(var moduleId in moreModules) {
-/******/ 			if(Object.prototype.hasOwnProperty.call(moreModules, moduleId)) {
-/******/ 				hotUpdate[moduleId] = moreModules[moduleId];
-/******/ 			}
-/******/ 		}
-/******/ 		if(--hotWaitingFiles === 0 && hotChunksLoading === 0) {
-/******/ 			hotUpdateDownloaded();
-/******/ 		}
-/******/ 	}
-/******/ 	
-/******/ 	function hotEnsureUpdateChunk(chunkId) {
-/******/ 		if(!hotAvailableFilesMap[chunkId]) {
-/******/ 			hotWaitingFilesMap[chunkId] = true;
-/******/ 		} else {
-/******/ 			hotRequestedFilesMap[chunkId] = true;
-/******/ 			hotWaitingFiles++;
-/******/ 			hotDownloadUpdateChunk(chunkId);
-/******/ 		}
-/******/ 	}
-/******/ 	
-/******/ 	function hotUpdateDownloaded() {
-/******/ 		hotSetStatus("ready");
-/******/ 		var deferred = hotDeferred;
-/******/ 		hotDeferred = null;
-/******/ 		if(!deferred) return;
-/******/ 		if(hotApplyOnUpdate) {
-/******/ 			// Wrap deferred object in Promise to mark it as a well-handled Promise to
-/******/ 			// avoid triggering uncaught exception warning in Chrome.
-/******/ 			// See https://bugs.chromium.org/p/chromium/issues/detail?id=465666
-/******/ 			Promise.resolve().then(function() {
-/******/ 				return hotApply(hotApplyOnUpdate);
-/******/ 			}).then(
-/******/ 				function(result) {
-/******/ 					deferred.resolve(result);
-/******/ 				},
-/******/ 				function(err) {
-/******/ 					deferred.reject(err);
-/******/ 				}
-/******/ 			);
-/******/ 		} else {
-/******/ 			var outdatedModules = [];
-/******/ 			for(var id in hotUpdate) {
-/******/ 				if(Object.prototype.hasOwnProperty.call(hotUpdate, id)) {
-/******/ 					outdatedModules.push(toModuleId(id));
-/******/ 				}
-/******/ 			}
-/******/ 			deferred.resolve(outdatedModules);
-/******/ 		}
-/******/ 	}
-/******/ 	
-/******/ 	function hotApply(options) {
-/******/ 		if(hotStatus !== "ready") throw new Error("apply() is only allowed in ready status");
-/******/ 		options = options || {};
-/******/ 	
-/******/ 		var cb;
-/******/ 		var i;
-/******/ 		var j;
-/******/ 		var module;
-/******/ 		var moduleId;
-/******/ 	
-/******/ 		function getAffectedStuff(updateModuleId) {
-/******/ 			var outdatedModules = [updateModuleId];
-/******/ 			var outdatedDependencies = {};
-/******/ 	
-/******/ 			var queue = outdatedModules.slice().map(function(id) {
-/******/ 				return {
-/******/ 					chain: [id],
-/******/ 					id: id
-/******/ 				};
-/******/ 			});
-/******/ 			while(queue.length > 0) {
-/******/ 				var queueItem = queue.pop();
-/******/ 				var moduleId = queueItem.id;
-/******/ 				var chain = queueItem.chain;
-/******/ 				module = installedModules[moduleId];
-/******/ 				if(!module || module.hot._selfAccepted)
-/******/ 					continue;
-/******/ 				if(module.hot._selfDeclined) {
-/******/ 					return {
-/******/ 						type: "self-declined",
-/******/ 						chain: chain,
-/******/ 						moduleId: moduleId
-/******/ 					};
-/******/ 				}
-/******/ 				if(module.hot._main) {
-/******/ 					return {
-/******/ 						type: "unaccepted",
-/******/ 						chain: chain,
-/******/ 						moduleId: moduleId
-/******/ 					};
-/******/ 				}
-/******/ 				for(var i = 0; i < module.parents.length; i++) {
-/******/ 					var parentId = module.parents[i];
-/******/ 					var parent = installedModules[parentId];
-/******/ 					if(!parent) continue;
-/******/ 					if(parent.hot._declinedDependencies[moduleId]) {
-/******/ 						return {
-/******/ 							type: "declined",
-/******/ 							chain: chain.concat([parentId]),
-/******/ 							moduleId: moduleId,
-/******/ 							parentId: parentId
-/******/ 						};
-/******/ 					}
-/******/ 					if(outdatedModules.indexOf(parentId) >= 0) continue;
-/******/ 					if(parent.hot._acceptedDependencies[moduleId]) {
-/******/ 						if(!outdatedDependencies[parentId])
-/******/ 							outdatedDependencies[parentId] = [];
-/******/ 						addAllToSet(outdatedDependencies[parentId], [moduleId]);
-/******/ 						continue;
-/******/ 					}
-/******/ 					delete outdatedDependencies[parentId];
-/******/ 					outdatedModules.push(parentId);
-/******/ 					queue.push({
-/******/ 						chain: chain.concat([parentId]),
-/******/ 						id: parentId
-/******/ 					});
-/******/ 				}
-/******/ 			}
-/******/ 	
-/******/ 			return {
-/******/ 				type: "accepted",
-/******/ 				moduleId: updateModuleId,
-/******/ 				outdatedModules: outdatedModules,
-/******/ 				outdatedDependencies: outdatedDependencies
-/******/ 			};
-/******/ 		}
-/******/ 	
-/******/ 		function addAllToSet(a, b) {
-/******/ 			for(var i = 0; i < b.length; i++) {
-/******/ 				var item = b[i];
-/******/ 				if(a.indexOf(item) < 0)
-/******/ 					a.push(item);
-/******/ 			}
-/******/ 		}
-/******/ 	
-/******/ 		// at begin all updates modules are outdated
-/******/ 		// the "outdated" status can propagate to parents if they don't accept the children
-/******/ 		var outdatedDependencies = {};
-/******/ 		var outdatedModules = [];
-/******/ 		var appliedUpdate = {};
-/******/ 	
-/******/ 		var warnUnexpectedRequire = function warnUnexpectedRequire() {
-/******/ 			console.warn("[HMR] unexpected require(" + result.moduleId + ") to disposed module");
-/******/ 		};
-/******/ 	
-/******/ 		for(var id in hotUpdate) {
-/******/ 			if(Object.prototype.hasOwnProperty.call(hotUpdate, id)) {
-/******/ 				moduleId = toModuleId(id);
-/******/ 				var result;
-/******/ 				if(hotUpdate[id]) {
-/******/ 					result = getAffectedStuff(moduleId);
-/******/ 				} else {
-/******/ 					result = {
-/******/ 						type: "disposed",
-/******/ 						moduleId: id
-/******/ 					};
-/******/ 				}
-/******/ 				var abortError = false;
-/******/ 				var doApply = false;
-/******/ 				var doDispose = false;
-/******/ 				var chainInfo = "";
-/******/ 				if(result.chain) {
-/******/ 					chainInfo = "\nUpdate propagation: " + result.chain.join(" -> ");
-/******/ 				}
-/******/ 				switch(result.type) {
-/******/ 					case "self-declined":
-/******/ 						if(options.onDeclined)
-/******/ 							options.onDeclined(result);
-/******/ 						if(!options.ignoreDeclined)
-/******/ 							abortError = new Error("Aborted because of self decline: " + result.moduleId + chainInfo);
-/******/ 						break;
-/******/ 					case "declined":
-/******/ 						if(options.onDeclined)
-/******/ 							options.onDeclined(result);
-/******/ 						if(!options.ignoreDeclined)
-/******/ 							abortError = new Error("Aborted because of declined dependency: " + result.moduleId + " in " + result.parentId + chainInfo);
-/******/ 						break;
-/******/ 					case "unaccepted":
-/******/ 						if(options.onUnaccepted)
-/******/ 							options.onUnaccepted(result);
-/******/ 						if(!options.ignoreUnaccepted)
-/******/ 							abortError = new Error("Aborted because " + moduleId + " is not accepted" + chainInfo);
-/******/ 						break;
-/******/ 					case "accepted":
-/******/ 						if(options.onAccepted)
-/******/ 							options.onAccepted(result);
-/******/ 						doApply = true;
-/******/ 						break;
-/******/ 					case "disposed":
-/******/ 						if(options.onDisposed)
-/******/ 							options.onDisposed(result);
-/******/ 						doDispose = true;
-/******/ 						break;
-/******/ 					default:
-/******/ 						throw new Error("Unexception type " + result.type);
-/******/ 				}
-/******/ 				if(abortError) {
-/******/ 					hotSetStatus("abort");
-/******/ 					return Promise.reject(abortError);
-/******/ 				}
-/******/ 				if(doApply) {
-/******/ 					appliedUpdate[moduleId] = hotUpdate[moduleId];
-/******/ 					addAllToSet(outdatedModules, result.outdatedModules);
-/******/ 					for(moduleId in result.outdatedDependencies) {
-/******/ 						if(Object.prototype.hasOwnProperty.call(result.outdatedDependencies, moduleId)) {
-/******/ 							if(!outdatedDependencies[moduleId])
-/******/ 								outdatedDependencies[moduleId] = [];
-/******/ 							addAllToSet(outdatedDependencies[moduleId], result.outdatedDependencies[moduleId]);
-/******/ 						}
-/******/ 					}
-/******/ 				}
-/******/ 				if(doDispose) {
-/******/ 					addAllToSet(outdatedModules, [result.moduleId]);
-/******/ 					appliedUpdate[moduleId] = warnUnexpectedRequire;
-/******/ 				}
-/******/ 			}
-/******/ 		}
-/******/ 	
-/******/ 		// Store self accepted outdated modules to require them later by the module system
-/******/ 		var outdatedSelfAcceptedModules = [];
-/******/ 		for(i = 0; i < outdatedModules.length; i++) {
-/******/ 			moduleId = outdatedModules[i];
-/******/ 			if(installedModules[moduleId] && installedModules[moduleId].hot._selfAccepted)
-/******/ 				outdatedSelfAcceptedModules.push({
-/******/ 					module: moduleId,
-/******/ 					errorHandler: installedModules[moduleId].hot._selfAccepted
-/******/ 				});
-/******/ 		}
-/******/ 	
-/******/ 		// Now in "dispose" phase
-/******/ 		hotSetStatus("dispose");
-/******/ 		Object.keys(hotAvailableFilesMap).forEach(function(chunkId) {
-/******/ 			if(hotAvailableFilesMap[chunkId] === false) {
-/******/ 				hotDisposeChunk(chunkId);
-/******/ 			}
-/******/ 		});
-/******/ 	
-/******/ 		var idx;
-/******/ 		var queue = outdatedModules.slice();
-/******/ 		while(queue.length > 0) {
-/******/ 			moduleId = queue.pop();
-/******/ 			module = installedModules[moduleId];
-/******/ 			if(!module) continue;
-/******/ 	
-/******/ 			var data = {};
-/******/ 	
-/******/ 			// Call dispose handlers
-/******/ 			var disposeHandlers = module.hot._disposeHandlers;
-/******/ 			for(j = 0; j < disposeHandlers.length; j++) {
-/******/ 				cb = disposeHandlers[j];
-/******/ 				cb(data);
-/******/ 			}
-/******/ 			hotCurrentModuleData[moduleId] = data;
-/******/ 	
-/******/ 			// disable module (this disables requires from this module)
-/******/ 			module.hot.active = false;
-/******/ 	
-/******/ 			// remove module from cache
-/******/ 			delete installedModules[moduleId];
-/******/ 	
-/******/ 			// when disposing there is no need to call dispose handler
-/******/ 			delete outdatedDependencies[moduleId];
-/******/ 	
-/******/ 			// remove "parents" references from all children
-/******/ 			for(j = 0; j < module.children.length; j++) {
-/******/ 				var child = installedModules[module.children[j]];
-/******/ 				if(!child) continue;
-/******/ 				idx = child.parents.indexOf(moduleId);
-/******/ 				if(idx >= 0) {
-/******/ 					child.parents.splice(idx, 1);
-/******/ 				}
-/******/ 			}
-/******/ 		}
-/******/ 	
-/******/ 		// remove outdated dependency from module children
-/******/ 		var dependency;
-/******/ 		var moduleOutdatedDependencies;
-/******/ 		for(moduleId in outdatedDependencies) {
-/******/ 			if(Object.prototype.hasOwnProperty.call(outdatedDependencies, moduleId)) {
-/******/ 				module = installedModules[moduleId];
-/******/ 				if(module) {
-/******/ 					moduleOutdatedDependencies = outdatedDependencies[moduleId];
-/******/ 					for(j = 0; j < moduleOutdatedDependencies.length; j++) {
-/******/ 						dependency = moduleOutdatedDependencies[j];
-/******/ 						idx = module.children.indexOf(dependency);
-/******/ 						if(idx >= 0) module.children.splice(idx, 1);
-/******/ 					}
-/******/ 				}
-/******/ 			}
-/******/ 		}
-/******/ 	
-/******/ 		// Not in "apply" phase
-/******/ 		hotSetStatus("apply");
-/******/ 	
-/******/ 		hotCurrentHash = hotUpdateNewHash;
-/******/ 	
-/******/ 		// insert new code
-/******/ 		for(moduleId in appliedUpdate) {
-/******/ 			if(Object.prototype.hasOwnProperty.call(appliedUpdate, moduleId)) {
-/******/ 				modules[moduleId] = appliedUpdate[moduleId];
-/******/ 			}
-/******/ 		}
-/******/ 	
-/******/ 		// call accept handlers
-/******/ 		var error = null;
-/******/ 		for(moduleId in outdatedDependencies) {
-/******/ 			if(Object.prototype.hasOwnProperty.call(outdatedDependencies, moduleId)) {
-/******/ 				module = installedModules[moduleId];
-/******/ 				if(module) {
-/******/ 					moduleOutdatedDependencies = outdatedDependencies[moduleId];
-/******/ 					var callbacks = [];
-/******/ 					for(i = 0; i < moduleOutdatedDependencies.length; i++) {
-/******/ 						dependency = moduleOutdatedDependencies[i];
-/******/ 						cb = module.hot._acceptedDependencies[dependency];
-/******/ 						if(cb) {
-/******/ 							if(callbacks.indexOf(cb) >= 0) continue;
-/******/ 							callbacks.push(cb);
-/******/ 						}
-/******/ 					}
-/******/ 					for(i = 0; i < callbacks.length; i++) {
-/******/ 						cb = callbacks[i];
-/******/ 						try {
-/******/ 							cb(moduleOutdatedDependencies);
-/******/ 						} catch(err) {
-/******/ 							if(options.onErrored) {
-/******/ 								options.onErrored({
-/******/ 									type: "accept-errored",
-/******/ 									moduleId: moduleId,
-/******/ 									dependencyId: moduleOutdatedDependencies[i],
-/******/ 									error: err
-/******/ 								});
-/******/ 							}
-/******/ 							if(!options.ignoreErrored) {
-/******/ 								if(!error)
-/******/ 									error = err;
-/******/ 							}
-/******/ 						}
-/******/ 					}
-/******/ 				}
-/******/ 			}
-/******/ 		}
-/******/ 	
-/******/ 		// Load self accepted modules
-/******/ 		for(i = 0; i < outdatedSelfAcceptedModules.length; i++) {
-/******/ 			var item = outdatedSelfAcceptedModules[i];
-/******/ 			moduleId = item.module;
-/******/ 			hotCurrentParents = [moduleId];
-/******/ 			try {
-/******/ 				__webpack_require__(moduleId);
-/******/ 			} catch(err) {
-/******/ 				if(typeof item.errorHandler === "function") {
-/******/ 					try {
-/******/ 						item.errorHandler(err);
-/******/ 					} catch(err2) {
-/******/ 						if(options.onErrored) {
-/******/ 							options.onErrored({
-/******/ 								type: "self-accept-error-handler-errored",
-/******/ 								moduleId: moduleId,
-/******/ 								error: err2,
-/******/ 								orginalError: err, // TODO remove in webpack 4
-/******/ 								originalError: err
-/******/ 							});
-/******/ 						}
-/******/ 						if(!options.ignoreErrored) {
-/******/ 							if(!error)
-/******/ 								error = err2;
-/******/ 						}
-/******/ 						if(!error)
-/******/ 							error = err;
-/******/ 					}
-/******/ 				} else {
-/******/ 					if(options.onErrored) {
-/******/ 						options.onErrored({
-/******/ 							type: "self-accept-errored",
-/******/ 							moduleId: moduleId,
-/******/ 							error: err
-/******/ 						});
-/******/ 					}
-/******/ 					if(!options.ignoreErrored) {
-/******/ 						if(!error)
-/******/ 							error = err;
-/******/ 					}
-/******/ 				}
-/******/ 			}
-/******/ 		}
-/******/ 	
-/******/ 		// handle errors in accept handlers and self accepted module load
-/******/ 		if(error) {
-/******/ 			hotSetStatus("fail");
-/******/ 			return Promise.reject(error);
-/******/ 		}
-/******/ 	
-/******/ 		hotSetStatus("idle");
-/******/ 		return new Promise(function(resolve) {
-/******/ 			resolve(outdatedModules);
-/******/ 		});
-/******/ 	}
-/******/
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
 /******/
@@ -668,14 +13,11 @@
 /******/ 		var module = installedModules[moduleId] = {
 /******/ 			i: moduleId,
 /******/ 			l: false,
-/******/ 			exports: {},
-/******/ 			hot: hotCreateModule(moduleId),
-/******/ 			parents: (hotCurrentParentsTemp = hotCurrentParents, hotCurrentParents = [], hotCurrentParentsTemp),
-/******/ 			children: []
+/******/ 			exports: {}
 /******/ 		};
 /******/
 /******/ 		// Execute the module function
-/******/ 		modules[moduleId].call(module.exports, module, module.exports, hotCreateRequire(moduleId));
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
 /******/
 /******/ 		// Flag the module as loaded
 /******/ 		module.l = true;
@@ -717,11 +59,8 @@
 /******/ 	// __webpack_public_path__
 /******/ 	__webpack_require__.p = "";
 /******/
-/******/ 	// __webpack_hash__
-/******/ 	__webpack_require__.h = function() { return hotCurrentHash; };
-/******/
 /******/ 	// Load entry module and return exports
-/******/ 	return hotCreateRequire(22)(__webpack_require__.s = 22);
+/******/ 	return __webpack_require__(__webpack_require__.s = 23);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -921,7 +260,7 @@ process.umask = function() { return 0; };
 "use strict";
 
 
-var bind = __webpack_require__(17);
+var bind = __webpack_require__(18);
 var isBuffer = __webpack_require__(42);
 
 /*global toString:true*/
@@ -1431,9 +770,9 @@ module.exports = shouldUseNative() ? Object.assign : function (target, source) {
 /* WEBPACK VAR INJECTION */(function(process) {
 
 if (process.env.NODE_ENV === 'production') {
-  module.exports = __webpack_require__(23);
-} else {
   module.exports = __webpack_require__(24);
+} else {
+  module.exports = __webpack_require__(25);
 }
 
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
@@ -1680,10 +1019,10 @@ function getDefaultAdapter() {
   var adapter;
   if (typeof XMLHttpRequest !== 'undefined') {
     // For browsers use XHR adapter
-    adapter = __webpack_require__(18);
+    adapter = __webpack_require__(19);
   } else if (typeof process !== 'undefined') {
     // For node use HTTP adapter
-    adapter = __webpack_require__(18);
+    adapter = __webpack_require__(19);
   }
   return adapter;
 }
@@ -1758,6 +1097,52 @@ module.exports = defaults;
 
 /***/ }),
 /* 12 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function(process) {
+
+function checkDCE() {
+  /* global __REACT_DEVTOOLS_GLOBAL_HOOK__ */
+  if (
+    typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ === 'undefined' ||
+    typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.checkDCE !== 'function'
+  ) {
+    return;
+  }
+  if (process.env.NODE_ENV !== 'production') {
+    // This branch is unreachable because this function is only called
+    // in production, but the condition is true only in development.
+    // Therefore if the branch is still here, dead code elimination wasn't
+    // properly applied.
+    // Don't change the message. React DevTools relies on it. Also make sure
+    // this message doesn't occur elsewhere in this function, or it will cause
+    // a false positive.
+    throw new Error('^_^');
+  }
+  try {
+    // Verify that the code above has been dead code eliminated (DCE'd).
+    __REACT_DEVTOOLS_GLOBAL_HOOK__.checkDCE(checkDCE);
+  } catch (err) {
+    // DevTools shouldn't crash React, no matter what.
+    // We should still report in case we break this code.
+    console.error(err);
+  }
+}
+
+if (process.env.NODE_ENV === 'production') {
+  // DCE check should happen before ReactDOM bundle executes so that
+  // DevTools can report bad minification during injection.
+  checkDCE();
+  module.exports = __webpack_require__(26);
+} else {
+  module.exports = __webpack_require__(29);
+}
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
+
+/***/ }),
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1838,7 +1223,7 @@ module.exports = EventListener;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1909,7 +1294,7 @@ function shallowEqual(objA, objB) {
 module.exports = shallowEqual;
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1952,7 +1337,7 @@ function containsNode(outerNode, innerNode) {
 module.exports = containsNode;
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1982,7 +1367,7 @@ function focusNode(node) {
 module.exports = focusNode;
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2024,7 +1409,7 @@ function getActiveElement(doc) /*?DOMElement*/{
 module.exports = getActiveElement;
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2042,7 +1427,7 @@ module.exports = function bind(fn, thisArg) {
 
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2053,7 +1438,7 @@ var settle = __webpack_require__(45);
 var buildURL = __webpack_require__(47);
 var parseHeaders = __webpack_require__(48);
 var isURLSameOrigin = __webpack_require__(49);
-var createError = __webpack_require__(19);
+var createError = __webpack_require__(20);
 var btoa = (typeof window !== 'undefined' && window.btoa && window.btoa.bind(window)) || __webpack_require__(50);
 
 module.exports = function xhrAdapter(config) {
@@ -2230,7 +1615,7 @@ module.exports = function xhrAdapter(config) {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2255,7 +1640,7 @@ module.exports = function createError(message, config, code, request, response) 
 
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2267,7 +1652,7 @@ module.exports = function isCancel(value) {
 
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2293,7 +1678,7 @@ module.exports = Cancel;
 
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2303,7 +1688,7 @@ var _react = __webpack_require__(5);
 
 var _react2 = _interopRequireDefault(_react);
 
-var _reactDom = __webpack_require__(25);
+var _reactDom = __webpack_require__(12);
 
 var _reactDom2 = _interopRequireDefault(_reactDom);
 
@@ -2316,7 +1701,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 _reactDom2.default.render(_react2.default.createElement(_App2.default, null), document.getElementById('body'));
 
 /***/ }),
-/* 23 */
+/* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2346,7 +1731,7 @@ module.exports={Children:{map:S.map,forEach:S.forEach,count:S.count,toArray:S.to
 
 
 /***/ }),
-/* 24 */
+/* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4052,52 +3437,6 @@ module.exports = ReactEntry;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 25 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/* WEBPACK VAR INJECTION */(function(process) {
-
-function checkDCE() {
-  /* global __REACT_DEVTOOLS_GLOBAL_HOOK__ */
-  if (
-    typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ === 'undefined' ||
-    typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.checkDCE !== 'function'
-  ) {
-    return;
-  }
-  if (process.env.NODE_ENV !== 'production') {
-    // This branch is unreachable because this function is only called
-    // in production, but the condition is true only in development.
-    // Therefore if the branch is still here, dead code elimination wasn't
-    // properly applied.
-    // Don't change the message. React DevTools relies on it. Also make sure
-    // this message doesn't occur elsewhere in this function, or it will cause
-    // a false positive.
-    throw new Error('^_^');
-  }
-  try {
-    // Verify that the code above has been dead code eliminated (DCE'd).
-    __REACT_DEVTOOLS_GLOBAL_HOOK__.checkDCE(checkDCE);
-  } catch (err) {
-    // DevTools shouldn't crash React, no matter what.
-    // We should still report in case we break this code.
-    console.error(err);
-  }
-}
-
-if (process.env.NODE_ENV === 'production') {
-  // DCE check should happen before ReactDOM bundle executes so that
-  // DevTools can report bad minification during injection.
-  checkDCE();
-  module.exports = __webpack_require__(26);
-} else {
-  module.exports = __webpack_require__(29);
-}
-
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
-
-/***/ }),
 /* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -4112,7 +3451,7 @@ if (process.env.NODE_ENV === 'production') {
  LICENSE file in the root directory of this source tree.
  Modernizr 3.0.0pre (Custom Build) | MIT
 */
-var aa=__webpack_require__(5);__webpack_require__(3);var l=__webpack_require__(10),n=__webpack_require__(4),ba=__webpack_require__(12),ca=__webpack_require__(2),da=__webpack_require__(6),ea=__webpack_require__(13),fa=__webpack_require__(14),ha=__webpack_require__(15),ia=__webpack_require__(16);
+var aa=__webpack_require__(5);__webpack_require__(3);var l=__webpack_require__(10),n=__webpack_require__(4),ba=__webpack_require__(13),ca=__webpack_require__(2),da=__webpack_require__(6),ea=__webpack_require__(14),fa=__webpack_require__(15),ha=__webpack_require__(16),ia=__webpack_require__(17);
 function w(a){for(var b=arguments.length-1,c="Minified React error #"+a+"; visit http://facebook.github.io/react/docs/error-decoder.html?invariant\x3d"+a,d=0;d<b;d++)c+="\x26args[]\x3d"+encodeURIComponent(arguments[d+1]);b=Error(c+" for the full message or use the non-minified dev environment for full errors and additional helpful warnings.");b.name="Invariant Violation";b.framesToPop=1;throw b;}aa?void 0:w("227");
 function ja(a){switch(a){case "svg":return"http://www.w3.org/2000/svg";case "math":return"http://www.w3.org/1998/Math/MathML";default:return"http://www.w3.org/1999/xhtml"}}
 var ka={Namespaces:{html:"http://www.w3.org/1999/xhtml",mathml:"http://www.w3.org/1998/Math/MathML",svg:"http://www.w3.org/2000/svg"},getIntrinsicNamespace:ja,getChildNamespace:function(a,b){return null==a||"http://www.w3.org/1999/xhtml"===a?ja(b):"http://www.w3.org/2000/svg"===a&&"foreignObject"===b?"http://www.w3.org/1999/xhtml":a}},la=null,oa={};
@@ -4441,7 +3780,7 @@ var react = __webpack_require__(5);
 var invariant = __webpack_require__(3);
 var ExecutionEnvironment = __webpack_require__(10);
 var _assign = __webpack_require__(4);
-var EventListener = __webpack_require__(12);
+var EventListener = __webpack_require__(13);
 var require$$0 = __webpack_require__(7);
 var hyphenateStyleName = __webpack_require__(30);
 var emptyFunction = __webpack_require__(2);
@@ -4450,10 +3789,10 @@ var performanceNow = __webpack_require__(34);
 var propTypes = __webpack_require__(36);
 var emptyObject = __webpack_require__(6);
 var checkPropTypes = __webpack_require__(8);
-var shallowEqual = __webpack_require__(13);
-var containsNode = __webpack_require__(14);
-var focusNode = __webpack_require__(15);
-var getActiveElement = __webpack_require__(16);
+var shallowEqual = __webpack_require__(14);
+var containsNode = __webpack_require__(15);
+var focusNode = __webpack_require__(16);
+var getActiveElement = __webpack_require__(17);
 
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -22543,9 +21882,9 @@ var _queryString = __webpack_require__(60);
 
 var _queryString2 = _interopRequireDefault(_queryString);
 
-var _reactFileDownload = __webpack_require__(63);
+var _reactDom = __webpack_require__(12);
 
-var _reactFileDownload2 = _interopRequireDefault(_reactFileDownload);
+var _reactDom2 = _interopRequireDefault(_reactDom);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -22560,40 +21899,44 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 //stringify - for content type application/x-www-form-urlencoded
 
 
+//https://developer.mozilla.org/en-US/docs/Web/API/FormData/append
+
+//Hadnling each file and folder
 var UnitTemplate = function (_React$Component) {
 	_inherits(UnitTemplate, _React$Component);
 
 	function UnitTemplate(props) {
 		_classCallCheck(this, UnitTemplate);
 
-		var _this = _possibleConstructorReturn(this, (UnitTemplate.__proto__ || Object.getPrototypeOf(UnitTemplate)).call(this, props));
-
-		_this.state = {
-			isSelected: false
-		};
-		return _this;
+		return _possibleConstructorReturn(this, (UnitTemplate.__proto__ || Object.getPrototypeOf(UnitTemplate)).call(this, props));
 	}
 
 	_createClass(UnitTemplate, [{
-		key: 'handleClick',
-		value: function handleClick() {
-			var current = this.state.isSelected;
-			this.setState({ isSelected: !this.state.isSelected });
+		key: 'handleRightClick',
+		value: function handleRightClick(event) {
+			if (!this.props.isSelected) this.props.addSelection(event, this.props.link, this.props.actions);else this.props.renderMenu(event);
 		}
 	}, {
 		key: 'render',
 		value: function render() {
 			var _this2 = this;
 
-			var classes = (0, _classnames2.default)("w3-transparent", "list-card", "hover-google-blue", { "perma-google-blue": this.state.isSelected });
+			var classes = (0, _classnames2.default)("w3-transparent", "list-card", "hover-google-blue", { "perma-google-blue": this.props.isSelected });
 			return _react2.default.createElement(
 				'div',
-				{ className: classes, onClick: function onClick() {
-						return _this2.handleClick();
-					}, onDoubleClick: function onDoubleClick() {
+				{
+					className: classes,
+					onClick: function onClick(e) {
+						e.stopPropagation();_this2.props.addSelection(e, _this2.props.link, _this2.props.actions);
+					},
+					onDoubleClick: function onDoubleClick() {
 						return _this2.props.open(_this2.props.link);
-					} },
-				_react2.default.createElement('i', { className: "fa " + this.props.icon + " fa-5x fa-fw icon" }),
+					},
+					onContextMenu: function onContextMenu(e) {
+						return _this2.handleRightClick(e);
+					}
+				},
+				_react2.default.createElement('i', { className: (0, _classnames2.default)("fa", this.props.icon, "fa-5x", "fa-fw", "icon") }),
 				_react2.default.createElement(
 					'div',
 					{ className: 'w3-container w3-center itemlabel' },
@@ -22606,25 +21949,52 @@ var UnitTemplate = function (_React$Component) {
 	return UnitTemplate;
 }(_react2.default.Component);
 
-function ContentTemplate(props) {
-	return _react2.default.createElement(
-		'div',
-		{ id: props.heading },
-		props.objects.map(function (object, index) {
-			console.log();
-			return _react2.default.createElement(UnitTemplate, {
-				name: object['name'],
-				icon: object['icon'],
-				open: object['open'],
-				link: object['link'],
-				key: object['link'] + props.heading
-			});
-		})
-	);
-}
+//rendering files and folders
 
-var Folders = function (_React$Component2) {
-	_inherits(Folders, _React$Component2);
+
+var ContentTemplate = function (_React$Component2) {
+	_inherits(ContentTemplate, _React$Component2);
+
+	function ContentTemplate() {
+		_classCallCheck(this, ContentTemplate);
+
+		return _possibleConstructorReturn(this, (ContentTemplate.__proto__ || Object.getPrototypeOf(ContentTemplate)).apply(this, arguments));
+	}
+
+	_createClass(ContentTemplate, [{
+		key: 'render',
+		value: function render() {
+			var _this4 = this;
+
+			return _react2.default.createElement(
+				'div',
+				{ id: this.props.heading },
+				this.props.objects.map(function (object, index) {
+					return _react2.default.createElement(UnitTemplate, {
+						name: object['name'],
+						icon: object['icon'],
+						open: object['open'],
+						link: object['link'],
+						key: object['link'] + _this4.props.heading,
+						actions: object['actions'],
+						isSelected: object['isSelected'],
+						renderMenu: _this4.props.renderMenu,
+						addSelection: _this4.props.addSelection,
+						clearSelection: _this4.props.clearSelection
+					});
+				})
+			);
+		}
+	}]);
+
+	return ContentTemplate;
+}(_react2.default.Component);
+
+//process folders for rendering
+
+
+var Folders = function (_React$Component3) {
+	_inherits(Folders, _React$Component3);
 
 	function Folders(props) {
 		_classCallCheck(this, Folders);
@@ -22640,7 +22010,19 @@ var Folders = function (_React$Component2) {
 				name: this.genName(folder),
 				icon: this.genIcon(folder),
 				link: key,
-				open: this.props.open
+				open: this.props.open,
+				actions: this.genAction(key),
+				isSelected: this.props.selectedList.includes(key)
+			};
+		}
+	}, {
+		key: 'genAction',
+		value: function genAction(file_link) {
+			return {
+				Open: this.props.open,
+				Rename: this.props.rename,
+				Download: this.props.download,
+				Delete: this.props.delete
 			};
 		}
 	}, {
@@ -22656,17 +22038,22 @@ var Folders = function (_React$Component2) {
 	}, {
 		key: 'render',
 		value: function render() {
-			var _this4 = this;
+			var _this6 = this;
 
 			if (!this.props.folders) return;
 
 			var keys = Object.keys(this.props.folders);
 			var objects = keys.map(function (key) {
-				return _this4.process(key);
+				return _this6.process(key);
 			});
 			return _react2.default.createElement(ContentTemplate, {
 				heading: 'Folders',
-				objects: objects
+				objects: objects,
+				renderMenu: this.props.renderMenu,
+				addSelection: function addSelection(e, l, a) {
+					return _this6.props.addSelection(e, l, a);
+				},
+				clearSelection: this.props.clearSelection
 			});
 		}
 	}]);
@@ -22674,8 +22061,11 @@ var Folders = function (_React$Component2) {
 	return Folders;
 }(_react2.default.Component);
 
-var Files = function (_React$Component3) {
-	_inherits(Files, _React$Component3);
+//Process files for rendering
+
+
+var Files = function (_React$Component4) {
+	_inherits(Files, _React$Component4);
 
 	function Files() {
 		_classCallCheck(this, Files);
@@ -22688,10 +22078,22 @@ var Files = function (_React$Component3) {
 		value: function process(key) {
 			var file = this.props.files[key];
 			return {
-				name: this.genName(file),
-				icon: this.genIcon(file),
-				link: key,
-				open: this.props.open
+				name: this.genName(file), //Name to be displayed
+				icon: this.genIcon(file), //Icon
+				link: key, //Complete path
+				open: this.props.open, //Open method
+				actions: this.genAction(key), //All possible actions for given entity
+				isSelected: this.props.selectedList.includes(key)
+			};
+		}
+	}, {
+		key: 'genAction',
+		value: function genAction(file_link) {
+			return {
+				Open: this.props.open,
+				Rename: this.props.rename,
+				Download: this.props.download,
+				Delete: this.props.delete
 			};
 		}
 	}, {
@@ -22720,17 +22122,22 @@ var Files = function (_React$Component3) {
 	}, {
 		key: 'render',
 		value: function render() {
-			var _this6 = this;
+			var _this8 = this;
 
 			if (!this.props.files) return;
 
 			var keys = Object.keys(this.props.files);
 			var objects = keys.map(function (key) {
-				return _this6.process(key);
+				return _this8.process(key);
 			});
 			return _react2.default.createElement(ContentTemplate, {
 				heading: 'Files',
-				objects: objects
+				objects: objects,
+				renderMenu: this.props.renderMenu,
+				addSelection: function addSelection(e, l, a) {
+					return _this8.props.addSelection(e, l, a);
+				},
+				clearSelection: this.props.clearSelection
 			});
 		}
 	}]);
@@ -22738,8 +22145,95 @@ var Files = function (_React$Component3) {
 	return Files;
 }(_react2.default.Component);
 
-var ActionButton = function (_React$Component4) {
-	_inherits(ActionButton, _React$Component4);
+var Content = function (_React$Component5) {
+	_inherits(Content, _React$Component5);
+
+	function Content(props) {
+		_classCallCheck(this, Content);
+
+		var _this9 = _possibleConstructorReturn(this, (Content.__proto__ || Object.getPrototypeOf(Content)).call(this, props));
+
+		_this9.state = {
+			selected: [],
+			actions: []
+		};
+		_this9.addSelection = _this9.addSelection.bind(_this9);
+		return _this9;
+	}
+
+	_createClass(Content, [{
+		key: 'addSelection',
+		value: function addSelection(event, link, actions) {
+			if (event.ctrlKey || event.altKey || event.shiftKey) {
+				var selected = this.state.selected;
+				var sactions = this.state.actions;
+				if (!selected.includes(link)) {
+					selected.push(link);
+					sactions.push(actions);
+					this.setState({ selected: selected, actions: sactions });
+				}
+			} else {
+				var selected = this.state.selected;
+				if (selected.length == 1 && selected[0] == link) this.setState({ selected: [], actions: [] });else this.setState({ selected: [link], actions: [actions] });
+			}
+		}
+	}, {
+		key: 'clearSelection',
+		value: function clearSelection() {
+			this.setState({ 'selected': [], 'actions': [] });
+		}
+	}, {
+		key: 'render',
+		value: function render() {
+			var _this10 = this;
+
+			return _react2.default.createElement(
+				'div',
+				{ className: 'w3-container w3-light-gray ContentStyle', onClick: function onClick() {
+						return _this10.clearSelection();
+					} },
+				_react2.default.createElement(Folders, {
+					folders: this.props.folders,
+					open: this.props.openFolder,
+					rename: this.props.rename,
+					'delete': this.props.delete,
+					download: this.props.download,
+					renderMenu: function renderMenu(e) {
+						return _this10.props.renderMenu(e, _this10.state.selected, _this10.state.actions);
+					},
+					selectedList: this.state.selected,
+					addSelection: function addSelection(e, l, a) {
+						return _this10.addSelection(e, l, a);
+					},
+					clearSelection: this.clearSelection
+				}),
+				_react2.default.createElement(Files, {
+					files: this.props.files,
+					open: this.props.openFile,
+					rename: this.props.rename,
+					'delete': this.props.delete,
+					download: this.props.download,
+					renderMenu: function renderMenu(e) {
+						return _this10.props.renderMenu(e, _this10.state.selected, _this10.state.actions);
+					},
+					selectedList: this.state.selected,
+					addSelection: function addSelection(e, l, a) {
+						return _this10.addSelection(e, l, a);
+					},
+					clearSelection: this.clearSelection
+				})
+			);
+		}
+	}]);
+
+	return Content;
+}(_react2.default.Component);
+
+//Options for uploading files and creating folders
+
+
+var ActionButton = function (_React$Component6) {
+	_inherits(ActionButton, _React$Component6);
 
 	function ActionButton() {
 		_classCallCheck(this, ActionButton);
@@ -22750,14 +22244,14 @@ var ActionButton = function (_React$Component4) {
 	_createClass(ActionButton, [{
 		key: 'render',
 		value: function render() {
-			var _this8 = this;
+			var _this12 = this;
 
 			return _react2.default.createElement(
 				'div',
 				{ className: 'w3-col w3-left ActionBoxStyle' },
 				_react2.default.createElement(
 					'label',
-					{ id: 'menu', className: 'w3-dropdown-hover Actionbuttonstyle' },
+					{ id: 'options', className: 'w3-dropdown-hover Actionbuttonstyle' },
 					_react2.default.createElement(
 						'button',
 						{ className: 'w3-button google-blue hover-google-blue w3-bar Actionbold' },
@@ -22770,10 +22264,19 @@ var ActionButton = function (_React$Component4) {
 							'label',
 							{ className: 'w3-button w3-bar-item light-emph' },
 							_react2.default.createElement('i', { className: (0, _classnames2.default)('fa', 'fa-upload', 'ActionIcon') }),
-							_react2.default.createElement('input', { type: 'file', id: 'ufile', onChange: function onChange() {
-									return _this8.props.upload();
-								} }),
-							' Upload'
+							_react2.default.createElement('input', { type: 'file', id: 'uplist', onChange: function onChange() {
+									return _this12.props.uploadFile();
+								}, multiple: true }),
+							'Upload File'
+						),
+						_react2.default.createElement(
+							'label',
+							{ className: 'w3-button w3-bar-item light-emph w3-border-bottom' },
+							_react2.default.createElement('i', { className: (0, _classnames2.default)('fa', 'fa-upload', 'ActionIcon') }),
+							_react2.default.createElement('input', { type: 'file', id: 'ufolder', onChange: function onChange() {
+									return _this12.props.uploadFolder();
+								}, webkitdirectory: true }),
+							'Upload Folder'
 						),
 						_react2.default.createElement(
 							'label',
@@ -22782,7 +22285,7 @@ var ActionButton = function (_React$Component4) {
 							_react2.default.createElement(
 								'label',
 								{ onClick: function onClick() {
-										return _this8.props.createFolder();
+										return _this12.props.createFolder();
 									} },
 								' New Folder '
 							)
@@ -22796,8 +22299,11 @@ var ActionButton = function (_React$Component4) {
 	return ActionButton;
 }(_react2.default.Component);
 
-var Address = function (_React$Component5) {
-	_inherits(Address, _React$Component5);
+//The address bar - each path is clickable and redirects to contents of that folder
+
+
+var Address = function (_React$Component7) {
+	_inherits(Address, _React$Component7);
 
 	function Address() {
 		_classCallCheck(this, Address);
@@ -22818,7 +22324,7 @@ var Address = function (_React$Component5) {
 	}, {
 		key: 'renderFolder',
 		value: function renderFolder(name, link, last) {
-			var _this10 = this;
+			var _this14 = this;
 
 			var display = void 0;
 			if (last) display = _react2.default.createElement(
@@ -22829,7 +22335,7 @@ var Address = function (_React$Component5) {
 			return _react2.default.createElement(
 				'button',
 				{ className: 'w3-button w3-hover-white AddressStyle', onClick: function onClick() {
-						return _this10.props.jumpTo(link);
+						return _this14.props.jumpTo(link);
 					} },
 				display
 			);
@@ -22837,7 +22343,7 @@ var Address = function (_React$Component5) {
 	}, {
 		key: 'render',
 		value: function render() {
-			var _this11 = this;
+			var _this15 = this;
 
 			var folders = this.props.folders.split('/');
 			var links = this.genLink(folders);
@@ -22852,7 +22358,7 @@ var Address = function (_React$Component5) {
 						return _react2.default.createElement(
 							'div',
 							{ className: 'AddressOuterStyle', key: name },
-							index + 1 == folders.length ? _this11.renderFolder(name, links[index], true) : _this11.renderFolder(name, links[index], false),
+							index + 1 == folders.length ? _this15.renderFolder(name, links[index], true) : _this15.renderFolder(name, links[index], false),
 							_react2.default.createElement('i', { className: 'fa fa-chevron-right AddressIconStyle' })
 						);
 					})
@@ -22864,8 +22370,11 @@ var Address = function (_React$Component5) {
 	return Address;
 }(_react2.default.Component);
 
-var DownAll = function (_React$Component6) {
-	_inherits(DownAll, _React$Component6);
+//Download all contents of open directory
+
+
+var DownAll = function (_React$Component8) {
+	_inherits(DownAll, _React$Component8);
 
 	function DownAll() {
 		_classCallCheck(this, DownAll);
@@ -22881,13 +22390,13 @@ var DownAll = function (_React$Component6) {
 	}, {
 		key: 'render',
 		value: function render() {
-			var _this13 = this;
+			var _this17 = this;
 
 			return _react2.default.createElement(
 				'div',
 				{ id: 'down_all', className: 'circle w3-button w3-right w3-col w3-hover-gray w3-button DownAllStyle' },
 				_react2.default.createElement('i', { className: 'fa fa-download', onClick: function onClick() {
-						return _this13.props.onClick();
+						return _this17.props.onClick();
 					} })
 			);
 		}
@@ -22895,6 +22404,9 @@ var DownAll = function (_React$Component6) {
 
 	return DownAll;
 }(_react2.default.Component);
+
+//Search bar - search as you type : currently suffers from overload
+
 
 var SearchBar = function (_React$PureComponent) {
 	_inherits(SearchBar, _React$PureComponent);
@@ -22908,13 +22420,13 @@ var SearchBar = function (_React$PureComponent) {
 	_createClass(SearchBar, [{
 		key: 'render',
 		value: function render() {
-			var _this15 = this;
+			var _this19 = this;
 
 			return _react2.default.createElement(
 				'div',
 				{ className: 'w3-rest SearchBarStyle' },
 				_react2.default.createElement('input', { id: 'searchBar', className: 'w3-input w3-light-gray w3-border-0 SearchBarBoxStyle', type: 'text', placeholder: 'Search storage', onChange: function onChange() {
-						return _this15.props.search();
+						return _this19.props.search();
 					} })
 			);
 		}
@@ -22923,8 +22435,11 @@ var SearchBar = function (_React$PureComponent) {
 	return SearchBar;
 }(_react2.default.PureComponent);
 
-var ProjectLogo = function (_React$Component7) {
-	_inherits(ProjectLogo, _React$Component7);
+//WIRESPACE (github link)
+
+
+var ProjectLogo = function (_React$Component9) {
+	_inherits(ProjectLogo, _React$Component9);
 
 	function ProjectLogo() {
 		_classCallCheck(this, ProjectLogo);
@@ -22956,12 +22471,16 @@ var ProjectLogo = function (_React$Component7) {
 	return ProjectLogo;
 }(_react2.default.Component);
 
+//Action button, address
+
+
 function NavBot(props) {
 	return _react2.default.createElement(
 		'div',
 		{ className: 'w3-row NavBotStyle' },
 		_react2.default.createElement(ActionButton, {
-			upload: props.upload,
+			uploadFile: props.uploadFile,
+			uploadFolder: props.uploadFolder,
 			createFolder: props.createFolder
 		}),
 		_react2.default.createElement(Address, {
@@ -22971,6 +22490,7 @@ function NavBot(props) {
 	);
 }
 
+//Title, search bar and download all
 function NavTop(props) {
 	return _react2.default.createElement(
 		'div',
@@ -22983,6 +22503,7 @@ function NavTop(props) {
 	);
 }
 
+//The white header/navigation bar
 function NavBar(props) {
 	return _react2.default.createElement(
 		'div',
@@ -22997,7 +22518,8 @@ function NavBar(props) {
 			_react2.default.createElement(NavBot, {
 				folders: props.folders,
 				jumpTo: props.jumpTo,
-				upload: props.upload,
+				uploadFile: props.uploadFile,
+				uploadFolder: props.uploadFolder,
 				createFolder: props.createFolder
 			})
 		)
@@ -23008,60 +22530,37 @@ function Icons(props) {
 	return _react2.default.createElement('div', null);
 }
 
-var Content = function (_React$Component8) {
-	_inherits(Content, _React$Component8);
+//Root of rendering the entire GUI
 
-	function Content() {
-		_classCallCheck(this, Content);
-
-		return _possibleConstructorReturn(this, (Content.__proto__ || Object.getPrototypeOf(Content)).apply(this, arguments));
-	}
-
-	_createClass(Content, [{
-		key: 'render',
-		value: function render() {
-			return _react2.default.createElement(
-				'div',
-				{ className: 'w3-container w3-light-gray ContentStyle' },
-				_react2.default.createElement(Folders, {
-					folders: this.props.folders,
-					open: this.props.openFolder
-				}),
-				_react2.default.createElement(Files, {
-					files: this.props.files,
-					open: this.props.openFile
-				})
-			);
-		}
-	}]);
-
-	return Content;
-}(_react2.default.Component);
-
-var App = function (_React$Component9) {
-	_inherits(App, _React$Component9);
+var App = function (_React$Component10) {
+	_inherits(App, _React$Component10);
 
 	function App() {
 		_classCallCheck(this, App);
 
-		var _this18 = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this));
+		var _this21 = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this));
 
-		_this18.state = {
+		_this21.state = {
 			dirs: {},
 			files: {},
 			path: '',
-			hidden: {}
+			hidden: {},
+			menuHidden: true
 		};
-		_this18.baseURL = '';
-		return _this18;
+		_this21.baseURL = '';
+		_this21.hideMenu = _this21.hideMenu.bind(_this21);
+		_this21.escFunction = _this21.escFunction.bind(_this21);
+		return _this21;
 	}
+
+	//Request template for opening folders
+
 
 	_createClass(App, [{
 		key: 'get_request',
 		value: function get_request(target) {
-			var _this19 = this;
+			var _this22 = this;
 
-			//Change this when deploying:
 			_axios2.default.post(this.baseURL + 'open/', _queryString2.default.stringify({
 				target: target
 			}), {
@@ -23075,20 +22574,21 @@ var App = function (_React$Component9) {
 					files: res.data.files,
 					hidden: res.data.hidden
 				};
-				_this19.setState(newState);
+				_this22.setState(newState);
 			}).catch(function (error) {
-				console.log("Error in request");
+				console.log("Error in opening");
 				console.log(error);
 			});
 		}
+
+		//Handling search
+
 	}, {
 		key: 'handleSearch',
 		value: function handleSearch() {
-			var _this20 = this;
+			var _this23 = this;
 
-			console.log("Querying");
 			var query = document.getElementById('searchBar').value;
-			console.log(query);
 			if (query != '') {
 				//console.log(query);
 				_axios2.default.post(this.baseURL + 'search/', _queryString2.default.stringify({
@@ -23099,29 +22599,37 @@ var App = function (_React$Component9) {
 						'Content-Type': 'application/x-www-form-urlencoded'
 					}
 				}).then(function (res) {
-					console.log(res);
 					var newState = {
 						dirs: res.data.dirs,
 						files: res.data.files,
 						hidden: res.data.hidden
 					};
-					_this20.setState(newState);
+					_this23.setState(newState);
 				}).catch(function (error) {
 					console.log("Error in request");
 					console.log(error);
 				});
 			} else this.get_request(this.state.path);
 		}
+
+		//Open new file/folder (for search results)
+
 	}, {
 		key: 'jumpTo',
 		value: function jumpTo(address) {
 			this.get_request(address);
 		}
+
+		//Open folder
+
 	}, {
 		key: 'openFolder',
 		value: function openFolder(folder) {
 			this.get_request(folder);
 		}
+
+		//Open file
+
 	}, {
 		key: 'openFile',
 		value: function openFile(address) {
@@ -23129,36 +22637,70 @@ var App = function (_React$Component9) {
 			form.elements[0].value = address;
 			form.submit();
 		}
+
+		//Download files
+
 	}, {
 		key: 'download',
 		value: function download(address) {
 			//Use hidden form to send post requests for download
+			console.log("Downloading", address);
 			var form = document.forms['downloadform'];
 			form.elements[0].value = address;
 			form.submit();
 		}
 	}, {
 		key: 'upload',
-		value: function upload() {
-			var _this21 = this;
+		value: function upload(files, addresses) {
+			var _this24 = this;
 
-			console.log("Uploading");
 			var formData = new FormData();
-			var file = document.querySelector('#ufile');
-			formData.append("ufile", file.files[0]);
-			formData.append("address", this.state.path);
+			for (var i = 0; i < files.length; i++) {
+				formData.append('uplist[]', files[i]);
+				formData.append('address[]', addresses[i]);
+			}
 			_axios2.default.post(this.baseURL + 'upload/', formData, {
 				headers: {
 					'Content-Type': 'multipart/form-data'
 				}
 			}).then(function (res) {
-				_this21.get_request(_this21.state.path);
+				_this24.get_request(_this24.state.path);
+			}).catch(function (err) {
+				console.log("Error in uploading files");
 			});
 		}
+
+		//Upload multiple files
+
+	}, {
+		key: 'uploadFile',
+		value: function uploadFile() {
+			var files = document.querySelector('#uplist').files;
+			var addr = [];
+			for (var i = 0; i < files.length; i++) {
+				addr[i] = this.state.path;
+			}this.upload(files, addr);
+		}
+
+		//Upload folder. Supported in very few browsers
+
+	}, {
+		key: 'uploadFolder',
+		value: function uploadFolder() {
+			var files = document.querySelector('#ufolder').files;
+			var addr = [];
+			for (var i = 0; i < files.length; i++) {
+				addr[i] = this.state.path + '/' + files[i].webkitRelativePath;
+			}
+			this.upload(files, addr);
+		}
+
+		//Create folders
+
 	}, {
 		key: 'createFolder',
 		value: function createFolder() {
-			var _this22 = this;
+			var _this25 = this;
 
 			var name = prompt("Name of the new folder:");
 			if (name == null || name == "") return;
@@ -23170,58 +22712,237 @@ var App = function (_React$Component9) {
 					'Content-Type': 'application/x-www-form-urlencoded'
 				}
 			}).then(function (res) {
-				_this22.get_request(_this22.state.path);
+				_this25.get_request(_this25.state.path);
 			}).catch(function (error) {
 				console.log(error);
-				alert(error);
+				alert("Error in creating folder. Please check console for more details");
+			});
+		}
+
+		//Delete file/folder
+
+	}, {
+		key: 'delete',
+		value: function _delete(link) {
+			var _this26 = this;
+
+			var sure = confirm("Warning: Contents will be permanently deleted. Are you sure you want to delete this?");
+			if (!sure) return;
+			_axios2.default.post(this.baseURL + 'delete/', _queryString2.default.stringify({
+				address: link
+			}), {
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded'
+				}
+			}).then(function (res) {
+				_this26.get_request(_this26.state.path);
+			}).catch(function (error) {
+				console.log(error);
+				alert("Error in deleting. Please check console for more details");
+			});
+		}
+
+		//Rename
+
+	}, {
+		key: 'rename',
+		value: function rename(link) {
+			var _this27 = this;
+
+			var name = prompt("Enter new name");
+			if (name == null || name == "") return;
+			_axios2.default.post(this.baseURL + 'move/', _queryString2.default.stringify({
+				source_address: link,
+				target_address: this.state.path,
+				target_name: name
+			}), {
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded'
+				}
+			}).then(function (res) {
+				_this27.get_request(_this27.state.path);
+			}).catch(function (error) {
+				console.log(error);
+				alert("Error in renaming. Please check console for more details");
 			});
 		}
 	}, {
+		key: 'execute',
+		value: function execute(targets, action) {
+			for (var i = 0; i < targets.length; i++) {
+				action(targets[i]);
+			}
+		}
+
+		//Render the context menu
+
+	}, {
+		key: 'renderMenu',
+		value: function renderMenu(event, targets, actions) {
+			var _this28 = this;
+
+			this.setState({ menuHidden: false });
+			var classes = (0, _classnames2.default)("context-menu", "w3-bar-block", "w3-card-2", "w3-white");
+			var dStyle = {
+				position: 'absolute',
+				top: event.clientY,
+				left: event.clientX
+			};
+			if (targets.length == 0 || targets.length == 1) {
+				_reactDom2.default.render(_react2.default.createElement(
+					'div',
+					{ id: 'menu', className: classes, style: dStyle },
+					targets == [] ? _react2.default.createElement(
+						'div',
+						{ className: 'w3-button w3-bar-item' },
+						'No option'
+					) : Object.keys(actions[0]).map(function (name, index) {
+						return _react2.default.createElement(
+							'div',
+							{
+								className: 'w3-button w3-bar-item',
+								onClick: function onClick() {
+									actions[0][name](targets[0]), _this28.hideMenu();
+								},
+								key: index
+							},
+							name
+						);
+					})
+				), document.getElementById('menu'));
+			} else {
+				_reactDom2.default.render(_react2.default.createElement(
+					'div',
+					{ id: 'menu', className: classes, style: dStyle },
+					targets == [] ? _react2.default.createElement(
+						'div',
+						{ className: 'w3-button w3-bar-item' },
+						'No option'
+					) : ['Download'].map(function (action, index) {
+						return _react2.default.createElement(
+							'div',
+							{
+								className: 'w3-button w3-bar-item',
+								onClick: function onClick() {
+									_this28.execute(targets, actions[0][action]);_this28.hideMenu();
+								},
+								key: index
+							},
+							action
+						);
+					})
+				), document.getElementById('menu'));
+			}
+		}
+
+		//Hide the context menu
+
+	}, {
+		key: 'hideMenu',
+		value: function hideMenu(event) {
+			this.setState({ menuHidden: true });
+			_reactDom2.default.render(_react2.default.createElement('div', { id: 'menu', className: 'hidden' }), document.getElementById('menu'));
+		}
+	}, {
+		key: 'escFunction',
+		value: function escFunction(event) {
+			if (event.keyCode == 27) this.hideMenu(event);
+		}
+
+		//Request for data at shared directory on mounting
+
+	}, {
 		key: 'componentDidMount',
 		value: function componentDidMount() {
+			document.addEventListener("keyup", this.escFunction);
 			this.get_request('');
+		}
+	}, {
+		key: 'componentWillUnmount',
+		value: function componentWillUnmount() {
+			document.removeEventListener("keyup", this.escFunction);
 		}
 	}, {
 		key: 'render',
 		value: function render() {
-			var _this23 = this;
+			var _this29 = this,
+			    _React$createElement;
 
 			return _react2.default.createElement(
 				'div',
-				null,
-				_react2.default.createElement(NavBar, _defineProperty({
-					folders: this.state.path,
-					search: function search(query) {
-						return _this23.handleSearch(query);
+				{
+					className: 'full-body',
+					onClick: function onClick(e) {
+						return _this29.hideMenu(e);
 					},
-					download: function download() {
-						return _this23.download(_this23.state.path);
+					onDoubleClick: function onDoubleClick(e) {
+						e.preventDefault();
 					},
-					jumpTo: function jumpTo(address) {
-						return _this23.jumpTo(address);
-					},
-					upload: function upload() {
-						return _this23.upload();
-					},
-					createFolder: function createFolder() {
-						return _this23.createFolder();
+					onContextMenu: function onContextMenu(e) {
+						e.preventDefault();
+					} //Override default right-click behavior
+					, onSelect: function onSelect(e) {
+						e.preventDefault();
 					}
-				}, 'search', function search(query) {
-					return _this23.handleSearch(query);
-				})),
+				},
+				_react2.default.createElement(
+					'div',
+					null,
+					_react2.default.createElement(NavBar, (_React$createElement = {
+						folders: this.state.path,
+						search: function search(query) {
+							return _this29.handleSearch(query);
+						},
+						download: function download() {
+							return _this29.download(_this29.state.path);
+						},
+						jumpTo: function jumpTo(address) {
+							return _this29.jumpTo(address);
+						},
+						uploadFile: function uploadFile() {
+							return _this29.uploadFile();
+						},
+						uploadFolder: function uploadFolder() {
+							return _this29.uploadFolder();
+						},
+						createFolder: function createFolder() {
+							return _this29.createFolder();
+						}
+					}, _defineProperty(_React$createElement, 'search', function search(query) {
+						return _this29.handleSearch(query);
+					}), _defineProperty(_React$createElement, 'hide', function hide(e) {
+						return _this29.hideMenu(e);
+					}), _React$createElement))
+				),
 				_react2.default.createElement(Icons
 				/*Handle click events*/
 				, null),
-				_react2.default.createElement(Content, {
-					folders: this.state.dirs,
-					openFile: function openFile(address) {
-						return _this23.openFile(address);
-					},
-					files: this.state.files,
-					openFolder: function openFolder(address) {
-						return _this23.openFolder(address);
-					}
-				})
+				_react2.default.createElement(
+					'div',
+					null,
+					_react2.default.createElement(Content, {
+						folders: this.state.dirs,
+						openFile: function openFile(address) {
+							return _this29.openFile(address);
+						},
+						files: this.state.files,
+						openFolder: function openFolder(address) {
+							return _this29.openFolder(address);
+						},
+						rename: function rename(address) {
+							return _this29.rename(address);
+						},
+						'delete': function _delete(address) {
+							return _this29.delete(address);
+						},
+						download: function download(address) {
+							return _this29.download(address);
+						},
+						renderMenu: function renderMenu(e, l, t) {
+							return _this29.renderMenu(e, l, t);
+						}
+					})
+				)
 			);
 		}
 	}]);
@@ -23245,7 +22966,7 @@ module.exports = __webpack_require__(41);
 
 
 var utils = __webpack_require__(1);
-var bind = __webpack_require__(17);
+var bind = __webpack_require__(18);
 var Axios = __webpack_require__(43);
 var defaults = __webpack_require__(11);
 
@@ -23280,9 +23001,9 @@ axios.create = function create(instanceConfig) {
 };
 
 // Expose Cancel & CancelToken
-axios.Cancel = __webpack_require__(21);
+axios.Cancel = __webpack_require__(22);
 axios.CancelToken = __webpack_require__(57);
-axios.isCancel = __webpack_require__(20);
+axios.isCancel = __webpack_require__(21);
 
 // Expose all/spread
 axios.all = function all(promises) {
@@ -23442,7 +23163,7 @@ module.exports = function normalizeHeaderName(headers, normalizedName) {
 "use strict";
 
 
-var createError = __webpack_require__(19);
+var createError = __webpack_require__(20);
 
 /**
  * Resolve or reject a Promise based on response status.
@@ -23861,7 +23582,7 @@ module.exports = InterceptorManager;
 
 var utils = __webpack_require__(1);
 var transformData = __webpack_require__(54);
-var isCancel = __webpack_require__(20);
+var isCancel = __webpack_require__(21);
 var defaults = __webpack_require__(11);
 
 /**
@@ -24014,7 +23735,7 @@ module.exports = function combineURLs(baseURL, relativeURL) {
 "use strict";
 
 
-var Cancel = __webpack_require__(21);
+var Cancel = __webpack_require__(22);
 
 /**
  * A `CancelToken` is an object that can be used to request cancellation of an operation.
@@ -24485,42 +24206,6 @@ module.exports = function (encodedURI) {
 		return customDecodeURIComponent(encodedURI);
 	}
 };
-
-
-/***/ }),
-/* 63 */
-/***/ (function(module, exports) {
-
-module.exports = function(data, filename, mime) {
-    var blob = new Blob([data], {type: mime || 'application/octet-stream'});
-    if (typeof window.navigator.msSaveBlob !== 'undefined') {
-        // IE workaround for "HTML7007: One or more blob URLs were 
-        // revoked by closing the blob for which they were created. 
-        // These URLs will no longer resolve as the data backing 
-        // the URL has been freed."
-        window.navigator.msSaveBlob(blob, filename);
-    }
-    else {
-        var blobURL = window.URL.createObjectURL(blob);
-        var tempLink = document.createElement('a');
-        tempLink.style.display = 'none';
-        tempLink.href = blobURL;
-        tempLink.setAttribute('download', filename); 
-        
-        // Safari thinks _blank anchor are pop ups. We only want to set _blank
-        // target if the browser does not support the HTML5 download attribute.
-        // This allows you to download files in desktop safari if pop up blocking 
-        // is enabled.
-        if (typeof tempLink.download === 'undefined') {
-            tempLink.setAttribute('target', '_blank');
-        }
-        
-        document.body.appendChild(tempLink);
-        tempLink.click();
-        document.body.removeChild(tempLink);
-        window.URL.revokeObjectURL(blobURL);
-    }
-}
 
 
 /***/ })
