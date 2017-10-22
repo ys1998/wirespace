@@ -22492,6 +22492,8 @@ var App = function (_React$Component9) {
 			menuHidden: true
 		};
 		_this18.baseURL = '';
+		_this18.hideMenu = _this18.hideMenu.bind(_this18);
+		_this18.escFunction = _this18.escFunction.bind(_this18);
 		return _this18;
 	}
 
@@ -22748,8 +22750,14 @@ var App = function (_React$Component9) {
 	}, {
 		key: 'hideMenu',
 		value: function hideMenu(event) {
+			console.log("Donw");
 			this.setState({ menuHidden: true });
 			_reactDom2.default.render(_react2.default.createElement('div', { id: 'menu', className: 'hidden' }), document.getElementById('menu'));
+		}
+	}, {
+		key: 'escFunction',
+		value: function escFunction(event) {
+			if (event.keyCode == 27) this.hideMenu(event);
 		}
 
 		//Request for data at shared directory on mounting
@@ -22757,7 +22765,13 @@ var App = function (_React$Component9) {
 	}, {
 		key: 'componentDidMount',
 		value: function componentDidMount() {
+			document.addEventListener("keyup", this.escFunction);
 			this.get_request('');
+		}
+	}, {
+		key: 'componentWillUnmount',
+		value: function componentWillUnmount() {
+			document.removeEventListener("keyup", this.escFunction);
 		}
 	}, {
 		key: 'render',
@@ -22767,18 +22781,24 @@ var App = function (_React$Component9) {
 
 			return _react2.default.createElement(
 				'div',
-				{ className: 'full-body', onClick: function onClick(e) {
+				{
+					className: 'full-body',
+					onClick: function onClick(e) {
 						return _this27.hideMenu(e);
-					} },
+					},
+					onDoubleClick: function onDoubleClick(e) {
+						e.preventDefault();
+					},
+					onKeyUp: function onKeyUp(e) {
+						_this27.hideMenu(e);
+					}
+				},
 				_react2.default.createElement(
 					'div',
 					{
 						onContextMenu: function onContextMenu(e) {
 							e.preventDefault();
 						} //Override default right-click behavior
-						, onClick: function onClick(e) {
-							return _this27.hideMenu(e);
-						} //Hide menu on left-clicking
 					},
 					_react2.default.createElement(NavBar, (_React$createElement = {
 						folders: this.state.path,
