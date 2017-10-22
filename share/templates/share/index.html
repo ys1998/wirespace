@@ -36,10 +36,10 @@
 				var formdata = new FormData();
 				var xhr=new XMLHttpRequest();
 				for(var i=0;i < files.length;i++){
-					formdata.append('ufile',files[i]);
-					console.log(files[i]);
+					formdata.append('uplist[]',files[i]);
+				//	console.log(files[i]);
 				}
-				formdata.append('address','');
+				formdata.append('address[]','');
 				//console.log(formdata.entries());
 				xhr.open('post','upload/');
 				xhr.send(formdata);
@@ -91,7 +91,7 @@
 				xhr.open('post','uploadFolder/');
 				xhr.send(formdata);
 			}
-
+			
 		}());
 	</script>
 	<div id="menu">
