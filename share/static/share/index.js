@@ -22275,7 +22275,9 @@ var ActionButton = function (_React$Component6) {
 							_react2.default.createElement('i', { className: (0, _classnames2.default)('fa', 'fa-upload', 'ActionIcon') }),
 							_react2.default.createElement('input', { type: 'file', id: 'ufolder', onChange: function onChange() {
 									return _this12.props.uploadFolder();
-								}, webkitdirectory: true }),
+								}, ref: function ref(e) {
+									if (e != null) e.setAttribute.webkitdirectory = true;
+								} }),
 							'Upload Folder'
 						),
 						_react2.default.createElement(
