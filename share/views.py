@@ -20,7 +20,8 @@ import shutil
 
 # Keep CACHE_DIR separate from the shared directory
 # Used for storing generated .zip files
-CACHE_DIR = os.path.expanduser('~/cache')
+# CACHE_DIR = os.path.expanduser('~/cache')
+CACHE_DIR='/tmp/wirespace/cache'
 
 def authenticate(request,k):
 	# use request.sessions['token']
