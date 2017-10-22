@@ -30,7 +30,7 @@
 				dropzone.style.color="blue";
 				return false;
 			};
-			dropzone.ondrop = function(e){
+			/*dropzone.ondrop = function(e){
 				e.preventDefault();
 				var files = e.dataTransfer.files;
 				var formdata = new FormData();
@@ -45,6 +45,53 @@
 				xhr.send(formdata);
 				
 			};
+			*/
+			dropzone.ondrop = function(e) {
+				e.preventDefault();
+				let items=e.dataTransfer.items;
+				let formdata=new FormData();
+				function scanFiles(item,addr){
+					console.log("In scanFiles")
+					if (item.isFile) {
+						console.log("Typecasting...");
+						
+						item.file(function(file) {
+							console.log(file);
+							formdata.append('directory',file);
+							formdata.append('address_list',addr);
+						});
+					}
+					else if (item.isDirectory) {
+						//console.log(addr);
+						console.log("Directory...")
+						let directoryReader = item.createReader();
+						addr=addr+'/'+item.name;
+						directoryReader.readEntries(function(entries) {
+							entries.forEach(function(entry) {
+								scanFiles(entry, addr);
+							});
+						});
+					}
+				}
+				for (let i=0; i<items.length; i++) {
+					let item = items[i].webkitGetAsEntry();
+					console.log(item);
+					if (item) {
+						console.log("Calling scan");
+						scanFiles(item,'');
+						console.log("Ending scan");
+					}
+				}
+				
+				var xhr=new XMLHttpRequest();
+				formdata.append('address','');
+				for(var pair of formdata.entries())
+								console.log(pair[0], ',', pair[1]);
+				//console.log(formdata.entries());
+				xhr.open('post','uploadFolder/');
+				xhr.send(formdata);
+			}
+
 		}());
 	</script>
 	<div id="menu">
