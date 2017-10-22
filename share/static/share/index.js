@@ -21908,38 +21908,32 @@ var UnitTemplate = function (_React$Component) {
 	function UnitTemplate(props) {
 		_classCallCheck(this, UnitTemplate);
 
-		var _this = _possibleConstructorReturn(this, (UnitTemplate.__proto__ || Object.getPrototypeOf(UnitTemplate)).call(this, props));
-
-		_this.state = {
-			isSelected: false
-		};
-		return _this;
+		return _possibleConstructorReturn(this, (UnitTemplate.__proto__ || Object.getPrototypeOf(UnitTemplate)).call(this, props));
 	}
 
 	_createClass(UnitTemplate, [{
-		key: 'handleClick',
-		value: function handleClick() {
-			var current = this.state.isSelected;
-			this.setState({ isSelected: !this.state.isSelected });
+		key: 'handleRightClick',
+		value: function handleRightClick(event) {
+			if (!this.props.isSelected) this.props.addSelection(event, this.props.link, this.props.actions);else this.props.renderMenu(event);
 		}
 	}, {
 		key: 'render',
 		value: function render() {
 			var _this2 = this;
 
-			var classes = (0, _classnames2.default)("w3-transparent", "list-card", "hover-google-blue"); //, {"perma-google-blue" : this.state.isSelected})
+			var classes = (0, _classnames2.default)("w3-transparent", "list-card", "hover-google-blue", { "perma-google-blue": this.props.isSelected });
 			return _react2.default.createElement(
 				'div',
 				{
 					className: classes,
-					onClick: function onClick() {
-						return _this2.handleClick();
+					onClick: function onClick(e) {
+						e.stopPropagation();_this2.props.addSelection(e, _this2.props.link, _this2.props.actions);
 					},
 					onDoubleClick: function onDoubleClick() {
 						return _this2.props.open(_this2.props.link);
 					},
 					onContextMenu: function onContextMenu(e) {
-						_this2.props.renderMenu(e, _this2.props.actions, _this2.props.link);
+						return _this2.handleRightClick(e);
 					}
 				},
 				_react2.default.createElement('i', { className: (0, _classnames2.default)("fa", this.props.icon, "fa-5x", "fa-fw", "icon") }),
@@ -21958,28 +21952,49 @@ var UnitTemplate = function (_React$Component) {
 //rendering files and folders
 
 
-function ContentTemplate(props) {
-	return _react2.default.createElement(
-		'div',
-		{ id: props.heading },
-		props.objects.map(function (object, index) {
-			return _react2.default.createElement(UnitTemplate, {
-				name: object['name'],
-				icon: object['icon'],
-				open: object['open'],
-				link: object['link'],
-				key: object['link'] + props.heading,
-				actions: object['actions'],
-				renderMenu: props.renderMenu
-			});
-		})
-	);
-}
+var ContentTemplate = function (_React$Component2) {
+	_inherits(ContentTemplate, _React$Component2);
+
+	function ContentTemplate() {
+		_classCallCheck(this, ContentTemplate);
+
+		return _possibleConstructorReturn(this, (ContentTemplate.__proto__ || Object.getPrototypeOf(ContentTemplate)).apply(this, arguments));
+	}
+
+	_createClass(ContentTemplate, [{
+		key: 'render',
+		value: function render() {
+			var _this4 = this;
+
+			return _react2.default.createElement(
+				'div',
+				{ id: this.props.heading },
+				this.props.objects.map(function (object, index) {
+					return _react2.default.createElement(UnitTemplate, {
+						name: object['name'],
+						icon: object['icon'],
+						open: object['open'],
+						link: object['link'],
+						key: object['link'] + _this4.props.heading,
+						actions: object['actions'],
+						isSelected: object['isSelected'],
+						renderMenu: _this4.props.renderMenu,
+						addSelection: _this4.props.addSelection,
+						clearSelection: _this4.props.clearSelection
+					});
+				})
+			);
+		}
+	}]);
+
+	return ContentTemplate;
+}(_react2.default.Component);
 
 //process folders for rendering
 
-var Folders = function (_React$Component2) {
-	_inherits(Folders, _React$Component2);
+
+var Folders = function (_React$Component3) {
+	_inherits(Folders, _React$Component3);
 
 	function Folders(props) {
 		_classCallCheck(this, Folders);
@@ -21996,25 +22011,19 @@ var Folders = function (_React$Component2) {
 				icon: this.genIcon(folder),
 				link: key,
 				open: this.props.open,
-				actions: this.genAction(key)
+				actions: this.genAction(key),
+				isSelected: this.props.selectedList.includes(key)
 			};
 		}
 	}, {
 		key: 'genAction',
 		value: function genAction(file_link) {
-			return [{
-				action: this.props.open,
-				name: 'Open'
-			}, {
-				action: this.props.rename,
-				name: 'Rename'
-			}, {
-				action: this.props.download,
-				name: 'Download'
-			}, {
-				action: this.props.delete,
-				name: 'Delete'
-			}];
+			return {
+				Open: this.props.open,
+				Rename: this.props.rename,
+				Download: this.props.download,
+				Delete: this.props.delete
+			};
 		}
 	}, {
 		key: 'genName',
@@ -22029,18 +22038,22 @@ var Folders = function (_React$Component2) {
 	}, {
 		key: 'render',
 		value: function render() {
-			var _this4 = this;
+			var _this6 = this;
 
 			if (!this.props.folders) return;
 
 			var keys = Object.keys(this.props.folders);
 			var objects = keys.map(function (key) {
-				return _this4.process(key);
+				return _this6.process(key);
 			});
 			return _react2.default.createElement(ContentTemplate, {
 				heading: 'Folders',
 				objects: objects,
-				renderMenu: this.props.renderMenu
+				renderMenu: this.props.renderMenu,
+				addSelection: function addSelection(e, l, a) {
+					return _this6.props.addSelection(e, l, a);
+				},
+				clearSelection: this.props.clearSelection
 			});
 		}
 	}]);
@@ -22051,8 +22064,8 @@ var Folders = function (_React$Component2) {
 //Process files for rendering
 
 
-var Files = function (_React$Component3) {
-	_inherits(Files, _React$Component3);
+var Files = function (_React$Component4) {
+	_inherits(Files, _React$Component4);
 
 	function Files() {
 		_classCallCheck(this, Files);
@@ -22069,25 +22082,19 @@ var Files = function (_React$Component3) {
 				icon: this.genIcon(file), //Icon
 				link: key, //Complete path
 				open: this.props.open, //Open method
-				actions: this.genAction(key) //All possible actions for given entity
+				actions: this.genAction(key), //All possible actions for given entity
+				isSelected: this.props.selectedList.includes(key)
 			};
 		}
 	}, {
 		key: 'genAction',
 		value: function genAction(file_link) {
-			return [{
-				action: this.props.open,
-				name: 'Open'
-			}, {
-				action: this.props.rename,
-				name: 'Rename'
-			}, {
-				action: this.props.download,
-				name: 'Download'
-			}, {
-				action: this.props.delete,
-				name: 'Delete'
-			}];
+			return {
+				Open: this.props.open,
+				Rename: this.props.rename,
+				Download: this.props.download,
+				Delete: this.props.delete
+			};
 		}
 	}, {
 		key: 'genIcon',
@@ -22115,18 +22122,22 @@ var Files = function (_React$Component3) {
 	}, {
 		key: 'render',
 		value: function render() {
-			var _this6 = this;
+			var _this8 = this;
 
 			if (!this.props.files) return;
 
 			var keys = Object.keys(this.props.files);
 			var objects = keys.map(function (key) {
-				return _this6.process(key);
+				return _this8.process(key);
 			});
 			return _react2.default.createElement(ContentTemplate, {
 				heading: 'Files',
 				objects: objects,
-				renderMenu: this.props.renderMenu
+				renderMenu: this.props.renderMenu,
+				addSelection: function addSelection(e, l, a) {
+					return _this8.props.addSelection(e, l, a);
+				},
+				clearSelection: this.props.clearSelection
 			});
 		}
 	}]);
@@ -22134,11 +22145,95 @@ var Files = function (_React$Component3) {
 	return Files;
 }(_react2.default.Component);
 
+var Content = function (_React$Component5) {
+	_inherits(Content, _React$Component5);
+
+	function Content(props) {
+		_classCallCheck(this, Content);
+
+		var _this9 = _possibleConstructorReturn(this, (Content.__proto__ || Object.getPrototypeOf(Content)).call(this, props));
+
+		_this9.state = {
+			selected: [],
+			actions: []
+		};
+		_this9.addSelection = _this9.addSelection.bind(_this9);
+		return _this9;
+	}
+
+	_createClass(Content, [{
+		key: 'addSelection',
+		value: function addSelection(event, link, actions) {
+			if (event.ctrlKey || event.altKey || event.shiftKey) {
+				var selected = this.state.selected;
+				var sactions = this.state.actions;
+				if (!selected.includes(link)) {
+					selected.push(link);
+					sactions.push(actions);
+					this.setState({ selected: selected, actions: sactions });
+				}
+			} else {
+				var selected = this.state.selected;
+				if (selected.length == 1 && selected[0] == link) this.setState({ selected: [], actions: [] });else this.setState({ selected: [link], actions: [actions] });
+			}
+		}
+	}, {
+		key: 'clearSelection',
+		value: function clearSelection() {
+			this.setState({ 'selected': [], 'actions': [] });
+		}
+	}, {
+		key: 'render',
+		value: function render() {
+			var _this10 = this;
+
+			return _react2.default.createElement(
+				'div',
+				{ className: 'w3-container w3-light-gray ContentStyle', onClick: function onClick() {
+						return _this10.clearSelection();
+					} },
+				_react2.default.createElement(Folders, {
+					folders: this.props.folders,
+					open: this.props.openFolder,
+					rename: this.props.rename,
+					'delete': this.props.delete,
+					download: this.props.download,
+					renderMenu: function renderMenu(e) {
+						return _this10.props.renderMenu(e, _this10.state.selected, _this10.state.actions);
+					},
+					selectedList: this.state.selected,
+					addSelection: function addSelection(e, l, a) {
+						return _this10.addSelection(e, l, a);
+					},
+					clearSelection: this.clearSelection
+				}),
+				_react2.default.createElement(Files, {
+					files: this.props.files,
+					open: this.props.openFile,
+					rename: this.props.rename,
+					'delete': this.props.delete,
+					download: this.props.download,
+					renderMenu: function renderMenu(e) {
+						return _this10.props.renderMenu(e, _this10.state.selected, _this10.state.actions);
+					},
+					selectedList: this.state.selected,
+					addSelection: function addSelection(e, l, a) {
+						return _this10.addSelection(e, l, a);
+					},
+					clearSelection: this.clearSelection
+				})
+			);
+		}
+	}]);
+
+	return Content;
+}(_react2.default.Component);
+
 //Options for uploading files and creating folders
 
 
-var ActionButton = function (_React$Component4) {
-	_inherits(ActionButton, _React$Component4);
+var ActionButton = function (_React$Component6) {
+	_inherits(ActionButton, _React$Component6);
 
 	function ActionButton() {
 		_classCallCheck(this, ActionButton);
@@ -22149,7 +22244,7 @@ var ActionButton = function (_React$Component4) {
 	_createClass(ActionButton, [{
 		key: 'render',
 		value: function render() {
-			var _this8 = this;
+			var _this12 = this;
 
 			return _react2.default.createElement(
 				'div',
@@ -22170,7 +22265,7 @@ var ActionButton = function (_React$Component4) {
 							{ className: 'w3-button w3-bar-item light-emph' },
 							_react2.default.createElement('i', { className: (0, _classnames2.default)('fa', 'fa-upload', 'ActionIcon') }),
 							_react2.default.createElement('input', { type: 'file', id: 'uplist', onChange: function onChange() {
-									return _this8.props.uploadFile();
+									return _this12.props.uploadFile();
 								}, multiple: true }),
 							'Upload File'
 						),
@@ -22179,7 +22274,7 @@ var ActionButton = function (_React$Component4) {
 							{ className: 'w3-button w3-bar-item light-emph w3-border-bottom' },
 							_react2.default.createElement('i', { className: (0, _classnames2.default)('fa', 'fa-upload', 'ActionIcon') }),
 							_react2.default.createElement('input', { type: 'file', id: 'ufolder', onChange: function onChange() {
-									return _this8.props.uploadFolder();
+									return _this12.props.uploadFolder();
 								}, webkitdirectory: true }),
 							'Upload Folder'
 						),
@@ -22190,7 +22285,7 @@ var ActionButton = function (_React$Component4) {
 							_react2.default.createElement(
 								'label',
 								{ onClick: function onClick() {
-										return _this8.props.createFolder();
+										return _this12.props.createFolder();
 									} },
 								' New Folder '
 							)
@@ -22207,8 +22302,8 @@ var ActionButton = function (_React$Component4) {
 //The address bar - each path is clickable and redirects to contents of that folder
 
 
-var Address = function (_React$Component5) {
-	_inherits(Address, _React$Component5);
+var Address = function (_React$Component7) {
+	_inherits(Address, _React$Component7);
 
 	function Address() {
 		_classCallCheck(this, Address);
@@ -22229,7 +22324,7 @@ var Address = function (_React$Component5) {
 	}, {
 		key: 'renderFolder',
 		value: function renderFolder(name, link, last) {
-			var _this10 = this;
+			var _this14 = this;
 
 			var display = void 0;
 			if (last) display = _react2.default.createElement(
@@ -22240,7 +22335,7 @@ var Address = function (_React$Component5) {
 			return _react2.default.createElement(
 				'button',
 				{ className: 'w3-button w3-hover-white AddressStyle', onClick: function onClick() {
-						return _this10.props.jumpTo(link);
+						return _this14.props.jumpTo(link);
 					} },
 				display
 			);
@@ -22248,7 +22343,7 @@ var Address = function (_React$Component5) {
 	}, {
 		key: 'render',
 		value: function render() {
-			var _this11 = this;
+			var _this15 = this;
 
 			var folders = this.props.folders.split('/');
 			var links = this.genLink(folders);
@@ -22263,7 +22358,7 @@ var Address = function (_React$Component5) {
 						return _react2.default.createElement(
 							'div',
 							{ className: 'AddressOuterStyle', key: name },
-							index + 1 == folders.length ? _this11.renderFolder(name, links[index], true) : _this11.renderFolder(name, links[index], false),
+							index + 1 == folders.length ? _this15.renderFolder(name, links[index], true) : _this15.renderFolder(name, links[index], false),
 							_react2.default.createElement('i', { className: 'fa fa-chevron-right AddressIconStyle' })
 						);
 					})
@@ -22278,8 +22373,8 @@ var Address = function (_React$Component5) {
 //Download all contents of open directory
 
 
-var DownAll = function (_React$Component6) {
-	_inherits(DownAll, _React$Component6);
+var DownAll = function (_React$Component8) {
+	_inherits(DownAll, _React$Component8);
 
 	function DownAll() {
 		_classCallCheck(this, DownAll);
@@ -22295,13 +22390,13 @@ var DownAll = function (_React$Component6) {
 	}, {
 		key: 'render',
 		value: function render() {
-			var _this13 = this;
+			var _this17 = this;
 
 			return _react2.default.createElement(
 				'div',
 				{ id: 'down_all', className: 'circle w3-button w3-right w3-col w3-hover-gray w3-button DownAllStyle' },
 				_react2.default.createElement('i', { className: 'fa fa-download', onClick: function onClick() {
-						return _this13.props.onClick();
+						return _this17.props.onClick();
 					} })
 			);
 		}
@@ -22325,13 +22420,13 @@ var SearchBar = function (_React$PureComponent) {
 	_createClass(SearchBar, [{
 		key: 'render',
 		value: function render() {
-			var _this15 = this;
+			var _this19 = this;
 
 			return _react2.default.createElement(
 				'div',
 				{ className: 'w3-rest SearchBarStyle' },
 				_react2.default.createElement('input', { id: 'searchBar', className: 'w3-input w3-light-gray w3-border-0 SearchBarBoxStyle', type: 'text', placeholder: 'Search storage', onChange: function onChange() {
-						return _this15.props.search();
+						return _this19.props.search();
 					} })
 			);
 		}
@@ -22343,8 +22438,8 @@ var SearchBar = function (_React$PureComponent) {
 //WIRESPACE (github link)
 
 
-var ProjectLogo = function (_React$Component7) {
-	_inherits(ProjectLogo, _React$Component7);
+var ProjectLogo = function (_React$Component9) {
+	_inherits(ProjectLogo, _React$Component9);
 
 	function ProjectLogo() {
 		_classCallCheck(this, ProjectLogo);
@@ -22435,66 +22530,27 @@ function Icons(props) {
 	return _react2.default.createElement('div', null);
 }
 
-var Content = function (_React$Component8) {
-	_inherits(Content, _React$Component8);
-
-	function Content() {
-		_classCallCheck(this, Content);
-
-		return _possibleConstructorReturn(this, (Content.__proto__ || Object.getPrototypeOf(Content)).apply(this, arguments));
-	}
-
-	_createClass(Content, [{
-		key: 'render',
-		value: function render() {
-			return _react2.default.createElement(
-				'div',
-				{ className: 'w3-container w3-light-gray ContentStyle' },
-				_react2.default.createElement(Folders, {
-					folders: this.props.folders,
-					open: this.props.openFolder,
-					rename: this.props.rename,
-					'delete': this.props.delete,
-					download: this.props.download,
-					renderMenu: this.props.renderMenu
-				}),
-				_react2.default.createElement(Files, {
-					files: this.props.files,
-					open: this.props.openFile,
-					rename: this.props.rename,
-					'delete': this.props.delete,
-					download: this.props.download,
-					renderMenu: this.props.renderMenu
-				})
-			);
-		}
-	}]);
-
-	return Content;
-}(_react2.default.Component);
-
 //Root of rendering the entire GUI
 
-
-var App = function (_React$Component9) {
-	_inherits(App, _React$Component9);
+var App = function (_React$Component10) {
+	_inherits(App, _React$Component10);
 
 	function App() {
 		_classCallCheck(this, App);
 
-		var _this18 = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this));
+		var _this21 = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this));
 
-		_this18.state = {
+		_this21.state = {
 			dirs: {},
 			files: {},
 			path: '',
 			hidden: {},
 			menuHidden: true
 		};
-		_this18.baseURL = '';
-		_this18.hideMenu = _this18.hideMenu.bind(_this18);
-		_this18.escFunction = _this18.escFunction.bind(_this18);
-		return _this18;
+		_this21.baseURL = '';
+		_this21.hideMenu = _this21.hideMenu.bind(_this21);
+		_this21.escFunction = _this21.escFunction.bind(_this21);
+		return _this21;
 	}
 
 	//Request template for opening folders
@@ -22503,7 +22559,7 @@ var App = function (_React$Component9) {
 	_createClass(App, [{
 		key: 'get_request',
 		value: function get_request(target) {
-			var _this19 = this;
+			var _this22 = this;
 
 			_axios2.default.post(this.baseURL + 'open/', _queryString2.default.stringify({
 				target: target
@@ -22518,7 +22574,7 @@ var App = function (_React$Component9) {
 					files: res.data.files,
 					hidden: res.data.hidden
 				};
-				_this19.setState(newState);
+				_this22.setState(newState);
 			}).catch(function (error) {
 				console.log("Error in opening");
 				console.log(error);
@@ -22530,7 +22586,7 @@ var App = function (_React$Component9) {
 	}, {
 		key: 'handleSearch',
 		value: function handleSearch() {
-			var _this20 = this;
+			var _this23 = this;
 
 			var query = document.getElementById('searchBar').value;
 			if (query != '') {
@@ -22548,7 +22604,7 @@ var App = function (_React$Component9) {
 						files: res.data.files,
 						hidden: res.data.hidden
 					};
-					_this20.setState(newState);
+					_this23.setState(newState);
 				}).catch(function (error) {
 					console.log("Error in request");
 					console.log(error);
@@ -22588,6 +22644,7 @@ var App = function (_React$Component9) {
 		key: 'download',
 		value: function download(address) {
 			//Use hidden form to send post requests for download
+			console.log("Downloading", address);
 			var form = document.forms['downloadform'];
 			form.elements[0].value = address;
 			form.submit();
@@ -22595,7 +22652,7 @@ var App = function (_React$Component9) {
 	}, {
 		key: 'upload',
 		value: function upload(files, addresses) {
-			var _this21 = this;
+			var _this24 = this;
 
 			var formData = new FormData();
 			for (var i = 0; i < files.length; i++) {
@@ -22607,7 +22664,7 @@ var App = function (_React$Component9) {
 					'Content-Type': 'multipart/form-data'
 				}
 			}).then(function (res) {
-				_this21.get_request(_this21.state.path);
+				_this24.get_request(_this24.state.path);
 			}).catch(function (err) {
 				console.log("Error in uploading files");
 			});
@@ -22643,7 +22700,7 @@ var App = function (_React$Component9) {
 	}, {
 		key: 'createFolder',
 		value: function createFolder() {
-			var _this22 = this;
+			var _this25 = this;
 
 			var name = prompt("Name of the new folder:");
 			if (name == null || name == "") return;
@@ -22655,7 +22712,7 @@ var App = function (_React$Component9) {
 					'Content-Type': 'application/x-www-form-urlencoded'
 				}
 			}).then(function (res) {
-				_this22.get_request(_this22.state.path);
+				_this25.get_request(_this25.state.path);
 			}).catch(function (error) {
 				console.log(error);
 				alert("Error in creating folder. Please check console for more details");
@@ -22667,7 +22724,7 @@ var App = function (_React$Component9) {
 	}, {
 		key: 'delete',
 		value: function _delete(link) {
-			var _this23 = this;
+			var _this26 = this;
 
 			var sure = confirm("Warning: Contents will be permanently deleted. Are you sure you want to delete this?");
 			if (!sure) return;
@@ -22678,7 +22735,7 @@ var App = function (_React$Component9) {
 					'Content-Type': 'application/x-www-form-urlencoded'
 				}
 			}).then(function (res) {
-				_this23.get_request(_this23.state.path);
+				_this26.get_request(_this26.state.path);
 			}).catch(function (error) {
 				console.log(error);
 				alert("Error in deleting. Please check console for more details");
@@ -22690,7 +22747,7 @@ var App = function (_React$Component9) {
 	}, {
 		key: 'rename',
 		value: function rename(link) {
-			var _this24 = this;
+			var _this27 = this;
 
 			var name = prompt("Enter new name");
 			if (name == null || name == "") return;
@@ -22703,19 +22760,26 @@ var App = function (_React$Component9) {
 					'Content-Type': 'application/x-www-form-urlencoded'
 				}
 			}).then(function (res) {
-				_this24.get_request(_this24.state.path);
+				_this27.get_request(_this27.state.path);
 			}).catch(function (error) {
 				console.log(error);
 				alert("Error in renaming. Please check console for more details");
 			});
+		}
+	}, {
+		key: 'execute',
+		value: function execute(targets, action) {
+			for (var i = 0; i < targets.length; i++) {
+				action(targets[i]);
+			}
 		}
 
 		//Render the context menu
 
 	}, {
 		key: 'renderMenu',
-		value: function renderMenu(event, list, target) {
-			var _this25 = this;
+		value: function renderMenu(event, targets, actions) {
+			var _this28 = this;
 
 			this.setState({ menuHidden: false });
 			var classes = (0, _classnames2.default)("context-menu", "w3-bar-block", "w3-card-2", "w3-white");
@@ -22724,27 +22788,51 @@ var App = function (_React$Component9) {
 				top: event.clientY,
 				left: event.clientX
 			};
-			_reactDom2.default.render(_react2.default.createElement(
-				'div',
-				{ id: 'menu', className: classes, style: dStyle },
-				list == null ? _react2.default.createElement(
+			if (targets.length == 0 || targets.length == 1) {
+				_reactDom2.default.render(_react2.default.createElement(
 					'div',
-					{ className: 'w3-button w3-bar-item' },
-					'No option'
-				) : list.map(function (object, index) {
-					return _react2.default.createElement(
+					{ id: 'menu', className: classes, style: dStyle },
+					targets == [] ? _react2.default.createElement(
 						'div',
-						{
-							className: 'w3-button w3-bar-item',
-							onClick: function onClick() {
-								object['action'](target), _this25.hideMenu();
+						{ className: 'w3-button w3-bar-item' },
+						'No option'
+					) : Object.keys(actions[0]).map(function (name, index) {
+						return _react2.default.createElement(
+							'div',
+							{
+								className: 'w3-button w3-bar-item',
+								onClick: function onClick() {
+									actions[0][name](targets[0]), _this28.hideMenu();
+								},
+								key: index
 							},
-							key: index
-						},
-						object['name']
-					);
-				})
-			), document.getElementById('menu'));
+							name
+						);
+					})
+				), document.getElementById('menu'));
+			} else {
+				_reactDom2.default.render(_react2.default.createElement(
+					'div',
+					{ id: 'menu', className: classes, style: dStyle },
+					targets == [] ? _react2.default.createElement(
+						'div',
+						{ className: 'w3-button w3-bar-item' },
+						'No option'
+					) : ['Download'].map(function (action, index) {
+						return _react2.default.createElement(
+							'div',
+							{
+								className: 'w3-button w3-bar-item',
+								onClick: function onClick() {
+									_this28.execute(targets, actions[0][action]);_this28.hideMenu();
+								},
+								key: index
+							},
+							action
+						);
+					})
+				), document.getElementById('menu'));
+			}
 		}
 
 		//Hide the context menu
@@ -22752,7 +22840,6 @@ var App = function (_React$Component9) {
 	}, {
 		key: 'hideMenu',
 		value: function hideMenu(event) {
-			console.log("Donw");
 			this.setState({ menuHidden: true });
 			_reactDom2.default.render(_react2.default.createElement('div', { id: 'menu', className: 'hidden' }), document.getElementById('menu'));
 		}
@@ -22778,7 +22865,7 @@ var App = function (_React$Component9) {
 	}, {
 		key: 'render',
 		value: function render() {
-			var _this26 = this,
+			var _this29 = this,
 			    _React$createElement;
 
 			return _react2.default.createElement(
@@ -22786,43 +22873,45 @@ var App = function (_React$Component9) {
 				{
 					className: 'full-body',
 					onClick: function onClick(e) {
-						return _this26.hideMenu(e);
+						return _this29.hideMenu(e);
 					},
 					onDoubleClick: function onDoubleClick(e) {
+						e.preventDefault();
+					},
+					onContextMenu: function onContextMenu(e) {
+						e.preventDefault();
+					} //Override default right-click behavior
+					, onSelect: function onSelect(e) {
 						e.preventDefault();
 					}
 				},
 				_react2.default.createElement(
 					'div',
-					{
-						onContextMenu: function onContextMenu(e) {
-							e.preventDefault();
-						} //Override default right-click behavior
-					},
+					null,
 					_react2.default.createElement(NavBar, (_React$createElement = {
 						folders: this.state.path,
 						search: function search(query) {
-							return _this26.handleSearch(query);
+							return _this29.handleSearch(query);
 						},
 						download: function download() {
-							return _this26.download(_this26.state.path);
+							return _this29.download(_this29.state.path);
 						},
 						jumpTo: function jumpTo(address) {
-							return _this26.jumpTo(address);
+							return _this29.jumpTo(address);
 						},
 						uploadFile: function uploadFile() {
-							return _this26.uploadFile();
+							return _this29.uploadFile();
 						},
 						uploadFolder: function uploadFolder() {
-							return _this26.uploadFolder();
+							return _this29.uploadFolder();
 						},
 						createFolder: function createFolder() {
-							return _this26.createFolder();
+							return _this29.createFolder();
 						}
 					}, _defineProperty(_React$createElement, 'search', function search(query) {
-						return _this26.handleSearch(query);
+						return _this29.handleSearch(query);
 					}), _defineProperty(_React$createElement, 'hide', function hide(e) {
-						return _this26.hideMenu(e);
+						return _this29.hideMenu(e);
 					}), _React$createElement))
 				),
 				_react2.default.createElement(Icons
@@ -22830,31 +22919,27 @@ var App = function (_React$Component9) {
 				, null),
 				_react2.default.createElement(
 					'div',
-					{
-						onContextMenu: function onContextMenu(e) {
-							e.preventDefault();
-						}
-					},
+					null,
 					_react2.default.createElement(Content, {
 						folders: this.state.dirs,
 						openFile: function openFile(address) {
-							return _this26.openFile(address);
+							return _this29.openFile(address);
 						},
 						files: this.state.files,
 						openFolder: function openFolder(address) {
-							return _this26.openFolder(address);
+							return _this29.openFolder(address);
 						},
 						rename: function rename(address) {
-							return _this26.rename(address);
+							return _this29.rename(address);
 						},
 						'delete': function _delete(address) {
-							return _this26.delete(address);
+							return _this29.delete(address);
 						},
 						download: function download(address) {
-							return _this26.download(address);
+							return _this29.download(address);
 						},
 						renderMenu: function renderMenu(e, l, t) {
-							return _this26.renderMenu(e, l, t);
+							return _this29.renderMenu(e, l, t);
 						}
 					})
 				)
