@@ -289,34 +289,33 @@ def upload(request):
 		#space_available=k_Object.space_allotted-int(subprocess.check_output(['sudo','du','-sb',k_Object.path_shared]).split()[0])
 		#print(space_available)
 		space_available=400000
-		file=request.FILES.getlist('uplist[]')
-		total_size=0
-		for myfile in file:
-			total_size+=myfile.size
+		files = request.FILES.getlist('uplist[]')
+		total_size = 0
+		for myfile in files:
+			total_size += myfile.size
 
 		# Checking for available space
-		if total_size>space_available:
+		if total_size > space_available:
 			return JsonResponse({'message': 'Insufficient space'},status=413)
 		
-		upload_path = request.POST['address']
-		upload_path=os.path.normpath(upload_path)
-		
-		# To prevent access of directories outside the shared path
-		if upload_path==os.path.join(root_path,upload_path):
-			return JsonResponse({'message': 'Insufficient priveleges'},status=403)
-		
-		upload_path = os.path.join(root_path, upload_path)
-		# upload_path = os.path.join(sharedPath, upload_path)
-		
-		for myfile in file:
-			#if the file does not exist, place the file there
-			if not os.path.exists(os.path.join(upload_path,myfile.name)):
-				fs=FileSystemStorage(location=upload_path)
-				filename=fs.save(myfile.name,myfile)
+		addresses = request.POST['address[]']
 
-		return JsonResponse({'message':'Success'}, status=200)
-	else:
-		return JsonResponse({'message': 'Insufficient priveleges'},status=403)
+		for address, file in zip(addresses, files):
+			directory = os.path.join(sharedPath,address)
+			if directory == address:
+				return JsonResponse({'message': 'Insufficient priveleges'},status=403)
+			
+			directory = os.path.dirname(directory)
+			#if the directories do not exist, create the directories
+			if not os.path.exists(directory):
+				os.makedirs(directory)
+			
+			#if a file with the same name does not exist previously, create the file
+			if not os.path.exists(os.path.join(directory,file.name)):
+				fs=FileSystemStorage(location=directory)
+				fs.save(file.name,file)
+
+		return JsonResponse({'message': 'Success'},status=200);
 
 @csrf_exempt
 def search(request):
@@ -421,29 +420,3 @@ def move(request):
 		return JsonResponse({'message':'Success'}, status=200)
 	else:
 		return JsonResponse({'message': 'Destination already exists'},status=403)
-
-
-@csrf_exempt
-def uploadFolder(request):
-	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared	
-	
-	#Get the base address, list of addresses corresponding to each file in the uploaded folder
-	try:
-		address = request.POST['address']
-		address_list = request.POST['address_list'].split(',')
-		contents = request.FILES.getlist('directory[]');
-	except:
-		return JsonResponse({'message': 'Invalid parameters'},status=403)
-	
-	for path,file in zip(address_list,contents):
-		directory = os.path.dirname(os.path.join(address,path))
-		directory = os.path.join(sharedPath,directory)
-		#if the directories do not exist, create the directories
-		if not os.path.exists(directory):
-			os.makedirs(directory)
-		#if a file with the same name does not exist previously, create the file
-		if not os.path.exists(os.path.join(directory,file.name)):
-			fs=FileSystemStorage(location=directory)
-			fs.save(file.name,file)
-
-	return HttpResponse('');

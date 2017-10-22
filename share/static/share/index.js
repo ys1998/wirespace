@@ -22592,27 +22592,37 @@ var App = function (_React$Component9) {
 			form.elements[0].value = address;
 			form.submit();
 		}
-
-		//Upload multiple files
-
 	}, {
-		key: 'uploadFile',
-		value: function uploadFile() {
+		key: 'upload',
+		value: function upload(files, addresses) {
 			var _this21 = this;
 
 			var formData = new FormData();
-			var file = document.querySelector('#uplist');
-			//This does not work: formData.appen('uplist[]', file.files)
-			for (var i = 0; i < file.files.length; i++) {
-				formData.append("uplist[]", file.files[i]);
-			}formData.append("address", this.state.path);
+			for (var i = 0; i < files.length; i++) {
+				formData.append('uplist[]', files[i]);
+				formData.append('address[]', addresses[i]);
+			}
 			_axios2.default.post(this.baseURL + 'upload/', formData, {
 				headers: {
 					'Content-Type': 'multipart/form-data'
 				}
 			}).then(function (res) {
 				_this21.get_request(_this21.state.path);
+			}).catch(function (err) {
+				console.log("Error in uploading files");
 			});
+		}
+
+		//Upload multiple files
+
+	}, {
+		key: 'uploadFile',
+		value: function uploadFile() {
+			var files = document.querySelector('#uplist').files;
+			var addr = [];
+			for (var i = 0; i < files.length; i++) {
+				addr[i] = this.state.path;
+			}this.upload(files, addr);
 		}
 
 		//Upload folder. Supported in very few browsers
@@ -22620,20 +22630,12 @@ var App = function (_React$Component9) {
 	}, {
 		key: 'uploadFolder',
 		value: function uploadFolder() {
-			var _this22 = this;
-
-			var formData = new FormData();
-			var file = document.querySelector('#ufolder');
-			for (var i = 0; i < file.files.length; i++) {
-				formData.append("directory[]", file.files[i]);
-			}formData.append("address", this.state.path);
-			_axios2.default.post(this.baseURL + 'uploadFolder/', formData, {
-				headers: {
-					'Content-Type': 'multipart/form-data'
-				}
-			}).then(function (res) {
-				_this22.get_request(_this22.state.path);
-			});
+			var files = document.querySelector('#ufolder').files;
+			var addr = [];
+			for (var i = 0; i < files.length; i++) {
+				addr[i] = this.state.path + '/' + files[i].webkitRelativePath;
+			}
+			this.upload(files, addr);
 		}
 
 		//Create folders
@@ -22641,7 +22643,7 @@ var App = function (_React$Component9) {
 	}, {
 		key: 'createFolder',
 		value: function createFolder() {
-			var _this23 = this;
+			var _this22 = this;
 
 			var name = prompt("Name of the new folder:");
 			if (name == null || name == "") return;
@@ -22653,7 +22655,7 @@ var App = function (_React$Component9) {
 					'Content-Type': 'application/x-www-form-urlencoded'
 				}
 			}).then(function (res) {
-				_this23.get_request(_this23.state.path);
+				_this22.get_request(_this22.state.path);
 			}).catch(function (error) {
 				console.log(error);
 				alert("Error in creating folder. Please check console for more details");
@@ -22665,7 +22667,7 @@ var App = function (_React$Component9) {
 	}, {
 		key: 'delete',
 		value: function _delete(link) {
-			var _this24 = this;
+			var _this23 = this;
 
 			var sure = confirm("Warning: Contents will be permanently deleted. Are you sure you want to delete this?");
 			if (!sure) return;
@@ -22676,7 +22678,7 @@ var App = function (_React$Component9) {
 					'Content-Type': 'application/x-www-form-urlencoded'
 				}
 			}).then(function (res) {
-				_this24.get_request(_this24.state.path);
+				_this23.get_request(_this23.state.path);
 			}).catch(function (error) {
 				console.log(error);
 				alert("Error in deleting. Please check console for more details");
@@ -22688,7 +22690,7 @@ var App = function (_React$Component9) {
 	}, {
 		key: 'rename',
 		value: function rename(link) {
-			var _this25 = this;
+			var _this24 = this;
 
 			var name = prompt("Enter new name");
 			if (name == null || name == "") return;
@@ -22701,7 +22703,7 @@ var App = function (_React$Component9) {
 					'Content-Type': 'application/x-www-form-urlencoded'
 				}
 			}).then(function (res) {
-				_this25.get_request(_this25.state.path);
+				_this24.get_request(_this24.state.path);
 			}).catch(function (error) {
 				console.log(error);
 				alert("Error in renaming. Please check console for more details");
@@ -22713,7 +22715,7 @@ var App = function (_React$Component9) {
 	}, {
 		key: 'renderMenu',
 		value: function renderMenu(event, list, target) {
-			var _this26 = this;
+			var _this25 = this;
 
 			this.setState({ menuHidden: false });
 			var classes = (0, _classnames2.default)("context-menu", "w3-bar-block", "w3-card-2", "w3-white");
@@ -22735,7 +22737,7 @@ var App = function (_React$Component9) {
 						{
 							className: 'w3-button w3-bar-item',
 							onClick: function onClick() {
-								object['action'](target), _this26.hideMenu();
+								object['action'](target), _this25.hideMenu();
 							},
 							key: index
 						},
@@ -22776,7 +22778,7 @@ var App = function (_React$Component9) {
 	}, {
 		key: 'render',
 		value: function render() {
-			var _this27 = this,
+			var _this26 = this,
 			    _React$createElement;
 
 			return _react2.default.createElement(
@@ -22784,13 +22786,10 @@ var App = function (_React$Component9) {
 				{
 					className: 'full-body',
 					onClick: function onClick(e) {
-						return _this27.hideMenu(e);
+						return _this26.hideMenu(e);
 					},
 					onDoubleClick: function onDoubleClick(e) {
 						e.preventDefault();
-					},
-					onKeyUp: function onKeyUp(e) {
-						_this27.hideMenu(e);
 					}
 				},
 				_react2.default.createElement(
@@ -22803,27 +22802,27 @@ var App = function (_React$Component9) {
 					_react2.default.createElement(NavBar, (_React$createElement = {
 						folders: this.state.path,
 						search: function search(query) {
-							return _this27.handleSearch(query);
+							return _this26.handleSearch(query);
 						},
 						download: function download() {
-							return _this27.download(_this27.state.path);
+							return _this26.download(_this26.state.path);
 						},
 						jumpTo: function jumpTo(address) {
-							return _this27.jumpTo(address);
+							return _this26.jumpTo(address);
 						},
 						uploadFile: function uploadFile() {
-							return _this27.uploadFile();
+							return _this26.uploadFile();
 						},
 						uploadFolder: function uploadFolder() {
-							return _this27.uploadFolder();
+							return _this26.uploadFolder();
 						},
 						createFolder: function createFolder() {
-							return _this27.createFolder();
+							return _this26.createFolder();
 						}
 					}, _defineProperty(_React$createElement, 'search', function search(query) {
-						return _this27.handleSearch(query);
+						return _this26.handleSearch(query);
 					}), _defineProperty(_React$createElement, 'hide', function hide(e) {
-						return _this27.hideMenu(e);
+						return _this26.hideMenu(e);
 					}), _React$createElement))
 				),
 				_react2.default.createElement(Icons
@@ -22839,23 +22838,23 @@ var App = function (_React$Component9) {
 					_react2.default.createElement(Content, {
 						folders: this.state.dirs,
 						openFile: function openFile(address) {
-							return _this27.openFile(address);
+							return _this26.openFile(address);
 						},
 						files: this.state.files,
 						openFolder: function openFolder(address) {
-							return _this27.openFolder(address);
+							return _this26.openFolder(address);
 						},
 						rename: function rename(address) {
-							return _this27.rename(address);
+							return _this26.rename(address);
 						},
 						'delete': function _delete(address) {
-							return _this27.delete(address);
+							return _this26.delete(address);
 						},
 						download: function download(address) {
-							return _this27.download(address);
+							return _this26.download(address);
 						},
 						renderMenu: function renderMenu(e, l, t) {
-							return _this27.renderMenu(e, l, t);
+							return _this26.renderMenu(e, l, t);
 						}
 					})
 				)
