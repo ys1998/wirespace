@@ -16,6 +16,11 @@ else
 		fi
 		echo "Installing dependencies ..."
 		sudo pip3 install -r requirements.txt
+		echo "Creating database ..."
+		python3 manage.py makemigrations
+		python3 manage.py migrate
+		echo "Setting up administrator ..."
+		python3 manage.py createsuperuser
 		echo "Wirespace installation complete."
 
 	elif [[ $1 == "--start" || $1 == "-s" ]]; then
