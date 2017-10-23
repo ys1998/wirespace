@@ -181,36 +181,34 @@ def get_dir(dirpath):
 		(parentdir,dir_name) = os.path.split(dirpath)
 		target = os.path.normpath(CACHE_DIR + dirpath + "/" + dir_name + ".zip")
 		
-		# checking if required .zip file already exists in CACHE_DIR 
-		# Add another check : whether contents of that dir have been updated after the .zip was created
+		# checks for existing .zip file and removes it if it exists
 		if os.path.exists(target):
-			response = StreamingHttpResponse(
-				open(target,'rb'),
-				content_type='application/x-gzip'
-				)
-			response['Content-Disposition'] = " attachment; filename={0}".format(dir_name+".zip")
-			response['Content-Length'] = os.path.getsize(target)
-			return response
-		# creating new .zip file if not already created
-		# if .zip has to be updated, remove existing .zip file and create new one in its place
-		else:
-			file_to_send = zipfile.ZipFile(target, 'x',zipfile.ZIP_DEFLATED)
-			
-			for root, dirs, files in os.walk(dirpath):
-				for file in files:
-					rel_path = os.path.relpath(root,parentdir)
-					file_to_send.write(
-						os.path.join(root,file),
-						os.path.join(rel_path,file)
-						)
+			# response = StreamingHttpResponse(
+			# 	open(target,'rb'),
+			# 	content_type='application/x-gzip'
+			# 	)
+			# response['Content-Disposition'] = " attachment; filename={0}".format(dir_name+".zip")
+			# response['Content-Length'] = os.path.getsize(target)
+			# return response
+			os.remove(target)
+		# creates new .zip file
+		file_to_send = zipfile.ZipFile(target, 'x',zipfile.ZIP_DEFLATED)
+		
+		for root, dirs, files in os.walk(dirpath):
+			for file in files:
+				rel_path = os.path.relpath(root,parentdir)
+				file_to_send.write(
+					os.path.join(root,file),
+					os.path.join(rel_path,file)
+					)
 
-			file_to_send.close()
-			response = StreamingHttpResponse(
-				open(target,'rb'),
-				content_type = 'application/x-gzip')
-			response['Content-Disposition'] = " attachment; filename={0}".format(dir_name+".zip")
-			response['Content-Length'] = os.path.getsize(target)
-			return response
+		file_to_send.close()
+		response = StreamingHttpResponse(
+			open(target,'rb'),
+			content_type = 'application/x-gzip')
+		response['Content-Disposition'] = " attachment; filename={0}".format(dir_name+".zip")
+		response['Content-Length'] = os.path.getsize(target)
+		return response
 	else:
 		return JsonResponse({'message':"This directory does not exist."},status=404)
 
