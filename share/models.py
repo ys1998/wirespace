@@ -31,7 +31,10 @@ class Key(models.Model):
 
 	def space_available(self):
 		suffix='B'
-		current_space=int(subprocess.check_output(["du","-b","--max-depth=0",self.path_shared]).split()[0])
+		try:
+			current_space=int(subprocess.check_output(["du","-s",self.path_shared]).split()[0])
+		except:
+			current_space=-1
 		# current_space=10240
 		num=max(0,self.space_allotted-current_space)
 		for unit in ['','K','M','G','T']:

@@ -97,10 +97,6 @@
 	<div id="menu">
 	</div>
 	<div id="form" style="display: none;">
-		<form id="uploadFolder" method="POST" action="uploadFolder/" enctype="multipart/form-data" >
-			<input type="hidden" id="address" name="address" value=''>
-			<input style="display:block;" id="uploadDir" type="file" name="directory" webkitdirectory>
-		</form>
 		<form id="downloadform" action="download/" method="POST">
 			<input type="text" name="target" id="targetlink">
 			<input type="submit" value="submit">
@@ -112,21 +108,5 @@
 	</div>
     <script src = "{% static 'share/index.js' %}">
 	</script>
-	<script>
-		document.getElementById("uploadDir").addEventListener("change", function(event) {
-			  var files = event.target.files;
-			  var address_list=[];
-			  for (var i=0; i<files.length; i++) {
-			    address_list.push(files[i].webkitRelativePath);
-			  };
-			  	var form=document.forms['uploadFolder'];
-				var obj=document.createElement('input');
-				obj.type="hidden";
-				obj.name="address_list";
-				obj.value=address_list;
-				form.appendChild(obj);
-				form.submit();
-			}, false);
-    </script>
 </body>
 </html>

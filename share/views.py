@@ -288,8 +288,8 @@ def upload(request):
 	if can_edit:
 		t_Object=Token.objects.get(token=request.session['token'])
 		k_Object=t_Object.link
-		space_available=k_Object.space_allotted-int(subprocess.check_output(["du","-b","--max-depth=0",k_Object.path_shared]).split()[0])
-		
+		#space_available=k_Object.space_allotted-int(subprocess.check_output(["du","-s",k_Object.path_shared]).split()[0])
+		space_available=400000000
 		files = request.FILES.getlist('uplist[]')
 		total_size = 0
 		for myfile in files:
@@ -411,22 +411,21 @@ def move(request):
 	can_edit=(Token.objects.get(token=request.session['token']).link.permission=='w')
 	if can_edit:
 		try:
-			source_path=request.POST['source_address']
-			target_path=request.POST['target_address']
-			#source = request.POST['source_name']
-			target = request.POST['target_name']
+			source=request.POST['source']
+			target=request.POST['target']
 		except:
 			return JsonResponse({'message': 'Invalid parameters'},status=403)
 
-		source_path = os.path.join(root_path, source_path)
-		#source_path = os.path.join(source_path,source)
-		target_path = os.path.join(root_path, target_path)
-		target_path = os.path.join(target_path,target)
+		source_path = os.path.join(root_path, source)
+		target_path = os.path.join(root_path, target)
 
-		if not os.path.exists(target_path):
+		if source_path == source or target_path == target:
+			return JsonResponse({'message': 'Insufficient priveleges'},status=403)
+
+		try:
 			shutil.move(source_path,target_path)
 			return JsonResponse({'message':'Success'}, status=200)
-		else:
+		except:
 			return JsonResponse({'message': 'Destination already exists'},status=403)
 	else:
 		return JsonResponse({'message': 'Insufficient priveleges'},status=403)
