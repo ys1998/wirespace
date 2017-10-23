@@ -42,7 +42,7 @@ def authenticate(request,k):
 				old_key=old_t.link.key
 				if k!=old_key:
 					new_key=Key.objects.get(key=k)
-					IP=''
+					IP=get_ip(request)
 					old_t.delete()
 					del request.session['token']
 					new_t=Token.objects.create(link=new_key,IP=IP)
@@ -52,7 +52,7 @@ def authenticate(request,k):
 			except Token.DoesNotExist:
 				request.session.flush()
 				key=Key.objects.get(key=k)
-				IP='' # get IP from request here
+				IP=get_ip(request)
 				t=Token.objects.create(link=key,IP=IP)
 				request.session['token']=t.token
 		request.session.set_expiry(3600) # token expires after 60 minutes
@@ -95,41 +95,44 @@ def editor(request):
 			t_Object=Token.objects.get(token=token)
 			k_Object=t_Object.link
 			sharedPath=k_Object.path_shared
-			root_path,shared_dir=os.path.split(sharedPath)
-			if request.POST['action']=="open":
-				context={}
-				context['path']=request.POST['target']
-				context['dirs']=[]
-				context['files']=[]
-				for item in os.listdir(os.path.join(root_path,context['path'])):
-					if os.path.isdir(os.path.join(root_path,context['path'],item)):
-						context['dirs'].append(item)
-					else:
-						context['files'].append(item)
-				return JsonResponse(context)
-			elif request.POST['action']=="download":
-				filepath=os.path.join(root_path,request.POST['target'])
-				return get_file(filepath,"download")
-			elif request.POST['action']=="upload":
-				for fname in request.FILES:
-					save_path=os.path.join(root_path,os.path.split(fname)[0])
-					#if the directories do not exist, create the directories
-					if not os.path.exists(save_path):
-						os.makedirs(save_path)
-					if os.path.exists(os.path.join(root_path,fname)):
-						mode=os.stat(os.path.join(root_path,fname)).st_mode
-						fs=FileSystemStorage(location=save_path,file_permissions_mode=mode)
-						fs.delete(os.path.split(fname)[1])
-						fs.save(os.path.split(fname)[1],request.FILES[fname])
-					else:
-						fs=FileSystemStorage(location=save_path)
-						fs.save(os.path.split(fname)[1],request.FILES[fname])
-				return JsonResponse({'message':"Save successful."},status=200)
-			elif request.POST['action']=="destroy":
-				t_Object.delete()
-				print("Token deleted.")
+			if can_edit:
+				root_path,shared_dir=os.path.split(sharedPath)
+				if request.POST['action']=="open":
+					context={}
+					context['path']=request.POST['target']
+					context['dirs']=[]
+					context['files']=[]
+					for item in os.listdir(os.path.join(root_path,context['path'])):
+						if os.path.isdir(os.path.join(root_path,context['path'],item)):
+							context['dirs'].append(item)
+						else:
+							context['files'].append(item)
+					return JsonResponse(context)
+				elif request.POST['action']=="download":
+					filepath=os.path.join(root_path,request.POST['target'])
+					return get_file(filepath,"download")
+				elif request.POST['action']=="upload":
+					for fname in request.FILES:
+						save_path=os.path.join(root_path,os.path.split(fname)[0])
+						#if the directories do not exist, create the directories
+						if not os.path.exists(save_path):
+							os.makedirs(save_path)
+						if os.path.exists(os.path.join(root_path,fname)):
+							mode=os.stat(os.path.join(root_path,fname)).st_mode
+							fs=FileSystemStorage(location=save_path,file_permissions_mode=mode)
+							fs.delete(os.path.split(fname)[1])
+							fs.save(os.path.split(fname)[1],request.FILES[fname])
+						else:
+							fs=FileSystemStorage(location=save_path)
+							fs.save(os.path.split(fname)[1],request.FILES[fname])
+					return JsonResponse({'message':"Save successful."},status=200)
+				elif request.POST['action']=="destroy":
+					t_Object.delete()
+					print("Token deleted.")
+				else:
+					return JsonResponse({'message':"Invalid request format."},status=404)
 			else:
-				return JsonResponse({'message':"Invalid request format."},status=404)
+				return JsonResponse({'message': 'Insufficient priveleges'},status=403)
 	else:
 		return JsonResponse({'message':"Invalid request format."},status=404)
 			
@@ -284,13 +287,11 @@ def upload(request):
 	root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
 
 	can_edit=(Token.objects.get(token=request.session['token']).link.permission=='w')
-	#print('in upload')
 	if can_edit:
 		t_Object=Token.objects.get(token=request.session['token'])
 		k_Object=t_Object.link
-		#space_available=k_Object.space_allotted-int(subprocess.check_output(['sudo','du','-sb',k_Object.path_shared]).split()[0])
-		#print('in edit')
-		space_available=40000000
+		space_available=k_Object.space_allotted-int(subprocess.check_output(["du","-b","--max-depth=0",k_Object.path_shared]).split()[0])
+		
 		files = request.FILES.getlist('uplist[]')
 		total_size = 0
 		for myfile in files:
@@ -358,21 +359,24 @@ def search(request):
 def delete(request):
 	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared
 	root_path = os.path.dirname(sharedPath)
+	can_edit=(Token.objects.get(token=request.session['token']).link.permission=='w')
+	if can_edit:
+		try:
+			current_path=request.POST['address']
+		except:
+			return JsonResponse({'message': 'Insufficient priveleges'},status=400)
+		
+		directory = os.path.join(root_path, current_path)
+		if os.path.isdir(directory):
+			shutil.rmtree(directory)
+		elif os.path.isfile(directory):
+			os.remove(directory)
+		else:
+			return JsonResponse({'message': 'Unable to ascertain file/folder'},status=403)
 
-	try:
-		current_path=request.POST['address']
-	except:
-		return JsonResponse({'message': 'Insufficient priveleges'},status=400)
-	
-	directory = os.path.join(root_path, current_path)
-	if os.path.isdir(directory):
-		shutil.rmtree(directory)
-	elif os.path.isfile(directory):
-		os.remove(directory)
+		return JsonResponse({'message':'Success'}, status=200)
 	else:
-		return JsonResponse({'message': 'Unable to ascertain file/folder'},status=403)
-
-	return JsonResponse({'message':'Success'}, status=200)
+		return JsonResponse({'message': 'Insufficient priveleges'},status=403)
 
 @csrf_exempt
 def create_folder(request):
@@ -406,22 +410,25 @@ def create_folder(request):
 def move(request):
 	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared	
 	root_path = os.path.dirname(sharedPath)
+	can_edit=(Token.objects.get(token=request.session['token']).link.permission=='w')
+	if can_edit:
+		try:
+			source_path=request.POST['source_address']
+			target_path=request.POST['target_address']
+			#source = request.POST['source_name']
+			target = request.POST['target_name']
+		except:
+			return JsonResponse({'message': 'Invalid parameters'},status=403)
 
-	try:
-		source_path=request.POST['source_address']
-		target_path=request.POST['target_address']
-		#source = request.POST['source_name']
-		target = request.POST['target_name']
-	except:
-		return JsonResponse({'message': 'Invalid parameters'},status=403)
+		source_path = os.path.join(root_path, source_path)
+		#source_path = os.path.join(source_path,source)
+		target_path = os.path.join(root_path, target_path)
+		target_path = os.path.join(target_path,target)
 
-	source_path = os.path.join(root_path, source_path)
-	#source_path = os.path.join(source_path,source)
-	target_path = os.path.join(root_path, target_path)
-	target_path = os.path.join(target_path,target)
-
-	if not os.path.exists(target_path):
-		shutil.move(source_path,target_path)
-		return JsonResponse({'message':'Success'}, status=200)
+		if not os.path.exists(target_path):
+			shutil.move(source_path,target_path)
+			return JsonResponse({'message':'Success'}, status=200)
+		else:
+			return JsonResponse({'message': 'Destination already exists'},status=403)
 	else:
-		return JsonResponse({'message': 'Destination already exists'},status=403)
+		return JsonResponse({'message': 'Insufficient priveleges'},status=403)
