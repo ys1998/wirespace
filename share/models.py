@@ -31,8 +31,8 @@ class Key(models.Model):
 
 	def space_available(self):
 		suffix='B'
-		#current_space=int(subprocess.check_output(['sudo','du','-s',self.path_shared]).split()[0])
-		current_space=10240
+		current_space=int(subprocess.check_output(["du","-b","--max-depth=0",self.path_shared]).split()[0])
+		# current_space=10240
 		num=max(0,self.space_allotted-current_space)
 		for unit in ['','K','M','G','T']:
 			if abs(num)<1024.0:
@@ -63,10 +63,15 @@ class Key(models.Model):
 		else:
 			self.path_shared=self.path_shared.strip()
 
-		if Key.objects.filter(key=self.key).count()==0:
-			# Convert space shared to TOTAL space shared - i.e. account for already consumed space
-			dir_space=int(subprocess.check_output(['sudo','du','-sb',self.path_shared]).split()[0])
-			self.space_allotted+=dir_space
+		if Key.objects.filter(key=self.key).count()==0 or Key.objects.get(key=self.key).path_shared!=self.path_shared:
+			if Key.objects.filter(key=self.key).count()==0:
+				# Convert space shared to TOTAL space shared - i.e. account for already consumed space
+				dir_space=int(subprocess.check_output(["du","-b","--max-depth=0",self.path_shared]).split()[0])
+				self.space_allotted+=dir_space
+			else:
+				new_dir_space=int(subprocess.check_output(["du","-b","--max-depth=0",self.path_shared]).split()[0])
+				old_dir_space=int(subprocess.check_output(["du","-b","--max-depth=0",Key.objects.get(key=self.key).path_shared]).split()[0])
+				self.space_allotted+=new_dir_space-old_dir_space
 
 		super().save(*args,**kwargs)
 
