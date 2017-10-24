@@ -22317,6 +22317,14 @@ var ActionButton = function (_React$Component6) {
 	}
 
 	_createClass(ActionButton, [{
+		key: 'componentDidMount',
+		value: function componentDidMount() {
+			if ('webkitdirectory' in document.createElement('input')) this.refs.inputFolder.setAttribute('webkitdirectory', '');else {
+				this.refs.labelFolder.className += " w3-disabled";
+				this.refs.inputFolder.setAttribute('disabled', '');
+			}
+		}
+	}, {
 		key: 'render',
 		value: function render() {
 			var _this12 = this;
@@ -22338,34 +22346,36 @@ var ActionButton = function (_React$Component6) {
 						_react2.default.createElement(
 							'label',
 							{ className: 'w3-button w3-bar-item light-emph' },
-							_react2.default.createElement('i', { className: (0, _classnames2.default)('fa', 'fa-upload', 'ActionIcon') }),
-							_react2.default.createElement('input', { type: 'file', id: 'uplist', onChange: function onChange() {
+							_react2.default.createElement('input', {
+								type: 'file', id: 'uplist',
+								className: 'w3-button',
+								onChange: function onChange() {
 									return _this12.props.uploadFile();
-								}, multiple: true }),
+								},
+								multiple: true }),
+							_react2.default.createElement('i', { className: (0, _classnames2.default)('fa', 'fa-upload', 'ActionIcon') }),
 							'Upload File'
 						),
 						_react2.default.createElement(
 							'label',
-							{ className: 'w3-button w3-bar-item light-emph w3-border-bottom' },
-							_react2.default.createElement('i', { className: (0, _classnames2.default)('fa', 'fa-upload', 'ActionIcon') }),
-							_react2.default.createElement('input', { type: 'file', id: 'ufolder', onChange: function onChange() {
+							{ className: 'w3-button w3-bar-item light-emph w3-border-bottom', ref: 'labelFolder' },
+							_react2.default.createElement('input', {
+								type: 'file', id: 'ufolder',
+								onChange: function onChange() {
 									return _this12.props.uploadFolder();
-								}, ref: function ref(e) {
-									if (e != null) e.setAttribute('webkitdirectory', '');
-								} }),
+								},
+								ref: 'inputFolder' }),
+							_react2.default.createElement('i', { className: (0, _classnames2.default)('fa', 'fa-upload', 'ActionIcon') }),
 							'Upload Folder'
 						),
 						_react2.default.createElement(
 							'label',
-							{ className: 'w3-button w3-bar-item light-emph' },
+							{ className: 'w3-button w3-bar-item light-emph',
+								onClick: function onClick() {
+									return _this12.props.createFolder();
+								} },
 							_react2.default.createElement('i', { className: (0, _classnames2.default)('fa', 'fa-plus', 'ActionIcon') }),
-							_react2.default.createElement(
-								'label',
-								{ onClick: function onClick() {
-										return _this12.props.createFolder();
-									} },
-								' New Folder '
-							)
+							'New Folder'
 						)
 					)
 				)
@@ -22981,7 +22991,7 @@ var App = function (_React$Component10) {
 			if (items == null || items.length == 0) return;
 			var list = { addresses: [], files: [] };
 			for (var i = 0; i < items.length; i++) {
-				this.scanfiles(items[i], this.state.path, list);
+				this.scanfiles(items[i].webkitGetAsEntry(), this.state.path, list);
 			}
 			console.log(list);
 		}
