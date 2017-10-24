@@ -22949,19 +22949,41 @@ var App = function (_React$Component10) {
 			if (event.keyCode == 27) this.hideMenu(event);
 		}
 	}, {
+		key: 'scanfiles',
+		value: function scanfiles(item, address, list) {
+			if (item.isFile) {
+				list.files.push(item);
+				list.adresses.push(address + '/' + item.name);
+			} else if (item.isDirectory) {
+				var directoryReader = item.createReader();
+				directoryReader.readEntries(function (entries) {
+					entries.forEach(function (entry) {
+						scanFiles(entry, address + '/' + item.name, list);
+					});
+				});
+			}
+		}
+	}, {
 		key: 'handleDrop',
 		value: function handleDrop(event) {
 			event.preventDefault();
-			var items = event.dataTransfer.files;
+			// const items=event.dataTransfer.files;
+			// if(items == null || items.length == 0)	return;
+			// console.log("App");
+			// let address=[]
+			// for(var i = 0; i < items.length; i++){
+			// 	address[i] = this.state.path + '/' + items[i].name;
+			// 	//let item = items[i].webkitGetAsEntry()
+			// }
+			// console.log(items, address);
+			// this.upload(items,address);
+			var items = event.dataTransfer.items;
 			if (items == null || items.length == 0) return;
-			console.log("App");
-			var address = [];
+			var list = { addresses: [], files: [] };
 			for (var i = 0; i < items.length; i++) {
-				address[i] = this.state.path + '/' + items[i].name;
-				//let item = items[i].webkitGetAsEntry()
+				this.scanfiles(items[i], this.state.path, list);
 			}
-			console.log(items, address);
-			this.upload(items, address);
+			console.log(list);
 		}
 	}, {
 		key: 'handleDragOver',
