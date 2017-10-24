@@ -21925,10 +21925,13 @@ var UnitTemplate = function (_React$Component) {
 	}, {
 		key: 'handleDrop',
 		value: function handleDrop(event) {
-			event.preventDefault();
-			if (event.dataTransfer.items == null || event.dataTransfer.items == []) {
-				event.stopPropagation();
+			console.log('Firing unit');
+			//event.preventDefault();
+			if (event.dataTransfer.items == null || event.dataTransfer.items.length == 0) {
 				if (this.props.type == "Folders") this.props.moveTo(this.props.link);
+				this.refs.unit.style.opacity = '1';
+				console.log('Drop', this.props.link);
+				event.stopPropagation();
 			}
 		}
 	}, {
@@ -21941,6 +21944,17 @@ var UnitTemplate = function (_React$Component) {
 		key: 'handleDragLeave',
 		value: function handleDragLeave(event) {
 			event.preventDefault();
+			this.refs.unit.style.opacity = '1';
+		}
+	}, {
+		key: 'handleDragExit',
+		value: function handleDragExit(event) {
+			event.preventDefault();
+			this.refs.unit.style.opacity = '1';
+		}
+	}, {
+		key: 'handleDragEnd',
+		value: function handleDragEnd(event) {
 			this.refs.unit.style.opacity = '1';
 		}
 	}, {
@@ -21987,7 +22001,7 @@ var UnitTemplate = function (_React$Component) {
 						return _this2.handleDragLeave(e);
 					},
 					onDragEnd: function onDragEnd(e) {
-						return _this2.handleDragLeave(e);
+						return _this2.handleDragEnd(e);
 					} //Be careful of this hack if changing DragLeave
 					, draggable: 'true',
 					ref: 'unit'
@@ -22245,6 +22259,7 @@ var Content = function (_React$Component5) {
 	}, {
 		key: 'moveTo',
 		value: function moveTo(target) {
+			console.log('move', this.state.selected, 'to', target);
 			var list = this.state.selected;
 			if (list.includes(target)) return false;
 			for (var i = 0; i < list.length; i++) {
@@ -22437,7 +22452,7 @@ var Address = function (_React$Component7) {
 
 			return _react2.default.createElement(
 				'div',
-				{ className: 'w3-rest' },
+				{ className: 'w3-rest scroll-x' },
 				_react2.default.createElement(
 					'div',
 					{ className: 'AddressBoxStyle' },
@@ -22776,10 +22791,10 @@ var App = function (_React$Component10) {
 		key: 'uploadFolder',
 		value: function uploadFolder() {
 			var files = document.querySelector('#ufolder').files;
+			console.log(files);
 			var addr = [];
 			for (var i = 0; i < files.length; i++) {
 				addr[i] = this.state.path + '/' + files[i].webkitRelativePath;
-				console.log(addr[i]);
 			}
 			this.upload(files, addr);
 		}
@@ -22976,7 +22991,7 @@ var App = function (_React$Component10) {
 	}, {
 		key: 'handleDrop',
 		value: function handleDrop(event) {
-			event.preventDefault();
+			//event.preventDefault();
 			// const items=event.dataTransfer.files;
 			// if(items == null || items.length == 0)	return;
 			// console.log("App");
