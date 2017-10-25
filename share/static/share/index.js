@@ -22796,6 +22796,8 @@ var App = function (_React$Component10) {
 			for (var i = 0; i < files.length; i++) {
 				addr[i] = this.state.path + '/' + files[i].webkitRelativePath;
 			}
+			console.log(addr);
+			console.log(files);
 			this.upload(files, addr);
 		}
 
@@ -22976,22 +22978,30 @@ var App = function (_React$Component10) {
 	}, {
 		key: 'scanfiles',
 		value: function scanfiles(item, address, list) {
+			var _this30 = this;
+
 			if (item.isFile) {
-				list.files.push(item);
-				list.adresses.push(address + '/' + item.name);
+				item.file(function (file) {
+					list.files.push(file);console.log(file);
+				});
+				list.addresses.push(address + '/' + item.name);
+				return list;
 			} else if (item.isDirectory) {
 				var directoryReader = item.createReader();
 				directoryReader.readEntries(function (entries) {
 					entries.forEach(function (entry) {
-						scanFiles(entry, address + '/' + item.name, list);
+						var m = _this30.scanfiles(entry, address + '/' + item.name, list);
+						list.addresses.concat(m.addresses);
+						list.files.concat(m.files);
 					});
 				});
+				return list;
 			}
 		}
 	}, {
 		key: 'handleDrop',
 		value: function handleDrop(event) {
-			//event.preventDefault();
+			event.preventDefault();
 			// const items=event.dataTransfer.files;
 			// if(items == null || items.length == 0)	return;
 			// console.log("App");
@@ -23000,15 +23010,21 @@ var App = function (_React$Component10) {
 			// 	address[i] = this.state.path + '/' + items[i].name;
 			// 	//let item = items[i].webkitGetAsEntry()
 			// }
-			// console.log(items, address);
+			// console.log(items);
+			// console.log(address);
 			// this.upload(items,address);
 			var items = event.dataTransfer.items;
 			if (items == null || items.length == 0) return;
 			var list = { addresses: [], files: [] };
 			for (var i = 0; i < items.length; i++) {
-				this.scanfiles(items[i].webkitGetAsEntry(), this.state.path, list);
+				var m = this.scanfiles(items[i].webkitGetAsEntry(), this.state.path, list);
+				list.addresses.concat(m.addresses);
+				list.files.concat(m.files);
 			}
+			console.log(list.addresses);
+			console.log(list.files);
 			console.log(list);
+			this.upload(list.files, list.addresses);
 		}
 	}, {
 		key: 'handleDragOver',
@@ -23041,7 +23057,7 @@ var App = function (_React$Component10) {
 	}, {
 		key: 'render',
 		value: function render() {
-			var _this30 = this,
+			var _this31 = this,
 			    _React$createElement;
 
 			return _react2.default.createElement(
@@ -23049,7 +23065,7 @@ var App = function (_React$Component10) {
 				{
 					className: 'full-body',
 					onClick: function onClick(e) {
-						return _this30.hideMenu(e);
+						return _this31.hideMenu(e);
 					},
 					onDoubleClick: function onDoubleClick(e) {
 						e.preventDefault();
@@ -23061,16 +23077,16 @@ var App = function (_React$Component10) {
 						e.preventDefault();
 					},
 					onDragOver: function onDragOver(e) {
-						return _this30.handleDragOver(e);
+						return _this31.handleDragOver(e);
 					},
 					onDragEnd: function onDragEnd(e) {
-						return _this30.handleDragEnd(e);
+						return _this31.handleDragEnd(e);
 					},
 					onDragLeave: function onDragLeave(e) {
-						return _this30.handleDragEnd(e);
+						return _this31.handleDragEnd(e);
 					},
 					onDrop: function onDrop(e) {
-						return _this30.handleDrop(e);
+						return _this31.handleDrop(e);
 					},
 					ref: 'app'
 				},
@@ -23080,27 +23096,27 @@ var App = function (_React$Component10) {
 					_react2.default.createElement(NavBar, (_React$createElement = {
 						folders: this.state.path,
 						search: function search(query) {
-							return _this30.handleSearch(query);
+							return _this31.handleSearch(query);
 						},
 						download: function download() {
-							return _this30.download(_this30.state.path);
+							return _this31.download(_this31.state.path);
 						},
 						jumpTo: function jumpTo(address) {
-							return _this30.jumpTo(address);
+							return _this31.jumpTo(address);
 						},
 						uploadFile: function uploadFile() {
-							return _this30.uploadFile();
+							return _this31.uploadFile();
 						},
 						uploadFolder: function uploadFolder() {
-							return _this30.uploadFolder();
+							return _this31.uploadFolder();
 						},
 						createFolder: function createFolder() {
-							return _this30.createFolder();
+							return _this31.createFolder();
 						}
 					}, _defineProperty(_React$createElement, 'search', function search(query) {
-						return _this30.handleSearch(query);
+						return _this31.handleSearch(query);
 					}), _defineProperty(_React$createElement, 'hide', function hide(e) {
-						return _this30.hideMenu(e);
+						return _this31.hideMenu(e);
 					}), _React$createElement))
 				),
 				_react2.default.createElement(Icons
@@ -23112,26 +23128,26 @@ var App = function (_React$Component10) {
 					_react2.default.createElement(Content, {
 						folders: this.state.dirs,
 						openFile: function openFile(address) {
-							return _this30.openFile(address);
+							return _this31.openFile(address);
 						},
 						files: this.state.files,
 						openFolder: function openFolder(address) {
-							return _this30.openFolder(address);
+							return _this31.openFolder(address);
 						},
 						rename: function rename(address) {
-							return _this30.rename(address);
+							return _this31.rename(address);
 						},
 						move: function move(s, d) {
-							return _this30.move(s, d);
+							return _this31.move(s, d);
 						},
 						'delete': function _delete(address) {
-							return _this30.delete(address);
+							return _this31.delete(address);
 						},
 						download: function download(address) {
-							return _this30.download(address);
+							return _this31.download(address);
 						},
 						renderMenu: function renderMenu(e, l, t) {
-							return _this30.renderMenu(e, l, t);
+							return _this31.renderMenu(e, l, t);
 						}
 					})
 				)
