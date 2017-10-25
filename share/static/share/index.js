@@ -21914,7 +21914,11 @@ var UnitTemplate = function (_React$Component) {
 	_createClass(UnitTemplate, [{
 		key: 'handleRightClick',
 		value: function handleRightClick(event) {
-			if (!this.props.isSelected) this.props.addSelection(event, this.props.link, this.props.actions);else this.props.renderMenu(event);
+			var _this2 = this;
+
+			if (!this.props.isSelected) this.props.addSelection(event, this.props.link, this.props.actions, function () {
+				_this2.props.renderMenu(event);
+			});else this.props.renderMenu(event);
 		}
 	}, {
 		key: 'handleDragStart',
@@ -21972,7 +21976,7 @@ var UnitTemplate = function (_React$Component) {
 	}, {
 		key: 'render',
 		value: function render() {
-			var _this2 = this;
+			var _this3 = this;
 
 			var classes = (0, _classnames2.default)("w3-transparent", "list-card", "hover-google-blue", { "perma-google-blue": this.props.isSelected });
 			return _react2.default.createElement(
@@ -21980,28 +21984,28 @@ var UnitTemplate = function (_React$Component) {
 				{
 					className: classes,
 					onClick: function onClick(e) {
-						e.stopPropagation();_this2.props.addSelection(e, _this2.props.link, _this2.props.actions);
+						e.stopPropagation();_this3.props.addSelection(e, _this3.props.link, _this3.props.actions);
 					},
 					onDoubleClick: function onDoubleClick() {
-						return _this2.props.open(_this2.props.link);
+						return _this3.props.open(_this3.props.link);
 					},
 					onContextMenu: function onContextMenu(e) {
-						return _this2.handleRightClick(e);
+						return _this3.handleRightClick(e);
 					},
 					onDragStart: function onDragStart(e) {
-						return _this2.handleDragStart(e);
+						return _this3.handleDragStart(e);
 					},
 					onDrop: function onDrop(e) {
-						return _this2.handleDrop(e);
+						return _this3.handleDrop(e);
 					},
 					onDragOver: function onDragOver(e) {
-						return _this2.handleDragOver(e);
+						return _this3.handleDragOver(e);
 					},
 					onDragLeave: function onDragLeave(e) {
-						return _this2.handleDragLeave(e);
+						return _this3.handleDragLeave(e);
 					},
 					onDragEnd: function onDragEnd(e) {
-						return _this2.handleDragEnd(e);
+						return _this3.handleDragEnd(e);
 					} //Be careful of this hack if changing DragLeave
 					, draggable: 'true',
 					ref: 'unit'
@@ -22034,7 +22038,7 @@ var ContentTemplate = function (_React$Component2) {
 	_createClass(ContentTemplate, [{
 		key: 'render',
 		value: function render() {
-			var _this4 = this;
+			var _this5 = this;
 
 			return _react2.default.createElement(
 				'div',
@@ -22045,14 +22049,14 @@ var ContentTemplate = function (_React$Component2) {
 						icon: object['icon'],
 						open: object['open'],
 						link: object['link'],
-						key: object['link'] + _this4.props.heading,
-						type: _this4.props.heading,
+						key: object['link'] + _this5.props.heading,
+						type: _this5.props.heading,
 						actions: object['actions'],
 						isSelected: object['isSelected'],
-						moveTo: _this4.props.moveTo,
-						renderMenu: _this4.props.renderMenu,
-						addSelection: _this4.props.addSelection,
-						clearSelection: _this4.props.clearSelection
+						moveTo: _this5.props.moveTo,
+						renderMenu: _this5.props.renderMenu,
+						addSelection: _this5.props.addSelection,
+						clearSelection: _this5.props.clearSelection
 					});
 				})
 			);
@@ -22110,13 +22114,13 @@ var Folders = function (_React$Component3) {
 	}, {
 		key: 'render',
 		value: function render() {
-			var _this6 = this;
+			var _this7 = this;
 
 			if (!this.props.folders) return;
 
 			var keys = Object.keys(this.props.folders);
 			var objects = keys.map(function (key) {
-				return _this6.process(key);
+				return _this7.process(key);
 			});
 			return _react2.default.createElement(ContentTemplate, {
 				heading: 'Folders',
@@ -22124,7 +22128,7 @@ var Folders = function (_React$Component3) {
 				moveTo: this.props.moveTo,
 				renderMenu: this.props.renderMenu,
 				addSelection: function addSelection(e, l, a) {
-					return _this6.props.addSelection(e, l, a);
+					return _this7.props.addSelection(e, l, a);
 				},
 				clearSelection: this.props.clearSelection
 			});
@@ -22195,13 +22199,13 @@ var Files = function (_React$Component4) {
 	}, {
 		key: 'render',
 		value: function render() {
-			var _this8 = this;
+			var _this9 = this;
 
 			if (!this.props.files) return;
 
 			var keys = Object.keys(this.props.files);
 			var objects = keys.map(function (key) {
-				return _this8.process(key);
+				return _this9.process(key);
 			});
 			return _react2.default.createElement(ContentTemplate, {
 				heading: 'Files',
@@ -22209,7 +22213,7 @@ var Files = function (_React$Component4) {
 				moveTo: this.props.moveTo,
 				renderMenu: this.props.renderMenu,
 				addSelection: function addSelection(e, l, a) {
-					return _this8.props.addSelection(e, l, a);
+					return _this9.props.addSelection(e, l, a);
 				},
 				clearSelection: this.props.clearSelection
 			});
@@ -22225,31 +22229,38 @@ var Content = function (_React$Component5) {
 	function Content(props) {
 		_classCallCheck(this, Content);
 
-		var _this9 = _possibleConstructorReturn(this, (Content.__proto__ || Object.getPrototypeOf(Content)).call(this, props));
+		var _this10 = _possibleConstructorReturn(this, (Content.__proto__ || Object.getPrototypeOf(Content)).call(this, props));
 
-		_this9.state = {
+		_this10.state = {
 			selected: [],
 			actions: []
 		};
-		_this9.addSelection = _this9.addSelection.bind(_this9);
-		return _this9;
+		_this10.addSelection = _this10.addSelection.bind(_this10);
+		return _this10;
 	}
 
 	_createClass(Content, [{
 		key: 'addSelection',
-		value: function addSelection(event, link, actions) {
+		value: function addSelection(event, link, actions, callback) {
 			if (event.ctrlKey || event.altKey || event.shiftKey) {
+				var newState;
 				var selected = this.state.selected;
 				var sactions = this.state.actions;
 				if (!selected.includes(link)) {
 					selected.push(link);
 					sactions.push(actions);
-					this.setState({ selected: selected, actions: sactions });
+					newState = { selected: selected, actions: sactions };
 				}
 			} else {
 				var selected = this.state.selected;
-				if (selected.length == 1 && selected[0] == link) this.setState({ selected: [], actions: [] });else this.setState({ selected: [link], actions: [actions] });
+				if (selected.length == 1 && selected[0] == link) newState = { selected: [], actions: [] };else newState = { selected: [link], actions: [actions] };
 			}
+
+			if (callback == null) {
+				console.log("NULL");this.setState(newState);
+			} else this.setState(newState, function () {
+				callback();
+			});
 		}
 	}, {
 		key: 'clearSelection',
@@ -22269,12 +22280,12 @@ var Content = function (_React$Component5) {
 	}, {
 		key: 'render',
 		value: function render() {
-			var _this10 = this;
+			var _this11 = this;
 
 			return _react2.default.createElement(
 				'div',
 				{ className: 'w3-container w3-light-gray ContentStyle', onClick: function onClick() {
-						return _this10.clearSelection();
+						return _this11.clearSelection();
 					} },
 				_react2.default.createElement(Folders, {
 					folders: this.props.folders,
@@ -22283,14 +22294,14 @@ var Content = function (_React$Component5) {
 					'delete': this.props.delete,
 					download: this.props.download,
 					moveTo: function moveTo(e) {
-						return _this10.moveTo(e);
+						return _this11.moveTo(e);
 					},
 					renderMenu: function renderMenu(e) {
-						return _this10.props.renderMenu(e, _this10.state.selected, _this10.state.actions);
+						return _this11.props.renderMenu(e, _this11.state.selected, _this11.state.actions);
 					},
 					selectedList: this.state.selected,
 					addSelection: function addSelection(e, l, a) {
-						return _this10.addSelection(e, l, a);
+						return _this11.addSelection(e, l, a);
 					},
 					clearSelection: this.clearSelection
 				}),
@@ -22301,14 +22312,14 @@ var Content = function (_React$Component5) {
 					'delete': this.props.delete,
 					download: this.props.download,
 					moveTo: function moveTo(e) {
-						return _this10.moveTo(e);
+						return _this11.moveTo(e);
 					},
 					renderMenu: function renderMenu(e) {
-						return _this10.props.renderMenu(e, _this10.state.selected, _this10.state.actions);
+						return _this11.props.renderMenu(e, _this11.state.selected, _this11.state.actions);
 					},
 					selectedList: this.state.selected,
 					addSelection: function addSelection(e, l, a) {
-						return _this10.addSelection(e, l, a);
+						return _this11.addSelection(e, l, a);
 					},
 					clearSelection: this.clearSelection
 				})
@@ -22342,7 +22353,7 @@ var ActionButton = function (_React$Component6) {
 	}, {
 		key: 'render',
 		value: function render() {
-			var _this12 = this;
+			var _this13 = this;
 
 			return _react2.default.createElement(
 				'div',
@@ -22365,7 +22376,7 @@ var ActionButton = function (_React$Component6) {
 								type: 'file', id: 'uplist',
 								className: 'w3-button',
 								onChange: function onChange() {
-									return _this12.props.uploadFile();
+									return _this13.props.uploadFile();
 								},
 								multiple: true }),
 							_react2.default.createElement('i', { className: (0, _classnames2.default)('fa', 'fa-upload', 'ActionIcon') }),
@@ -22377,7 +22388,7 @@ var ActionButton = function (_React$Component6) {
 							_react2.default.createElement('input', {
 								type: 'file', id: 'ufolder',
 								onChange: function onChange() {
-									return _this12.props.uploadFolder();
+									return _this13.props.uploadFolder();
 								},
 								ref: 'inputFolder' }),
 							_react2.default.createElement('i', { className: (0, _classnames2.default)('fa', 'fa-upload', 'ActionIcon') }),
@@ -22387,7 +22398,7 @@ var ActionButton = function (_React$Component6) {
 							'label',
 							{ className: 'w3-button w3-bar-item light-emph',
 								onClick: function onClick() {
-									return _this12.props.createFolder();
+									return _this13.props.createFolder();
 								} },
 							_react2.default.createElement('i', { className: (0, _classnames2.default)('fa', 'fa-plus', 'ActionIcon') }),
 							'New Folder'
@@ -22426,7 +22437,7 @@ var Address = function (_React$Component7) {
 	}, {
 		key: 'renderFolder',
 		value: function renderFolder(name, link, last) {
-			var _this14 = this;
+			var _this15 = this;
 
 			var display = void 0;
 			if (last) display = _react2.default.createElement(
@@ -22437,7 +22448,7 @@ var Address = function (_React$Component7) {
 			return _react2.default.createElement(
 				'button',
 				{ className: 'w3-button w3-hover-white AddressStyle', onClick: function onClick() {
-						return _this14.props.jumpTo(link);
+						return _this15.props.jumpTo(link);
 					} },
 				display
 			);
@@ -22445,7 +22456,7 @@ var Address = function (_React$Component7) {
 	}, {
 		key: 'render',
 		value: function render() {
-			var _this15 = this;
+			var _this16 = this;
 
 			var folders = this.props.folders.split('/');
 			var links = this.genLink(folders);
@@ -22460,7 +22471,7 @@ var Address = function (_React$Component7) {
 						return _react2.default.createElement(
 							'div',
 							{ className: 'AddressOuterStyle', key: name },
-							index + 1 == folders.length ? _this15.renderFolder(name, links[index], true) : _this15.renderFolder(name, links[index], false),
+							index + 1 == folders.length ? _this16.renderFolder(name, links[index], true) : _this16.renderFolder(name, links[index], false),
 							_react2.default.createElement('i', { className: 'fa fa-chevron-right AddressIconStyle' })
 						);
 					})
@@ -22492,13 +22503,13 @@ var DownAll = function (_React$Component8) {
 	}, {
 		key: 'render',
 		value: function render() {
-			var _this17 = this;
+			var _this18 = this;
 
 			return _react2.default.createElement(
 				'div',
 				{ id: 'down_all', className: 'circle w3-button w3-right w3-col w3-hover-gray w3-button DownAllStyle' },
 				_react2.default.createElement('i', { className: 'fa fa-download', onClick: function onClick() {
-						return _this17.props.onClick();
+						return _this18.props.onClick();
 					} })
 			);
 		}
@@ -22522,13 +22533,13 @@ var SearchBar = function (_React$PureComponent) {
 	_createClass(SearchBar, [{
 		key: 'render',
 		value: function render() {
-			var _this19 = this;
+			var _this20 = this;
 
 			return _react2.default.createElement(
 				'div',
 				{ className: 'w3-rest SearchBarStyle' },
 				_react2.default.createElement('input', { id: 'searchBar', className: 'w3-input w3-light-gray w3-border-0 SearchBarBoxStyle', type: 'text', placeholder: 'Search storage', onChange: function onChange() {
-						return _this19.props.search();
+						return _this20.props.search();
 					} })
 			);
 		}
@@ -22640,19 +22651,19 @@ var App = function (_React$Component10) {
 	function App() {
 		_classCallCheck(this, App);
 
-		var _this21 = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this));
+		var _this22 = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this));
 
-		_this21.state = {
+		_this22.state = {
 			dirs: {},
 			files: {},
 			path: '',
 			hidden: {},
 			menuHidden: true
 		};
-		_this21.baseURL = '';
-		_this21.hideMenu = _this21.hideMenu.bind(_this21);
-		_this21.escFunction = _this21.escFunction.bind(_this21);
-		return _this21;
+		_this22.baseURL = '';
+		_this22.hideMenu = _this22.hideMenu.bind(_this22);
+		_this22.escFunction = _this22.escFunction.bind(_this22);
+		return _this22;
 	}
 
 	//Request template for opening folders
@@ -22661,7 +22672,7 @@ var App = function (_React$Component10) {
 	_createClass(App, [{
 		key: 'get_request',
 		value: function get_request(target) {
-			var _this22 = this;
+			var _this23 = this;
 
 			_axios2.default.post(this.baseURL + 'open/', _queryString2.default.stringify({
 				target: target
@@ -22676,7 +22687,7 @@ var App = function (_React$Component10) {
 					files: res.data.files,
 					hidden: res.data.hidden
 				};
-				_this22.setState(newState);
+				_this23.setState(newState);
 			}).catch(function (error) {
 				console.log("Error in opening");
 				console.log(error);
@@ -22688,7 +22699,7 @@ var App = function (_React$Component10) {
 	}, {
 		key: 'handleSearch',
 		value: function handleSearch() {
-			var _this23 = this;
+			var _this24 = this;
 
 			var query = document.getElementById('searchBar').value;
 			if (query != '') {
@@ -22706,7 +22717,7 @@ var App = function (_React$Component10) {
 						files: res.data.files,
 						hidden: res.data.hidden
 					};
-					_this23.setState(newState);
+					_this24.setState(newState);
 				}).catch(function (error) {
 					console.log("Error in request");
 					console.log(error);
@@ -22754,7 +22765,7 @@ var App = function (_React$Component10) {
 	}, {
 		key: 'upload',
 		value: function upload(files, addresses) {
-			var _this24 = this;
+			var _this25 = this;
 
 			var formData = new FormData();
 			for (var i = 0; i < files.length; i++) {
@@ -22766,7 +22777,7 @@ var App = function (_React$Component10) {
 					'Content-Type': 'multipart/form-data'
 				}
 			}).then(function (res) {
-				_this24.get_request(_this24.state.path);
+				_this25.get_request(_this25.state.path);
 			}).catch(function (err) {
 				alert("Error in uploading files. See console log for more details");
 			});
@@ -22796,6 +22807,8 @@ var App = function (_React$Component10) {
 			for (var i = 0; i < files.length; i++) {
 				addr[i] = this.state.path + '/' + files[i].webkitRelativePath;
 			}
+			console.log(addr);
+			console.log(files);
 			this.upload(files, addr);
 		}
 
@@ -22804,7 +22817,7 @@ var App = function (_React$Component10) {
 	}, {
 		key: 'createFolder',
 		value: function createFolder() {
-			var _this25 = this;
+			var _this26 = this;
 
 			var name = prompt("Name of the new folder:");
 			if (name == null || name == "") return;
@@ -22816,7 +22829,7 @@ var App = function (_React$Component10) {
 					'Content-Type': 'application/x-www-form-urlencoded'
 				}
 			}).then(function (res) {
-				_this25.get_request(_this25.state.path);
+				_this26.get_request(_this26.state.path);
 			}).catch(function (error) {
 				console.log(error);
 				alert("Error in creating folder. Please check console for more details");
@@ -22828,7 +22841,7 @@ var App = function (_React$Component10) {
 	}, {
 		key: 'delete',
 		value: function _delete(link) {
-			var _this26 = this;
+			var _this27 = this;
 
 			var sure = confirm("Warning: Contents will be permanently deleted. Are you sure you want to delete this?");
 			if (!sure) return;
@@ -22839,7 +22852,7 @@ var App = function (_React$Component10) {
 					'Content-Type': 'application/x-www-form-urlencoded'
 				}
 			}).then(function (res) {
-				_this26.get_request(_this26.state.path);
+				_this27.get_request(_this27.state.path);
 			}).catch(function (error) {
 				console.log(error);
 				alert("Error in deleting. Please check console for more details");
@@ -22851,7 +22864,7 @@ var App = function (_React$Component10) {
 	}, {
 		key: 'move',
 		value: function move(src, dst) {
-			var _this27 = this;
+			var _this28 = this;
 
 			_axios2.default.post(this.baseURL + 'move/', _queryString2.default.stringify({
 				source: src,
@@ -22861,7 +22874,7 @@ var App = function (_React$Component10) {
 					'Content-Type': 'application/x-www-form-urlencoded'
 				}
 			}).then(function (res) {
-				_this27.get_request(_this27.state.path);
+				_this28.get_request(_this28.state.path);
 			}).catch(function (error) {
 				console.log(error);
 				alert("Error in moving. Please check console for more details");
@@ -22873,7 +22886,7 @@ var App = function (_React$Component10) {
 	}, {
 		key: 'rename',
 		value: function rename(link) {
-			var _this28 = this;
+			var _this29 = this;
 
 			var name = prompt("Enter new name");
 			if (name == null || name == "") return;
@@ -22885,7 +22898,7 @@ var App = function (_React$Component10) {
 					'Content-Type': 'application/x-www-form-urlencoded'
 				}
 			}).then(function (res) {
-				_this28.get_request(_this28.state.path);
+				_this29.get_request(_this29.state.path);
 			}).catch(function (error) {
 				console.log(error);
 				alert("Error in renaming. Please check console for more details");
@@ -22904,8 +22917,9 @@ var App = function (_React$Component10) {
 	}, {
 		key: 'renderMenu',
 		value: function renderMenu(event, targets, actions) {
-			var _this29 = this;
+			var _this30 = this;
 
+			console.log("Menu for", targets);
 			this.setState({ menuHidden: false });
 			var classes = (0, _classnames2.default)("context-menu", "w3-bar-block", "w3-card-2", "w3-white");
 			var dStyle = {
@@ -22927,7 +22941,7 @@ var App = function (_React$Component10) {
 							{
 								className: 'w3-button w3-bar-item',
 								onClick: function onClick() {
-									actions[0][name](targets[0]), _this29.hideMenu();
+									actions[0][name](targets[0]), _this30.hideMenu();
 								},
 								key: index
 							},
@@ -22949,7 +22963,7 @@ var App = function (_React$Component10) {
 							{
 								className: 'w3-button w3-bar-item',
 								onClick: function onClick() {
-									_this29.execute(targets, actions[0][action]);_this29.hideMenu();
+									_this30.execute(targets, actions[0][action]);_this30.hideMenu();
 								},
 								key: index
 							},
@@ -22976,39 +22990,53 @@ var App = function (_React$Component10) {
 	}, {
 		key: 'scanfiles',
 		value: function scanfiles(item, address, list) {
+			var _this31 = this;
+
 			if (item.isFile) {
-				list.files.push(item);
-				list.adresses.push(address + '/' + item.name);
+				item.file(function (file) {
+					list.files.push(file);console.log(file);
+				});
+				list.addresses.push(address + '/' + item.name);
+				return list;
 			} else if (item.isDirectory) {
 				var directoryReader = item.createReader();
 				directoryReader.readEntries(function (entries) {
 					entries.forEach(function (entry) {
-						scanFiles(entry, address + '/' + item.name, list);
+						var m = _this31.scanfiles(entry, address + '/' + item.name, list);
+						list.addresses.concat(m.addresses);
+						list.files.concat(m.files);
 					});
 				});
+				return list;
 			}
 		}
 	}, {
 		key: 'handleDrop',
 		value: function handleDrop(event) {
-			//event.preventDefault();
-			// const items=event.dataTransfer.files;
-			// if(items == null || items.length == 0)	return;
-			// console.log("App");
-			// let address=[]
-			// for(var i = 0; i < items.length; i++){
-			// 	address[i] = this.state.path + '/' + items[i].name;
-			// 	//let item = items[i].webkitGetAsEntry()
-			// }
-			// console.log(items, address);
-			// this.upload(items,address);
-			var items = event.dataTransfer.items;
+			event.preventDefault();
+			var items = event.dataTransfer.files;
 			if (items == null || items.length == 0) return;
-			var list = { addresses: [], files: [] };
+			console.log("App");
+			var address = [];
 			for (var i = 0; i < items.length; i++) {
-				this.scanfiles(items[i].webkitGetAsEntry(), this.state.path, list);
+				address[i] = this.state.path + '/' + items[i].name;
+				//let item = items[i].webkitGetAsEntry()
 			}
-			console.log(list);
+			console.log(items);
+			console.log(address);
+			this.upload(items, address);
+			// const items = event.dataTransfer.items;
+			// if(items == null || items.length == 0)	return;
+			// let list = {addresses: [], files: []};
+			// for(var i = 0; i < items.length; i++){
+			// 	var m = this.scanfiles(items[i].webkitGetAsEntry(), this.state.path, list);
+			// 	list.addresses.concat(m.addresses);
+			// 	list.files.concat(m.files);
+			// }
+			// console.log(list.addresses);
+			// console.log(list.files);
+			// console.log(list);
+			// this.upload(list.files, list.addresses);
 		}
 	}, {
 		key: 'handleDragOver',
@@ -23041,7 +23069,7 @@ var App = function (_React$Component10) {
 	}, {
 		key: 'render',
 		value: function render() {
-			var _this30 = this,
+			var _this32 = this,
 			    _React$createElement;
 
 			return _react2.default.createElement(
@@ -23049,7 +23077,7 @@ var App = function (_React$Component10) {
 				{
 					className: 'full-body',
 					onClick: function onClick(e) {
-						return _this30.hideMenu(e);
+						return _this32.hideMenu(e);
 					},
 					onDoubleClick: function onDoubleClick(e) {
 						e.preventDefault();
@@ -23061,16 +23089,16 @@ var App = function (_React$Component10) {
 						e.preventDefault();
 					},
 					onDragOver: function onDragOver(e) {
-						return _this30.handleDragOver(e);
+						return _this32.handleDragOver(e);
 					},
 					onDragEnd: function onDragEnd(e) {
-						return _this30.handleDragEnd(e);
+						return _this32.handleDragEnd(e);
 					},
 					onDragLeave: function onDragLeave(e) {
-						return _this30.handleDragEnd(e);
+						return _this32.handleDragEnd(e);
 					},
 					onDrop: function onDrop(e) {
-						return _this30.handleDrop(e);
+						return _this32.handleDrop(e);
 					},
 					ref: 'app'
 				},
@@ -23080,27 +23108,27 @@ var App = function (_React$Component10) {
 					_react2.default.createElement(NavBar, (_React$createElement = {
 						folders: this.state.path,
 						search: function search(query) {
-							return _this30.handleSearch(query);
+							return _this32.handleSearch(query);
 						},
 						download: function download() {
-							return _this30.download(_this30.state.path);
+							return _this32.download(_this32.state.path);
 						},
 						jumpTo: function jumpTo(address) {
-							return _this30.jumpTo(address);
+							return _this32.jumpTo(address);
 						},
 						uploadFile: function uploadFile() {
-							return _this30.uploadFile();
+							return _this32.uploadFile();
 						},
 						uploadFolder: function uploadFolder() {
-							return _this30.uploadFolder();
+							return _this32.uploadFolder();
 						},
 						createFolder: function createFolder() {
-							return _this30.createFolder();
+							return _this32.createFolder();
 						}
 					}, _defineProperty(_React$createElement, 'search', function search(query) {
-						return _this30.handleSearch(query);
+						return _this32.handleSearch(query);
 					}), _defineProperty(_React$createElement, 'hide', function hide(e) {
-						return _this30.hideMenu(e);
+						return _this32.hideMenu(e);
 					}), _React$createElement))
 				),
 				_react2.default.createElement(Icons
@@ -23112,26 +23140,26 @@ var App = function (_React$Component10) {
 					_react2.default.createElement(Content, {
 						folders: this.state.dirs,
 						openFile: function openFile(address) {
-							return _this30.openFile(address);
+							return _this32.openFile(address);
 						},
 						files: this.state.files,
 						openFolder: function openFolder(address) {
-							return _this30.openFolder(address);
+							return _this32.openFolder(address);
 						},
 						rename: function rename(address) {
-							return _this30.rename(address);
+							return _this32.rename(address);
 						},
 						move: function move(s, d) {
-							return _this30.move(s, d);
+							return _this32.move(s, d);
 						},
 						'delete': function _delete(address) {
-							return _this30.delete(address);
+							return _this32.delete(address);
 						},
 						download: function download(address) {
-							return _this30.download(address);
+							return _this32.download(address);
 						},
 						renderMenu: function renderMenu(e, l, t) {
-							return _this30.renderMenu(e, l, t);
+							return _this32.renderMenu(e, l, t);
 						}
 					})
 				)
