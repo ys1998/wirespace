@@ -22752,24 +22752,23 @@ var App = function (_React$Component10) {
 			form.elements[0].value = address;
 			form.submit();
 		}
-	}, {
-		key: 'async_download',
-		value: function async_download(addresses, index, length) {
-			if (index >= length) return;
-			console.log(addresses, index, addresses[index]);
-			var form = document.forms['downloadform'];
-			form.elements[0].value = addresses[index];
-			form.submit(this.async_download(addresses, index + 1, length));
-		}
 
 		//Download files
 
 	}, {
 		key: 'download',
-		value: function download(address) {
+		value: function download(addresses) {
 			//Use hidden form to send post requests for download
-			if (!(address.constructor === Array)) address = [address];
-			this.async_download(address, 0, address.length);
+			if (!(addresses.constructor === Array)) addresses = [addresses];
+			var form = document.forms['downloadform'];
+			for (var i = 0; i < addresses.length; i++) {
+				var input = document.createElement('input');
+				input.type = 'text';
+				input.name = 'target[]';
+				input.value = addresses[i];
+				form.appendChild(input);
+			}
+			form.submit();
 		}
 	}, {
 		key: 'upload',
@@ -22852,20 +22851,20 @@ var App = function (_React$Component10) {
 			if (!sure) return;
 			if (!(link.constructor === Array)) link = [link];
 
+			var formData = new FormData();
+
 			for (var i = 0; i < link.length; i++) {
-				_axios2.default.post(this.baseURL + 'delete/', _queryString2.default.stringify({
-					address: link[i]
-				}), {
-					headers: {
-						'Content-Type': 'application/x-www-form-urlencoded'
-					}
-				}).then(function (res) {
-					_this27.get_request(_this27.state.path);
-				}).catch(function (error) {
-					console.log(error);
-					alert("Error in deleting. Please check console for more details");
-				});
-			}
+				formData.append('address[]', link[i]);
+			}_axios2.default.post(this.baseURL + 'delete/', formData, {
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded'
+				}
+			}).then(function (res) {
+				_this27.get_request(_this27.state.path);
+			}).catch(function (error) {
+				console.log(error);
+				alert("Error in deleting. Please check console for more details");
+			});
 		}
 
 		//Move file/folder from src to dest:
