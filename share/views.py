@@ -260,24 +260,57 @@ def download_item(request):
 	root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
 	
 	try:
-		addr = request.POST["target"]
+		addr = request.POST.getlist("target")
 	except:
 		return JsonResponse({'message': 'Invalid request parameters'},status=400)
+	if len(addr)==1:
+		addr=addr[0]
+		addr = os.path.normpath(addr)
+		if addr == "" or addr == ".":
+			addr = shared_dir
 
-	addr = os.path.normpath(addr)
-	if addr == "" or addr == ".":
-		addr = shared_dir
+		# To prevent access of directories outside the shared path
+		if addr==os.path.join(root_path,addr):
+			return JsonResponse({'message': 'Insufficient priveleges'},status=403)
+		
+		target = os.path.join(root_path, addr)
 
-	# To prevent access of directories outside the shared path
-	if addr==os.path.join(root_path,addr):
-		return JsonResponse({'message': 'Insufficient priveleges'},status=403)
-	
-	target = os.path.join(root_path, addr)
-
-	if os.path.isdir(target):
-		return get_dir(target)
+		if os.path.isdir(target):
+			return get_dir(target)
+		else:
+			return get_file(target, "download")
 	else:
-		return get_file(target, "download")
+		new_addr=[item.strip() for item in addr if item.strip()!="" or item.strip()!="." or item.strip()!=".."]
+		curr_dir=os.path.basename(os.path.split(new_addr[0])[0])
+		if os.path.exists(os.path.join(CACHE_DIR,sharedPath,curr_dir+".zip")):
+			os.remove(os.path.join(CACHE_DIR,sharedPath,curr_dir+".zip"))
+
+		file_to_send = zipfile.ZipFile(os.path.join(CACHE_DIR,sharedPath,curr_dir+".zip"), 'x',zipfile.ZIP_DEFLATED)
+		
+		for item in new_addr:
+			if os.path.isdir(os.path.join(root_path,item)):
+				curr_path=os.path.split(item)[0]
+				for root, dirs, files in os.walk(os.path.join(root_path,item)):
+					for file in files:
+						rel_path=os.path.relpath(root,os.path.join(root_path,curr_path))
+						file_to_send.write(
+							os.path.join(root,file),
+							os.path.join(rel_path,file)
+							)
+			else:
+				file_to_send.write(
+					os.path.join(root_path,item),
+					os.path.join(os.path.basename(item)),
+					)
+
+		file_to_send.close()
+		response = StreamingHttpResponse(
+			open(os.path.join(CACHE_DIR,sharedPath,curr_dir+".zip"),'rb'),
+			content_type = 'application/x-gzip')
+		response['Content-Disposition'] = " attachment; filename={0}".format(curr_dir+"-partial.zip")
+		response['Content-Length'] = os.path.getsize(os.path.join(CACHE_DIR,sharedPath,curr_dir+".zip"))
+		return response
+
 
 @csrf_exempt
 def upload(request):
