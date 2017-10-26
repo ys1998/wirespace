@@ -7,7 +7,7 @@ from django.shortcuts import render,redirect
 from django.http import HttpResponse, StreamingHttpResponse, JsonResponse
 from django.core.files import File
 from django.core.files.storage import FileSystemStorage
-from django.views.decorators.csrf import csrf_exempt
+#from django.views.decorators.csrf import csrf_exempt
 from ipware.ip import get_ip
 import os,subprocess
 import mimetypes
@@ -58,7 +58,7 @@ def authenticate(request,k):
 		request.session.set_expiry(3600) # token expires after 60 minutes
 		return redirect('/share/',permanent=True)
 
-@csrf_exempt
+#@csrf_exempt
 def editor_authenticate(request,k):
 	if Key.objects.filter(key=k).count()==0:
 		return JsonResponse({'message':"The key you provided doesn't exist."},status=404)
@@ -83,7 +83,7 @@ def editor_authenticate(request,k):
 				response_data['files'].append(element)
 		return JsonResponse(response_data)
 
-@csrf_exempt
+#@csrf_exempt
 def editor(request):
 	if request.method=="POST":
 		if 'token' not in request.POST:
@@ -213,7 +213,7 @@ def get_dir(dirpath):
 		return JsonResponse({'message':"This directory does not exist."},status=404)
 
 # View to handle 'open' requests
-@csrf_exempt
+#@csrf_exempt
 def open_item(request):
 	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared
 	(root_path,shared_dir)=os.path.split(os.path.expanduser(sharedPath))
@@ -254,7 +254,7 @@ def open_item(request):
 		return JsonResponse({'message': 'Unable to ascertain file/folder'},status=500)
 
 # View to handle 'download' requests
-@csrf_exempt
+#@csrf_exempt
 def download_item(request):
 	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared	
 	root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
@@ -312,7 +312,7 @@ def download_item(request):
 		return response
 
 
-@csrf_exempt
+#@csrf_exempt
 def upload(request):
 	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared
 	root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
@@ -354,7 +354,7 @@ def upload(request):
 	else:
 		return JsonResponse({'message': 'Insufficient priveleges'},status=403)
 
-@csrf_exempt
+#@csrf_exempt
 def search(request):
 	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared
 	root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
@@ -386,18 +386,20 @@ def search(request):
 				context[file_type][os.path.join(rel_path,filename)]=filename
 	return JsonResponse(context)
 
-@csrf_exempt
+#@csrf_exempt
 def delete(request):
 	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared
 	root_path = os.path.dirname(sharedPath)
 	can_edit=(Token.objects.get(token=request.session['token']).link.permission=='w')
 	if can_edit:
 		try:
-			current_path=request.POST['address']
+			current_path = request.POST['address']
 		except:
-			return JsonResponse({'message': 'Insufficient priveleges'},status=400)
+			return JsonResponse({'message': 'Invalid parameters'},status=400)
 		
 		directory = os.path.join(root_path, current_path)
+		if directory == current_path:
+			return JsonResponse({'message': 'Insufficient priveleges'},status=400)
 		if os.path.isdir(directory):
 			shutil.rmtree(directory)
 		elif os.path.isfile(directory):
@@ -409,7 +411,7 @@ def delete(request):
 	else:
 		return JsonResponse({'message': 'Insufficient priveleges'},status=403)
 
-@csrf_exempt
+#@csrf_exempt
 def create_folder(request):
 	sharedPath = Token.objects.get(token=request.session['token']).link.path_shared	
 	root_path = os.path.dirname(sharedPath)
@@ -420,7 +422,7 @@ def create_folder(request):
 			current_path=request.POST['address']
 			folder = request.POST['folder_name']
 		except:
-			return JsonResponse({'message': 'Invalid parameters'},status=403)
+			return JsonResponse({'message': 'Invalid parameters'},status=400)
 		
 		if current_path==os.path.join(root_path, current_path):
 			return JsonResponse({'message': 'Insufficient priveleges'},status=403)
@@ -437,7 +439,7 @@ def create_folder(request):
 	else:
 		return JsonResponse({'message': 'Insufficient priveleges'},status=403)
 
-@csrf_exempt
+#@csrf_exempt
 def move(request):
 	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared	
 	root_path = os.path.dirname(sharedPath)
@@ -447,7 +449,7 @@ def move(request):
 			source=request.POST['source']
 			target=request.POST['target']
 		except:
-			return JsonResponse({'message': 'Invalid parameters'},status=403)
+			return JsonResponse({'message': 'Invalid parameters'},status=400)
 
 		source_path = os.path.join(root_path, source)
 		target_path = os.path.join(root_path, target)

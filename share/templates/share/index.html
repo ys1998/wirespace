@@ -16,90 +16,18 @@
 	
 	<div id="body">
 	</div>
-	<!--<script>
-			(function(){
-			var dropzone = document.getElementById('DnD');
-			dropzone.ondragover = function(e){
-				dropzone.style.color="red";
-				return false;
-			};
-			dropzone.ondragleave = function(){
-				dropzone.style.color="blue";
-				return false;
-			};
-			/*dropzone.ondrop = function(e){
-				e.preventDefault();
-				var files = e.dataTransfer.files;
-				var formdata = new FormData();
-				var xhr=new XMLHttpRequest();
-				for(var i=0;i < files.length;i++){
-					formdata.append('uplist[]',files[i]);
-				//	console.log(files[i]);
-				}
-				formdata.append('address[]','');
-				//console.log(formdata.entries());
-				xhr.open('post','upload/');
-				xhr.send(formdata);
-				
-			};
-			*/
-			dropzone.ondrop = function(e) {
-				e.preventDefault();
-				let items=e.dataTransfer.items;
-				let formdata=new FormData();
-				function scanFiles(item,addr){
-					console.log("In scanFiles")
-					if (item.isFile) {
-						console.log("Typecasting...");
-						
-						item.file(function(file) {
-							console.log(file);
-							formdata.append('directory',file);
-							formdata.append('address_list',addr);
-						});
-					}
-					else if (item.isDirectory) {
-						//console.log(addr);
-						console.log("Directory...")
-						let directoryReader = item.createReader();
-						addr=addr+'/'+item.name;
-						directoryReader.readEntries(function(entries) {
-							entries.forEach(function(entry) {
-								scanFiles(entry, addr);
-							});
-						});
-					}
-				}
-				for (let i=0; i<items.length; i++) {
-					let item = items[i].webkitGetAsEntry();
-					console.log(item);
-					if (item) {
-						console.log("Calling scan");
-						scanFiles(item,'');
-						console.log("Ending scan");
-					}
-				}
-				
-				var xhr=new XMLHttpRequest();
-				formdata.append('address','');
-				for(var pair of formdata.entries())
-								console.log(pair[0], ',', pair[1]);
-				//console.log(formdata.entries());
-				xhr.open('post','uploadFolder/');
-				xhr.send(formdata);
-			}
-			
-		}());
-	</script>-->
 	<div id="menu">
 	</div>
+	{% csrf_token %}
 	<div id="form" style="display: none;">
 		<form id="downloadform" action="download/" method="POST">
 			<input type="text" name="target" id="targetlink">
+			{% csrf_token %}
 			<input type="submit" value="submit">
 		</form>
 		<form id="openform" action="open/" method="POST" target="_blank">
 			<input type="text" name="target" id="otargetlink">
+			{% csrf_token %}
 			<input type="submit" value="submit">
 		</form>
 	</div>

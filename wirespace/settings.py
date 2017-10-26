@@ -34,7 +34,7 @@ INSTALLED_APPS = [
     'share.apps.ShareConfig',
     'suit',
     'ipware',
-    'corsheaders',          #Cross domain request module (Development)
+    #'corsheaders',          #Cross domain request module (Development)
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -50,7 +50,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE= True
 MEDIA_URL = '/media/'
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',    #CORS Module (Development)
+    #'corsheaders.middleware.CorsMiddleware',    #CORS Module (Development)
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -126,7 +126,8 @@ USE_L10N = True
 
 USE_TZ = True
 
-
+CSRF_COOKIE_NAME = "csrftoken"
+#CSRF_COOKIE_NAME = "XSRF-TOKEN"
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
