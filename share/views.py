@@ -7,7 +7,7 @@ from django.shortcuts import render,redirect
 from django.http import HttpResponse, StreamingHttpResponse, JsonResponse
 from django.core.files import File
 from django.core.files.storage import FileSystemStorage
-#from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt
 from ipware.ip import get_ip
 import os,subprocess
 import mimetypes
@@ -58,7 +58,7 @@ def authenticate(request,k):
 		request.session.set_expiry(3600) # token expires after 60 minutes
 		return redirect('/share/',permanent=True)
 
-#@csrf_exempt
+@csrf_exempt
 def editor_authenticate(request,k):
 	if Key.objects.filter(key=k).count()==0:
 		return JsonResponse({'message':"The key you provided doesn't exist."},status=404)
@@ -83,7 +83,7 @@ def editor_authenticate(request,k):
 				response_data['files'].append(element)
 		return JsonResponse(response_data)
 
-#@csrf_exempt
+@csrf_exempt
 def editor(request):
 	if request.method=="POST":
 		if 'token' not in request.POST:
@@ -95,6 +95,7 @@ def editor(request):
 			t_Object=Token.objects.get(token=token)
 			k_Object=t_Object.link
 			sharedPath=k_Object.path_shared
+			can_edit=(k_Object.permission=="w")
 			if can_edit:
 				root_path,shared_dir=os.path.split(sharedPath)
 				if request.POST['action']=="open":
