@@ -260,7 +260,7 @@ def download_item(request):
 	root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
 	
 	try:
-		addr = request.POST.getlist("target")
+		addr = request.POST.getlist("target[]")
 	except:
 		return JsonResponse({'message': 'Invalid request parameters'},status=400)
 	if len(addr)==1:
@@ -331,7 +331,7 @@ def upload(request):
 		# Checking for available space
 		if total_size > space_available:
 			return JsonResponse({'message': 'Insufficient space'},status=413)
-		print(files)
+		#print(files)
 		addresses = request.POST.getlist('address[]')
 		
 		for address, file in zip(addresses, files):
@@ -393,19 +393,19 @@ def delete(request):
 	can_edit=(Token.objects.get(token=request.session['token']).link.permission=='w')
 	if can_edit:
 		try:
-			current_path = request.POST['address']
+			current_paths = request.POST.getlist('address[]')
 		except:
 			return JsonResponse({'message': 'Invalid parameters'},status=400)
-		
-		directory = os.path.join(root_path, current_path)
-		if directory == current_path:
-			return JsonResponse({'message': 'Insufficient priveleges'},status=400)
-		if os.path.isdir(directory):
-			shutil.rmtree(directory)
-		elif os.path.isfile(directory):
-			os.remove(directory)
-		else:
-			return JsonResponse({'message': 'Unable to ascertain file/folder'},status=403)
+		for current_path in current_paths:
+			directory = os.path.join(root_path, current_path)
+			if directory == current_path:
+				return JsonResponse({'message': 'Insufficient priveleges'},status=400)
+			if os.path.isdir(directory):
+				shutil.rmtree(directory)
+			elif os.path.isfile(directory):
+				os.remove(directory)
+			else:
+				return JsonResponse({'message': 'Unable to ascertain file/folder'},status=403)
 
 		return JsonResponse({'message':'Success'}, status=200)
 	else:
