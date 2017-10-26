@@ -283,10 +283,10 @@ def download_item(request):
 	else:
 		new_addr=[item.strip() for item in addr if item.strip()!="" or item.strip()!="." or item.strip()!=".."]
 		curr_dir=os.path.basename(os.path.split(new_addr[0])[0])
-		if os.path.exists(os.path.join(CACHE_DIR,sharedPath,curr_dir+".zip")):
-			os.remove(os.path.join(CACHE_DIR,sharedPath,curr_dir+".zip"))
+		if os.path.exists(os.path.join(CACHE_DIR+sharedPath,curr_dir+".zip")):
+			os.remove(os.path.join(CACHE_DIR+sharedPath,curr_dir+".zip"))
 
-		file_to_send = zipfile.ZipFile(os.path.join(CACHE_DIR,sharedPath,curr_dir+".zip"), 'x',zipfile.ZIP_DEFLATED)
+		file_to_send = zipfile.ZipFile(os.path.join(CACHE_DIR+sharedPath,curr_dir+".zip"), 'x',zipfile.ZIP_DEFLATED)
 		
 		for item in new_addr:
 			if os.path.isdir(os.path.join(root_path,item)):
@@ -306,10 +306,10 @@ def download_item(request):
 
 		file_to_send.close()
 		response = StreamingHttpResponse(
-			open(os.path.join(CACHE_DIR,sharedPath,curr_dir+".zip"),'rb'),
+			open(os.path.join(CACHE_DIR+sharedPath,curr_dir+".zip"),'rb'),
 			content_type = 'application/x-gzip')
 		response['Content-Disposition'] = " attachment; filename={0}".format(curr_dir+"-partial.zip")
-		response['Content-Length'] = os.path.getsize(os.path.join(CACHE_DIR,sharedPath,curr_dir+".zip"))
+		response['Content-Length'] = os.path.getsize(os.path.join(CACHE_DIR+sharedPath,curr_dir+".zip"))
 		return response
 
 
