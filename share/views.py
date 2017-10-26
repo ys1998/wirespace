@@ -95,6 +95,7 @@ def editor(request):
 			t_Object=Token.objects.get(token=token)
 			k_Object=t_Object.link
 			sharedPath=k_Object.path_shared
+			can_edit=(k_Object.permission=="w")
 			if can_edit:
 				root_path,shared_dir=os.path.split(sharedPath)
 				if request.POST['action']=="open":
@@ -213,7 +214,7 @@ def get_dir(dirpath):
 		return JsonResponse({'message':"This directory does not exist."},status=404)
 
 # View to handle 'open' requests
-@csrf_exempt
+#@csrf_exempt
 def open_item(request):
 	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared
 	(root_path,shared_dir)=os.path.split(os.path.expanduser(sharedPath))
@@ -254,32 +255,65 @@ def open_item(request):
 		return JsonResponse({'message': 'Unable to ascertain file/folder'},status=500)
 
 # View to handle 'download' requests
-@csrf_exempt
+#@csrf_exempt
 def download_item(request):
 	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared	
 	root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
 	
 	try:
-		addr = request.POST["target"]
+		addr = request.POST.getlist("target")
 	except:
 		return JsonResponse({'message': 'Invalid request parameters'},status=400)
+	if len(addr)==1:
+		addr=addr[0]
+		addr = os.path.normpath(addr)
+		if addr == "" or addr == ".":
+			addr = shared_dir
 
-	addr = os.path.normpath(addr)
-	if addr == "" or addr == ".":
-		addr = shared_dir
+		# To prevent access of directories outside the shared path
+		if addr==os.path.join(root_path,addr):
+			return JsonResponse({'message': 'Insufficient priveleges'},status=403)
+		
+		target = os.path.join(root_path, addr)
 
-	# To prevent access of directories outside the shared path
-	if addr==os.path.join(root_path,addr):
-		return JsonResponse({'message': 'Insufficient priveleges'},status=403)
-	
-	target = os.path.join(root_path, addr)
-
-	if os.path.isdir(target):
-		return get_dir(target)
+		if os.path.isdir(target):
+			return get_dir(target)
+		else:
+			return get_file(target, "download")
 	else:
-		return get_file(target, "download")
+		new_addr=[item.strip() for item in addr if item.strip()!="" or item.strip()!="." or item.strip()!=".."]
+		curr_dir=os.path.basename(os.path.split(new_addr[0])[0])
+		if os.path.exists(os.path.join(CACHE_DIR,sharedPath,curr_dir+".zip")):
+			os.remove(os.path.join(CACHE_DIR,sharedPath,curr_dir+".zip"))
 
-@csrf_exempt
+		file_to_send = zipfile.ZipFile(os.path.join(CACHE_DIR,sharedPath,curr_dir+".zip"), 'x',zipfile.ZIP_DEFLATED)
+		
+		for item in new_addr:
+			if os.path.isdir(os.path.join(root_path,item)):
+				curr_path=os.path.split(item)[0]
+				for root, dirs, files in os.walk(os.path.join(root_path,item)):
+					for file in files:
+						rel_path=os.path.relpath(root,os.path.join(root_path,curr_path))
+						file_to_send.write(
+							os.path.join(root,file),
+							os.path.join(rel_path,file)
+							)
+			else:
+				file_to_send.write(
+					os.path.join(root_path,item),
+					os.path.join(os.path.basename(item)),
+					)
+
+		file_to_send.close()
+		response = StreamingHttpResponse(
+			open(os.path.join(CACHE_DIR,sharedPath,curr_dir+".zip"),'rb'),
+			content_type = 'application/x-gzip')
+		response['Content-Disposition'] = " attachment; filename={0}".format(curr_dir+"-partial.zip")
+		response['Content-Length'] = os.path.getsize(os.path.join(CACHE_DIR,sharedPath,curr_dir+".zip"))
+		return response
+
+
+#@csrf_exempt
 def upload(request):
 	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared
 	root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
@@ -288,8 +322,8 @@ def upload(request):
 	if can_edit:
 		t_Object=Token.objects.get(token=request.session['token'])
 		k_Object=t_Object.link
-		space_available=k_Object.space_allotted-int(subprocess.check_output(["du","-b","--max-depth=0",k_Object.path_shared]).split()[0])
-		
+		#space_available=k_Object.space_allotted-int(subprocess.check_output(["du","-s",k_Object.path_shared]).split()[0])
+		space_available=400000000
 		files = request.FILES.getlist('uplist[]')
 		total_size = 0
 		for myfile in files:
@@ -321,7 +355,7 @@ def upload(request):
 	else:
 		return JsonResponse({'message': 'Insufficient priveleges'},status=403)
 
-@csrf_exempt
+#@csrf_exempt
 def search(request):
 	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared
 	root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
@@ -353,18 +387,20 @@ def search(request):
 				context[file_type][os.path.join(rel_path,filename)]=filename
 	return JsonResponse(context)
 
-@csrf_exempt
+#@csrf_exempt
 def delete(request):
 	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared
 	root_path = os.path.dirname(sharedPath)
 	can_edit=(Token.objects.get(token=request.session['token']).link.permission=='w')
 	if can_edit:
 		try:
-			current_path=request.POST['address']
+			current_path = request.POST['address']
 		except:
-			return JsonResponse({'message': 'Insufficient priveleges'},status=400)
+			return JsonResponse({'message': 'Invalid parameters'},status=400)
 		
 		directory = os.path.join(root_path, current_path)
+		if directory == current_path:
+			return JsonResponse({'message': 'Insufficient priveleges'},status=400)
 		if os.path.isdir(directory):
 			shutil.rmtree(directory)
 		elif os.path.isfile(directory):
@@ -376,7 +412,7 @@ def delete(request):
 	else:
 		return JsonResponse({'message': 'Insufficient priveleges'},status=403)
 
-@csrf_exempt
+#@csrf_exempt
 def create_folder(request):
 	sharedPath = Token.objects.get(token=request.session['token']).link.path_shared	
 	root_path = os.path.dirname(sharedPath)
@@ -387,7 +423,7 @@ def create_folder(request):
 			current_path=request.POST['address']
 			folder = request.POST['folder_name']
 		except:
-			return JsonResponse({'message': 'Invalid parameters'},status=403)
+			return JsonResponse({'message': 'Invalid parameters'},status=400)
 		
 		if current_path==os.path.join(root_path, current_path):
 			return JsonResponse({'message': 'Insufficient priveleges'},status=403)
@@ -404,29 +440,28 @@ def create_folder(request):
 	else:
 		return JsonResponse({'message': 'Insufficient priveleges'},status=403)
 
-@csrf_exempt
+#@csrf_exempt
 def move(request):
 	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared	
 	root_path = os.path.dirname(sharedPath)
 	can_edit=(Token.objects.get(token=request.session['token']).link.permission=='w')
 	if can_edit:
 		try:
-			source_path=request.POST['source_address']
-			target_path=request.POST['target_address']
-			#source = request.POST['source_name']
-			target = request.POST['target_name']
+			source=request.POST['source']
+			target=request.POST['target']
 		except:
-			return JsonResponse({'message': 'Invalid parameters'},status=403)
+			return JsonResponse({'message': 'Invalid parameters'},status=400)
 
-		source_path = os.path.join(root_path, source_path)
-		#source_path = os.path.join(source_path,source)
-		target_path = os.path.join(root_path, target_path)
-		target_path = os.path.join(target_path,target)
+		source_path = os.path.join(root_path, source)
+		target_path = os.path.join(root_path, target)
 
-		if not os.path.exists(target_path):
+		if source_path == source or target_path == target:
+			return JsonResponse({'message': 'Insufficient priveleges'},status=403)
+
+		try:
 			shutil.move(source_path,target_path)
 			return JsonResponse({'message':'Success'}, status=200)
-		else:
+		except:
 			return JsonResponse({'message': 'Destination already exists'},status=403)
 	else:
 		return JsonResponse({'message': 'Insufficient priveleges'},status=403)

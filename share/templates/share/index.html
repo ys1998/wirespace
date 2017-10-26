@@ -7,6 +7,7 @@
 <head>
 
     <title> Wirespace </title>
+    <link rel="shortcut icon" type="image/png" href="{% static 'share/images/icon.png' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'share/css/w3.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'share/css/font-awesome.min.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'share/css/custom.css' %}">
@@ -16,117 +17,22 @@
 	
 	<div id="body">
 	</div>
-	<div id="DnD" style="width:100%;height:300px;border:2px dashed #ccc;color:blue;">
-	Upload files here
-	</div>
-	<script>
-			(function(){
-			var dropzone = document.getElementById('DnD');
-			dropzone.ondragover = function(e){
-				dropzone.style.color="red";
-				return false;
-			};
-			dropzone.ondragleave = function(){
-				dropzone.style.color="blue";
-				return false;
-			};
-			/*dropzone.ondrop = function(e){
-				e.preventDefault();
-				var files = e.dataTransfer.files;
-				var formdata = new FormData();
-				var xhr=new XMLHttpRequest();
-				for(var i=0;i < files.length;i++){
-					formdata.append('uplist[]',files[i]);
-				//	console.log(files[i]);
-				}
-				formdata.append('address[]','');
-				//console.log(formdata.entries());
-				xhr.open('post','upload/');
-				xhr.send(formdata);
-				
-			};
-			*/
-			dropzone.ondrop = function(e) {
-				e.preventDefault();
-				let items=e.dataTransfer.items;
-				let formdata=new FormData();
-				function scanFiles(item,addr){
-					console.log("In scanFiles")
-					if (item.isFile) {
-						console.log("Typecasting...");
-						
-						item.file(function(file) {
-							console.log(file);
-							formdata.append('directory',file);
-							formdata.append('address_list',addr);
-						});
-					}
-					else if (item.isDirectory) {
-						//console.log(addr);
-						console.log("Directory...")
-						let directoryReader = item.createReader();
-						addr=addr+'/'+item.name;
-						directoryReader.readEntries(function(entries) {
-							entries.forEach(function(entry) {
-								scanFiles(entry, addr);
-							});
-						});
-					}
-				}
-				for (let i=0; i<items.length; i++) {
-					let item = items[i].webkitGetAsEntry();
-					console.log(item);
-					if (item) {
-						console.log("Calling scan");
-						scanFiles(item,'');
-						console.log("Ending scan");
-					}
-				}
-				
-				var xhr=new XMLHttpRequest();
-				formdata.append('address','');
-				for(var pair of formdata.entries())
-								console.log(pair[0], ',', pair[1]);
-				//console.log(formdata.entries());
-				xhr.open('post','uploadFolder/');
-				xhr.send(formdata);
-			}
-			
-		}());
-	</script>
 	<div id="menu">
 	</div>
+	{% csrf_token %}
 	<div id="form" style="display: none;">
-		<form id="uploadFolder" method="POST" action="uploadFolder/" enctype="multipart/form-data" >
-			<input type="hidden" id="address" name="address" value=''>
-			<input style="display:block;" id="uploadDir" type="file" name="directory" webkitdirectory>
-		</form>
 		<form id="downloadform" action="download/" method="POST">
 			<input type="text" name="target" id="targetlink">
+			{% csrf_token %}
 			<input type="submit" value="submit">
 		</form>
 		<form id="openform" action="open/" method="POST" target="_blank">
 			<input type="text" name="target" id="otargetlink">
+			{% csrf_token %}
 			<input type="submit" value="submit">
 		</form>
 	</div>
     <script src = "{% static 'share/index.js' %}">
 	</script>
-	<script>
-		document.getElementById("uploadDir").addEventListener("change", function(event) {
-			  var files = event.target.files;
-			  var address_list=[];
-			  for (var i=0; i<files.length; i++) {
-			    address_list.push(files[i].webkitRelativePath);
-			  };
-			  	var form=document.forms['uploadFolder'];
-				var obj=document.createElement('input');
-				obj.type="hidden";
-				obj.name="address_list";
-				obj.value=address_list;
-				form.appendChild(obj);
-				form.submit();
-			}, false);
-    </script>
 </body>
 </html>

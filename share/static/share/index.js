@@ -21899,9 +21899,14 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 //stringify - for content type application/x-www-form-urlencoded
 
 
-//https://developer.mozilla.org/en-US/docs/Web/API/FormData/append
+_axios2.default.defaults.xsrfHeaderName = "X-CSRFTOKEN";
+_axios2.default.defaults.xsrfCookieName = "csrftoken";
 
-//Hadnling each file and folder
+//https://developer.mozilla.org/en-US/docs/Web/API/FormData/append
+//https://stackoverflow.com/questions/39254562/csrf-with-django-reactredux-using-axios/44479078#44479078
+
+//Handling each file and folder
+
 var UnitTemplate = function (_React$Component) {
 	_inherits(UnitTemplate, _React$Component);
 
@@ -21914,12 +21919,67 @@ var UnitTemplate = function (_React$Component) {
 	_createClass(UnitTemplate, [{
 		key: 'handleRightClick',
 		value: function handleRightClick(event) {
-			if (!this.props.isSelected) this.props.addSelection(event, this.props.link, this.props.actions);else this.props.renderMenu(event);
+			var _this2 = this;
+
+			if (!this.props.isSelected) this.props.addSelection(event, this.props.link, this.props.actions, function () {
+				_this2.props.renderMenu(event);
+			});else this.props.renderMenu(event);
+		}
+	}, {
+		key: 'handleDragStart',
+		value: function handleDragStart(event) {
+			event.stopPropagation();
+			if (!this.props.isSelected) this.props.addSelection(event, this.props.link, this.props.actions);
+		}
+	}, {
+		key: 'handleDrop',
+		value: function handleDrop(event) {
+			//event.preventDefault();
+			if (event.dataTransfer.items == null || event.dataTransfer.items.length == 0) {
+				if (this.props.type == "Folders") this.props.moveTo(this.props.link);
+				// this.refs.unit.style.opacity = '1';
+				event.stopPropagation();
+			}
+		}
+	}, {
+		key: 'handleDragOver',
+		value: function handleDragOver(event) {
+			event.preventDefault();
+			// this.refs.unit.style.opacity = '0.4';
+		}
+	}, {
+		key: 'handleDragLeave',
+		value: function handleDragLeave(event) {
+			event.preventDefault();
+			// this.refs.unit.style.opacity = '1';
+		}
+	}, {
+		key: 'handleDragExit',
+		value: function handleDragExit(event) {
+			event.preventDefault();
+			// this.refs.unit.style.opacity = '1';
+		}
+	}, {
+		key: 'handleDragEnd',
+		value: function handleDragEnd(event) {
+			// this.refs.unit.style.opacity = '1';
+		}
+	}, {
+		key: 'componentDidMount',
+		value: function componentDidMount() {
+			//this.refs.unit.addEventListener('dragstart', this.handleDragStart);
+			//this.refs.unit.addEventListener('drop', this.handleDrop);
+		}
+	}, {
+		key: 'componentWillUnmount',
+		value: function componentWillUnmount() {
+			//this.refs.unit.removeEventListener('dragstart', this.handleDragStart);
+			//this.refs.unit.removeEventListener('drop', this.handleDrop);
 		}
 	}, {
 		key: 'render',
 		value: function render() {
-			var _this2 = this;
+			var _this3 = this;
 
 			var classes = (0, _classnames2.default)("w3-transparent", "list-card", "hover-google-blue", { "perma-google-blue": this.props.isSelected });
 			return _react2.default.createElement(
@@ -21927,14 +21987,31 @@ var UnitTemplate = function (_React$Component) {
 				{
 					className: classes,
 					onClick: function onClick(e) {
-						e.stopPropagation();_this2.props.addSelection(e, _this2.props.link, _this2.props.actions);
+						e.stopPropagation();_this3.props.addSelection(e, _this3.props.link, _this3.props.actions);
 					},
 					onDoubleClick: function onDoubleClick() {
-						return _this2.props.open(_this2.props.link);
+						return _this3.props.open(_this3.props.link);
 					},
 					onContextMenu: function onContextMenu(e) {
-						return _this2.handleRightClick(e);
-					}
+						return _this3.handleRightClick(e);
+					},
+					onDragStart: function onDragStart(e) {
+						return _this3.handleDragStart(e);
+					},
+					onDrop: function onDrop(e) {
+						return _this3.handleDrop(e);
+					},
+					onDragOver: function onDragOver(e) {
+						return _this3.handleDragOver(e);
+					},
+					onDragLeave: function onDragLeave(e) {
+						return _this3.handleDragLeave(e);
+					},
+					onDragEnd: function onDragEnd(e) {
+						return _this3.handleDragEnd(e);
+					} //Be careful of this hack if changing DragLeave
+					, draggable: 'true',
+					ref: 'unit'
 				},
 				_react2.default.createElement('i', { className: (0, _classnames2.default)("fa", this.props.icon, "fa-5x", "fa-fw", "icon") }),
 				_react2.default.createElement(
@@ -21964,7 +22041,7 @@ var ContentTemplate = function (_React$Component2) {
 	_createClass(ContentTemplate, [{
 		key: 'render',
 		value: function render() {
-			var _this4 = this;
+			var _this5 = this;
 
 			return _react2.default.createElement(
 				'div',
@@ -21975,12 +22052,14 @@ var ContentTemplate = function (_React$Component2) {
 						icon: object['icon'],
 						open: object['open'],
 						link: object['link'],
-						key: object['link'] + _this4.props.heading,
+						key: object['link'] + _this5.props.heading,
+						type: _this5.props.heading,
 						actions: object['actions'],
 						isSelected: object['isSelected'],
-						renderMenu: _this4.props.renderMenu,
-						addSelection: _this4.props.addSelection,
-						clearSelection: _this4.props.clearSelection
+						moveTo: _this5.props.moveTo,
+						renderMenu: _this5.props.renderMenu,
+						addSelection: _this5.props.addSelection,
+						clearSelection: _this5.props.clearSelection
 					});
 				})
 			);
@@ -22038,20 +22117,21 @@ var Folders = function (_React$Component3) {
 	}, {
 		key: 'render',
 		value: function render() {
-			var _this6 = this;
+			var _this7 = this;
 
 			if (!this.props.folders) return;
 
 			var keys = Object.keys(this.props.folders);
 			var objects = keys.map(function (key) {
-				return _this6.process(key);
+				return _this7.process(key);
 			});
 			return _react2.default.createElement(ContentTemplate, {
 				heading: 'Folders',
 				objects: objects,
+				moveTo: this.props.moveTo,
 				renderMenu: this.props.renderMenu,
 				addSelection: function addSelection(e, l, a) {
-					return _this6.props.addSelection(e, l, a);
+					return _this7.props.addSelection(e, l, a);
 				},
 				clearSelection: this.props.clearSelection
 			});
@@ -22122,20 +22202,21 @@ var Files = function (_React$Component4) {
 	}, {
 		key: 'render',
 		value: function render() {
-			var _this8 = this;
+			var _this9 = this;
 
 			if (!this.props.files) return;
 
 			var keys = Object.keys(this.props.files);
 			var objects = keys.map(function (key) {
-				return _this8.process(key);
+				return _this9.process(key);
 			});
 			return _react2.default.createElement(ContentTemplate, {
 				heading: 'Files',
 				objects: objects,
+				moveTo: this.props.moveTo,
 				renderMenu: this.props.renderMenu,
 				addSelection: function addSelection(e, l, a) {
-					return _this8.props.addSelection(e, l, a);
+					return _this9.props.addSelection(e, l, a);
 				},
 				clearSelection: this.props.clearSelection
 			});
@@ -22151,31 +22232,38 @@ var Content = function (_React$Component5) {
 	function Content(props) {
 		_classCallCheck(this, Content);
 
-		var _this9 = _possibleConstructorReturn(this, (Content.__proto__ || Object.getPrototypeOf(Content)).call(this, props));
+		var _this10 = _possibleConstructorReturn(this, (Content.__proto__ || Object.getPrototypeOf(Content)).call(this, props));
 
-		_this9.state = {
+		_this10.state = {
 			selected: [],
 			actions: []
 		};
-		_this9.addSelection = _this9.addSelection.bind(_this9);
-		return _this9;
+		_this10.addSelection = _this10.addSelection.bind(_this10);
+		return _this10;
 	}
 
 	_createClass(Content, [{
 		key: 'addSelection',
-		value: function addSelection(event, link, actions) {
+		value: function addSelection(event, link, actions, callback) {
 			if (event.ctrlKey || event.altKey || event.shiftKey) {
+				var newState;
 				var selected = this.state.selected;
 				var sactions = this.state.actions;
 				if (!selected.includes(link)) {
 					selected.push(link);
 					sactions.push(actions);
-					this.setState({ selected: selected, actions: sactions });
+					newState = { selected: selected, actions: sactions };
 				}
 			} else {
 				var selected = this.state.selected;
-				if (selected.length == 1 && selected[0] == link) this.setState({ selected: [], actions: [] });else this.setState({ selected: [link], actions: [actions] });
+				if (selected.length == 1 && selected[0] == link) newState = { selected: [], actions: [] };else newState = { selected: [link], actions: [actions] };
 			}
+
+			if (callback == null) {
+				this.setState(newState);
+			} else this.setState(newState, function () {
+				callback();
+			});
 		}
 	}, {
 		key: 'clearSelection',
@@ -22183,14 +22271,23 @@ var Content = function (_React$Component5) {
 			this.setState({ 'selected': [], 'actions': [] });
 		}
 	}, {
+		key: 'moveTo',
+		value: function moveTo(target) {
+			var list = this.state.selected;
+			if (list.includes(target)) return false;
+			for (var i = 0; i < list.length; i++) {
+				this.props.move(list[i], target);
+			}this.clearSelection();
+		}
+	}, {
 		key: 'render',
 		value: function render() {
-			var _this10 = this;
+			var _this11 = this;
 
 			return _react2.default.createElement(
 				'div',
 				{ className: 'w3-container w3-light-gray ContentStyle', onClick: function onClick() {
-						return _this10.clearSelection();
+						return _this11.clearSelection();
 					} },
 				_react2.default.createElement(Folders, {
 					folders: this.props.folders,
@@ -22198,12 +22295,15 @@ var Content = function (_React$Component5) {
 					rename: this.props.rename,
 					'delete': this.props.delete,
 					download: this.props.download,
+					moveTo: function moveTo(e) {
+						return _this11.moveTo(e);
+					},
 					renderMenu: function renderMenu(e) {
-						return _this10.props.renderMenu(e, _this10.state.selected, _this10.state.actions);
+						return _this11.props.renderMenu(e, _this11.state.selected, _this11.state.actions);
 					},
 					selectedList: this.state.selected,
 					addSelection: function addSelection(e, l, a) {
-						return _this10.addSelection(e, l, a);
+						return _this11.addSelection(e, l, a);
 					},
 					clearSelection: this.clearSelection
 				}),
@@ -22213,12 +22313,15 @@ var Content = function (_React$Component5) {
 					rename: this.props.rename,
 					'delete': this.props.delete,
 					download: this.props.download,
+					moveTo: function moveTo(e) {
+						return _this11.moveTo(e);
+					},
 					renderMenu: function renderMenu(e) {
-						return _this10.props.renderMenu(e, _this10.state.selected, _this10.state.actions);
+						return _this11.props.renderMenu(e, _this11.state.selected, _this11.state.actions);
 					},
 					selectedList: this.state.selected,
 					addSelection: function addSelection(e, l, a) {
-						return _this10.addSelection(e, l, a);
+						return _this11.addSelection(e, l, a);
 					},
 					clearSelection: this.clearSelection
 				})
@@ -22242,9 +22345,17 @@ var ActionButton = function (_React$Component6) {
 	}
 
 	_createClass(ActionButton, [{
+		key: 'componentDidMount',
+		value: function componentDidMount() {
+			if ('webkitdirectory' in document.createElement('input')) this.refs.inputFolder.setAttribute('webkitdirectory', '');else {
+				this.refs.labelFolder.className += " w3-disabled";
+				this.refs.inputFolder.setAttribute('disabled', '');
+			}
+		}
+	}, {
 		key: 'render',
 		value: function render() {
-			var _this12 = this;
+			var _this13 = this;
 
 			return _react2.default.createElement(
 				'div',
@@ -22263,34 +22374,36 @@ var ActionButton = function (_React$Component6) {
 						_react2.default.createElement(
 							'label',
 							{ className: 'w3-button w3-bar-item light-emph' },
+							_react2.default.createElement('input', {
+								type: 'file', id: 'uplist',
+								className: 'w3-button',
+								onChange: function onChange() {
+									return _this13.props.uploadFile();
+								},
+								multiple: true }),
 							_react2.default.createElement('i', { className: (0, _classnames2.default)('fa', 'fa-upload', 'ActionIcon') }),
-							_react2.default.createElement('input', { type: 'file', id: 'uplist', onChange: function onChange() {
-									return _this12.props.uploadFile();
-								}, multiple: true }),
 							'Upload File'
 						),
 						_react2.default.createElement(
 							'label',
-							{ className: 'w3-button w3-bar-item light-emph w3-border-bottom' },
+							{ className: 'w3-button w3-bar-item light-emph w3-border-bottom', ref: 'labelFolder' },
+							_react2.default.createElement('input', {
+								type: 'file', id: 'ufolder',
+								onChange: function onChange() {
+									return _this13.props.uploadFolder();
+								},
+								ref: 'inputFolder' }),
 							_react2.default.createElement('i', { className: (0, _classnames2.default)('fa', 'fa-upload', 'ActionIcon') }),
-							_react2.default.createElement('input', { type: 'file', id: 'ufolder', onChange: function onChange() {
-									return _this12.props.uploadFolder();
-								}, ref: function ref(e) {
-									if (e != null) e.setAttribute('webkitdirectory', '');
-								} }),
 							'Upload Folder'
 						),
 						_react2.default.createElement(
 							'label',
-							{ className: 'w3-button w3-bar-item light-emph' },
+							{ className: 'w3-button w3-bar-item light-emph',
+								onClick: function onClick() {
+									return _this13.props.createFolder();
+								} },
 							_react2.default.createElement('i', { className: (0, _classnames2.default)('fa', 'fa-plus', 'ActionIcon') }),
-							_react2.default.createElement(
-								'label',
-								{ onClick: function onClick() {
-										return _this12.props.createFolder();
-									} },
-								' New Folder '
-							)
+							'New Folder'
 						)
 					)
 				)
@@ -22326,7 +22439,7 @@ var Address = function (_React$Component7) {
 	}, {
 		key: 'renderFolder',
 		value: function renderFolder(name, link, last) {
-			var _this14 = this;
+			var _this15 = this;
 
 			var display = void 0;
 			if (last) display = _react2.default.createElement(
@@ -22337,7 +22450,7 @@ var Address = function (_React$Component7) {
 			return _react2.default.createElement(
 				'button',
 				{ className: 'w3-button w3-hover-white AddressStyle', onClick: function onClick() {
-						return _this14.props.jumpTo(link);
+						return _this15.props.jumpTo(link);
 					} },
 				display
 			);
@@ -22345,14 +22458,14 @@ var Address = function (_React$Component7) {
 	}, {
 		key: 'render',
 		value: function render() {
-			var _this15 = this;
+			var _this16 = this;
 
 			var folders = this.props.folders.split('/');
 			var links = this.genLink(folders);
 
 			return _react2.default.createElement(
 				'div',
-				{ className: 'w3-rest' },
+				{ className: 'w3-rest scroll-x' },
 				_react2.default.createElement(
 					'div',
 					{ className: 'AddressBoxStyle' },
@@ -22360,7 +22473,7 @@ var Address = function (_React$Component7) {
 						return _react2.default.createElement(
 							'div',
 							{ className: 'AddressOuterStyle', key: name },
-							index + 1 == folders.length ? _this15.renderFolder(name, links[index], true) : _this15.renderFolder(name, links[index], false),
+							index + 1 == folders.length ? _this16.renderFolder(name, links[index], true) : _this16.renderFolder(name, links[index], false),
 							_react2.default.createElement('i', { className: 'fa fa-chevron-right AddressIconStyle' })
 						);
 					})
@@ -22392,13 +22505,13 @@ var DownAll = function (_React$Component8) {
 	}, {
 		key: 'render',
 		value: function render() {
-			var _this17 = this;
+			var _this18 = this;
 
 			return _react2.default.createElement(
 				'div',
 				{ id: 'down_all', className: 'circle w3-button w3-right w3-col w3-hover-gray w3-button DownAllStyle' },
 				_react2.default.createElement('i', { className: 'fa fa-download', onClick: function onClick() {
-						return _this17.props.onClick();
+						return _this18.props.onClick();
 					} })
 			);
 		}
@@ -22422,13 +22535,13 @@ var SearchBar = function (_React$PureComponent) {
 	_createClass(SearchBar, [{
 		key: 'render',
 		value: function render() {
-			var _this19 = this;
+			var _this20 = this;
 
 			return _react2.default.createElement(
 				'div',
 				{ className: 'w3-rest SearchBarStyle' },
 				_react2.default.createElement('input', { id: 'searchBar', className: 'w3-input w3-light-gray w3-border-0 SearchBarBoxStyle', type: 'text', placeholder: 'Search storage', onChange: function onChange() {
-						return _this19.props.search();
+						return _this20.props.search();
 					} })
 			);
 		}
@@ -22540,19 +22653,19 @@ var App = function (_React$Component10) {
 	function App() {
 		_classCallCheck(this, App);
 
-		var _this21 = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this));
+		var _this22 = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this));
 
-		_this21.state = {
+		_this22.state = {
 			dirs: {},
 			files: {},
 			path: '',
 			hidden: {},
 			menuHidden: true
 		};
-		_this21.baseURL = '';
-		_this21.hideMenu = _this21.hideMenu.bind(_this21);
-		_this21.escFunction = _this21.escFunction.bind(_this21);
-		return _this21;
+		_this22.baseURL = '';
+		_this22.hideMenu = _this22.hideMenu.bind(_this22);
+		_this22.escFunction = _this22.escFunction.bind(_this22);
+		return _this22;
 	}
 
 	//Request template for opening folders
@@ -22561,7 +22674,7 @@ var App = function (_React$Component10) {
 	_createClass(App, [{
 		key: 'get_request',
 		value: function get_request(target) {
-			var _this22 = this;
+			var _this23 = this;
 
 			_axios2.default.post(this.baseURL + 'open/', _queryString2.default.stringify({
 				target: target
@@ -22576,7 +22689,7 @@ var App = function (_React$Component10) {
 					files: res.data.files,
 					hidden: res.data.hidden
 				};
-				_this22.setState(newState);
+				_this23.setState(newState);
 			}).catch(function (error) {
 				console.log("Error in opening");
 				console.log(error);
@@ -22588,7 +22701,7 @@ var App = function (_React$Component10) {
 	}, {
 		key: 'handleSearch',
 		value: function handleSearch() {
-			var _this23 = this;
+			var _this24 = this;
 
 			var query = document.getElementById('searchBar').value;
 			if (query != '') {
@@ -22606,7 +22719,7 @@ var App = function (_React$Component10) {
 						files: res.data.files,
 						hidden: res.data.hidden
 					};
-					_this23.setState(newState);
+					_this24.setState(newState);
 				}).catch(function (error) {
 					console.log("Error in request");
 					console.log(error);
@@ -22639,6 +22752,15 @@ var App = function (_React$Component10) {
 			form.elements[0].value = address;
 			form.submit();
 		}
+	}, {
+		key: 'async_download',
+		value: function async_download(addresses, index, length) {
+			if (index >= length) return;
+			console.log(addresses, index, addresses[index]);
+			var form = document.forms['downloadform'];
+			form.elements[0].value = addresses[index];
+			form.submit(this.async_download(addresses, index + 1, length));
+		}
 
 		//Download files
 
@@ -22646,15 +22768,13 @@ var App = function (_React$Component10) {
 		key: 'download',
 		value: function download(address) {
 			//Use hidden form to send post requests for download
-			console.log("Downloading", address);
-			var form = document.forms['downloadform'];
-			form.elements[0].value = address;
-			form.submit();
+			if (!(address.constructor === Array)) address = [address];
+			this.async_download(address, 0, address.length);
 		}
 	}, {
 		key: 'upload',
 		value: function upload(files, addresses) {
-			var _this24 = this;
+			var _this25 = this;
 
 			var formData = new FormData();
 			for (var i = 0; i < files.length; i++) {
@@ -22666,7 +22786,7 @@ var App = function (_React$Component10) {
 					'Content-Type': 'multipart/form-data'
 				}
 			}).then(function (res) {
-				_this24.get_request(_this24.state.path);
+				_this25.get_request(_this25.state.path);
 			}).catch(function (err) {
 				alert("Error in uploading files. See console log for more details");
 			});
@@ -22693,7 +22813,6 @@ var App = function (_React$Component10) {
 			var addr = [];
 			for (var i = 0; i < files.length; i++) {
 				addr[i] = this.state.path + '/' + files[i].webkitRelativePath;
-				console.log(addr[i]);
 			}
 			this.upload(files, addr);
 		}
@@ -22703,7 +22822,7 @@ var App = function (_React$Component10) {
 	}, {
 		key: 'createFolder',
 		value: function createFolder() {
-			var _this25 = this;
+			var _this26 = this;
 
 			var name = prompt("Name of the new folder:");
 			if (name == null || name == "") return;
@@ -22715,7 +22834,7 @@ var App = function (_React$Component10) {
 					'Content-Type': 'application/x-www-form-urlencoded'
 				}
 			}).then(function (res) {
-				_this25.get_request(_this25.state.path);
+				_this26.get_request(_this26.state.path);
 			}).catch(function (error) {
 				console.log(error);
 				alert("Error in creating folder. Please check console for more details");
@@ -22727,21 +22846,47 @@ var App = function (_React$Component10) {
 	}, {
 		key: 'delete',
 		value: function _delete(link) {
-			var _this26 = this;
+			var _this27 = this;
 
 			var sure = confirm("Warning: Contents will be permanently deleted. Are you sure you want to delete this?");
 			if (!sure) return;
-			_axios2.default.post(this.baseURL + 'delete/', _queryString2.default.stringify({
-				address: link
+			if (!(link.constructor === Array)) link = [link];
+
+			for (var i = 0; i < link.length; i++) {
+				_axios2.default.post(this.baseURL + 'delete/', _queryString2.default.stringify({
+					address: link[i]
+				}), {
+					headers: {
+						'Content-Type': 'application/x-www-form-urlencoded'
+					}
+				}).then(function (res) {
+					_this27.get_request(_this27.state.path);
+				}).catch(function (error) {
+					console.log(error);
+					alert("Error in deleting. Please check console for more details");
+				});
+			}
+		}
+
+		//Move file/folder from src to dest:
+
+	}, {
+		key: 'move',
+		value: function move(src, dst) {
+			var _this28 = this;
+
+			_axios2.default.post(this.baseURL + 'move/', _queryString2.default.stringify({
+				source: src,
+				target: dst
 			}), {
 				headers: {
 					'Content-Type': 'application/x-www-form-urlencoded'
 				}
 			}).then(function (res) {
-				_this26.get_request(_this26.state.path);
+				_this28.get_request(_this28.state.path);
 			}).catch(function (error) {
 				console.log(error);
-				alert("Error in deleting. Please check console for more details");
+				alert("Error in moving. Please check console for more details");
 			});
 		}
 
@@ -22750,20 +22895,19 @@ var App = function (_React$Component10) {
 	}, {
 		key: 'rename',
 		value: function rename(link) {
-			var _this27 = this;
+			var _this29 = this;
 
 			var name = prompt("Enter new name");
 			if (name == null || name == "") return;
 			_axios2.default.post(this.baseURL + 'move/', _queryString2.default.stringify({
-				source_address: link,
-				target_address: this.state.path,
-				target_name: name
+				source: link,
+				target: this.state.path + '/' + name
 			}), {
 				headers: {
 					'Content-Type': 'application/x-www-form-urlencoded'
 				}
 			}).then(function (res) {
-				_this27.get_request(_this27.state.path);
+				_this29.get_request(_this29.state.path);
 			}).catch(function (error) {
 				console.log(error);
 				alert("Error in renaming. Please check console for more details");
@@ -22782,7 +22926,7 @@ var App = function (_React$Component10) {
 	}, {
 		key: 'renderMenu',
 		value: function renderMenu(event, targets, actions) {
-			var _this28 = this;
+			var _this30 = this;
 
 			this.setState({ menuHidden: false });
 			var classes = (0, _classnames2.default)("context-menu", "w3-bar-block", "w3-card-2", "w3-white");
@@ -22805,7 +22949,7 @@ var App = function (_React$Component10) {
 							{
 								className: 'w3-button w3-bar-item',
 								onClick: function onClick() {
-									actions[0][name](targets[0]), _this28.hideMenu();
+									actions[0][name](targets[0]), _this30.hideMenu();
 								},
 								key: index
 							},
@@ -22821,13 +22965,13 @@ var App = function (_React$Component10) {
 						'div',
 						{ className: 'w3-button w3-bar-item' },
 						'No option'
-					) : ['Download'].map(function (action, index) {
+					) : ['Download', 'Delete'].map(function (action, index) {
 						return _react2.default.createElement(
 							'div',
 							{
 								className: 'w3-button w3-bar-item',
 								onClick: function onClick() {
-									_this28.execute(targets, actions[0][action]);_this28.hideMenu();
+									actions[0][action](targets);_this30.hideMenu();
 								},
 								key: index
 							},
@@ -22852,6 +22996,66 @@ var App = function (_React$Component10) {
 			if (event.keyCode == 27) this.hideMenu(event);
 		}
 
+		// scanfiles(item, address, list){
+		// 	if (item.isFile) {
+		// 		item.file(file => {list.files.push(file); console.log(file);}
+		// 			);
+		// 		list.addresses.push(address + '/' + item.name);
+		// 		return list;
+		// 	}
+		// 	else if (item.isDirectory) {
+		// 		let directoryReader = item.createReader();
+		// 		directoryReader.readEntries((entries) => {
+		// 			entries.forEach((entry) => {
+		// 				var m = this.scanfiles(entry, address + '/' + item.name, list);
+		// 				list.addresses.concat(m.addresses);
+		// 				list.files.concat(m.files);
+		// 			});
+		// 		});
+		// 		return list;
+		// 	}
+		// }
+
+	}, {
+		key: 'handleDrop',
+		value: function handleDrop(event) {
+			event.preventDefault();
+			var items = event.dataTransfer.files;
+			if (items == null || items.length == 0) return;
+			var address = [];
+			for (var i = 0; i < items.length; i++) {
+				address[i] = this.state.path + '/' + items[i].name;
+				//let item = items[i].webkitGetAsEntry()
+			}
+			this.upload(items, address);
+			// const items = event.dataTransfer.items;
+			// if(items == null || items.length == 0)	return;
+			// let list = {addresses: [], files: []};
+			// for(var i = 0; i < items.length; i++){
+			// 	var m = this.scanfiles(items[i].webkitGetAsEntry(), this.state.path, list);
+			// 	list.addresses.concat(m.addresses);
+			// 	list.files.concat(m.files);
+			// }
+			// console.log(list.addresses);
+			// console.log(list.files);
+			// console.log(list);
+			// this.upload(list.files, list.addresses);
+		}
+	}, {
+		key: 'handleDragOver',
+		value: function handleDragOver(event) {
+			event.preventDefault();
+			// this.refs.app.style.opacity = '0.5';
+			// this.refs.app.style.border = '5px dashed blue';
+		}
+	}, {
+		key: 'handleDragEnd',
+		value: function handleDragEnd(event) {
+			event.preventDefault();
+			// this.refs.app.style.opacity = '1';
+			// this.refs.app.style.border = '';
+		}
+
 		//Request for data at shared directory on mounting
 
 	}, {
@@ -22868,7 +23072,7 @@ var App = function (_React$Component10) {
 	}, {
 		key: 'render',
 		value: function render() {
-			var _this29 = this,
+			var _this31 = this,
 			    _React$createElement;
 
 			return _react2.default.createElement(
@@ -22876,7 +23080,7 @@ var App = function (_React$Component10) {
 				{
 					className: 'full-body',
 					onClick: function onClick(e) {
-						return _this29.hideMenu(e);
+						return _this31.hideMenu(e);
 					},
 					onDoubleClick: function onDoubleClick(e) {
 						e.preventDefault();
@@ -22886,7 +23090,20 @@ var App = function (_React$Component10) {
 					} //Override default right-click behavior
 					, onSelect: function onSelect(e) {
 						e.preventDefault();
-					}
+					},
+					onDragOver: function onDragOver(e) {
+						return _this31.handleDragOver(e);
+					},
+					onDragEnd: function onDragEnd(e) {
+						return _this31.handleDragEnd(e);
+					},
+					onDragLeave: function onDragLeave(e) {
+						return _this31.handleDragEnd(e);
+					},
+					onDrop: function onDrop(e) {
+						return _this31.handleDrop(e);
+					},
+					ref: 'app'
 				},
 				_react2.default.createElement(
 					'div',
@@ -22894,27 +23111,27 @@ var App = function (_React$Component10) {
 					_react2.default.createElement(NavBar, (_React$createElement = {
 						folders: this.state.path,
 						search: function search(query) {
-							return _this29.handleSearch(query);
+							return _this31.handleSearch(query);
 						},
 						download: function download() {
-							return _this29.download(_this29.state.path);
+							return _this31.download(_this31.state.path);
 						},
 						jumpTo: function jumpTo(address) {
-							return _this29.jumpTo(address);
+							return _this31.jumpTo(address);
 						},
 						uploadFile: function uploadFile() {
-							return _this29.uploadFile();
+							return _this31.uploadFile();
 						},
 						uploadFolder: function uploadFolder() {
-							return _this29.uploadFolder();
+							return _this31.uploadFolder();
 						},
 						createFolder: function createFolder() {
-							return _this29.createFolder();
+							return _this31.createFolder();
 						}
 					}, _defineProperty(_React$createElement, 'search', function search(query) {
-						return _this29.handleSearch(query);
+						return _this31.handleSearch(query);
 					}), _defineProperty(_React$createElement, 'hide', function hide(e) {
-						return _this29.hideMenu(e);
+						return _this31.hideMenu(e);
 					}), _React$createElement))
 				),
 				_react2.default.createElement(Icons
@@ -22926,23 +23143,26 @@ var App = function (_React$Component10) {
 					_react2.default.createElement(Content, {
 						folders: this.state.dirs,
 						openFile: function openFile(address) {
-							return _this29.openFile(address);
+							return _this31.openFile(address);
 						},
 						files: this.state.files,
 						openFolder: function openFolder(address) {
-							return _this29.openFolder(address);
+							return _this31.openFolder(address);
 						},
 						rename: function rename(address) {
-							return _this29.rename(address);
+							return _this31.rename(address);
+						},
+						move: function move(s, d) {
+							return _this31.move(s, d);
 						},
 						'delete': function _delete(address) {
-							return _this29.delete(address);
+							return _this31.delete(address);
 						},
 						download: function download(address) {
-							return _this29.download(address);
+							return _this31.download(address);
 						},
 						renderMenu: function renderMenu(e, l, t) {
-							return _this29.renderMenu(e, l, t);
+							return _this31.renderMenu(e, l, t);
 						}
 					})
 				)

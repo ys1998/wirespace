@@ -2,6 +2,10 @@
 	display: none;
 }
 
+.scroll-x {
+	overflow-x: scroll;
+}
+
 .context-menu {
   z-index: 10; min-width: 150px; min-height: 25px;
 }
@@ -43,7 +47,7 @@
 }
 
 .AddressBoxStyle {
-	margin-left: 5px; margin-top: -10px; margin-bottom: -10px; opacity: 0.7; font-size: 16pt; overflow-x: auto;
+	margin-left: 5px; margin-top: -10px; margin-bottom: -10px; opacity: 0.7; font-size: 16pt; overflow-x: scroll; overflow-y: hidden;
 }
 
 .AddressOuterStyle {
