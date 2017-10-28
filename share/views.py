@@ -6,7 +6,8 @@ from __future__ import unicode_literals
 from django.shortcuts import render,redirect
 from django.http import HttpResponse, StreamingHttpResponse, JsonResponse
 from django.core.files import File
-#from django.views.decorators.csrf import csrf_exempt
+from django.core.files.storage import FileSystemStorage
+from django.views.decorators.csrf import csrf_exempt
 from ipware.ip import get_ip
 #for moving,deleting and creating new files/folders
 from django.core.files.storage import FileSystemStorage
@@ -70,8 +71,8 @@ def authenticate(request,k):
 #	@param request
 #	@param k Key Object
 #	@returns JsonResponse containing an error message or a list of files and directories for editing
-def editor_authenticate(request,k):	
-	
+@csrf_exempt
+def editor_authenticate(request,k):
 	if Key.objects.filter(key=k).count()==0:
 		return JsonResponse({'message':"The key you provided doesn't exist."},status=404)
 	else:
@@ -100,6 +101,7 @@ def editor_authenticate(request,k):
 #	Depending on the mode, overwrites or deletes the files on the server. Editing is done via tkinter and on upload, the original file is overwritten. 'Download' downloads the file for editing purposes in a temporary location. The delete option removes the file from the server permanently
 #	@param request
 #	@returns JsonResponse containing a success or error message
+@csrf_exempt
 def editor(request):
 	if request.method=="POST":
 		if 'token' not in request.POST:
@@ -111,6 +113,7 @@ def editor(request):
 			t_Object=Token.objects.get(token=token)
 			k_Object=t_Object.link
 			sharedPath=k_Object.path_shared
+			can_edit=(k_Object.permission=="w")
 			if can_edit:
 				root_path,shared_dir=os.path.split(sharedPath)
 				if request.POST['action']=="open":
@@ -305,7 +308,7 @@ def download_item(request):
 	root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
 	
 	try:
-		addr = request.POST.getlist("target")
+		addr = request.POST.getlist("target[]")
 	except:
 		return JsonResponse({'message': 'Invalid request parameters'},status=400)
 	if len(addr)==1:
@@ -387,7 +390,7 @@ def upload(request):
 		# Checking for available space
 		if total_size > space_available:
 			return JsonResponse({'message': 'Insufficient space'},status=413)
-		print(files)
+		#print(files)
 		addresses = request.POST.getlist('address[]')
 		
 		for address, file in zip(addresses, files):
@@ -461,7 +464,7 @@ def delete(request):
 	can_edit=(Token.objects.get(token=request.session['token']).link.permission=='w')
 	if can_edit:
 		try:
-			current_path = request.POST['address']
+			current_paths = request.POST.getlist('address[]')
 		except:
 			return JsonResponse({'message': 'Invalid parameters'},status=400)
 		
@@ -476,6 +479,16 @@ def delete(request):
 			os.remove(directory)
 		else:
 			return JsonResponse({'message': 'Unable to ascertain file/folder'},status=403)
+		for current_path in current_paths:
+			directory = os.path.join(root_path, current_path)
+			if directory == current_path:
+				return JsonResponse({'message': 'Insufficient priveleges'},status=400)
+			if os.path.isdir(directory):
+				shutil.rmtree(directory)
+			elif os.path.isfile(directory):
+				os.remove(directory)
+			else:
+				return JsonResponse({'message': 'Unable to ascertain file/folder'},status=403)
 
 		return JsonResponse({'message':'Success'}, status=200)
 	else:

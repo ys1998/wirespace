@@ -136,7 +136,7 @@ class Wirespace_Editor:
     '''Method to request a file for download and open it locally'''
     def open_locally(self,event):
         if UNIQUE_TOKEN is not None:
-            if self.FileContainer.get(ANCHOR) is not None:
+            if self.FileContainer.get(ANCHOR)!="":
                 link=self.Link.get()
                 cur_path=cur_path=list(self.PathBox.config().get('text'))[-1]
                 data={'token':UNIQUE_TOKEN,'target':os.path.join(cur_path,self.FileContainer.get(ANCHOR)),'action':'download'}
@@ -157,12 +157,17 @@ class Wirespace_Editor:
                 # Open file for editing
                 self.StatusBox.configure(text="Opened "+fname+" for editing/viewing.")
                 subprocess.call(['xdg-open',os.path.join(TEMP_DIR,UNIQUE_TOKEN,cur_path,fname)])
+            else:
+                self.StatusBox.configure(text="Please select a file for editing.")
         else:
             self.StatusBox.configure(text="Authentication not complete.")
 
     '''Method to save the edited local files to the server'''
     def save_remotely(self,event):
         if UNIQUE_TOKEN is not None:
+            if not os.path.exists(os.path.join(TEMP_DIR,UNIQUE_TOKEN)):
+                self.StatusBox.configure(text="No file has been edited yet.")
+                return
             link=self.Link.get()
             temp_path=os.path.join(TEMP_DIR,UNIQUE_TOKEN)
             files_unsaved={}
