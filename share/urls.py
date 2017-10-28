@@ -1,6 +1,6 @@
-## @package urls
+## @file urls.py
 #
-# This package contains the description and resolution of all urls required for the project.
+# This file contains the description and resolution of all urls required for the project.
 from django.conf.urls import url
 from . import views
 
@@ -14,5 +14,4 @@ urlpatterns=[
         url(r'^create_folder/$',views.create_folder,name='create_folder'),
         url(r'^delete/$',views.delete,name='delete'),
         url(r'^move/$',views.move,name='move'),
-        #url(r'^admin/$',views.home,name='home'),
 ]

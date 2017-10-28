@@ -1,6 +1,6 @@
-## @package models
+## @file admin.py
 #
-# This package defines how the admin page should look like.
+# This file defines how the admin page should look like.
 
 from django.contrib import admin
 from django.db import models

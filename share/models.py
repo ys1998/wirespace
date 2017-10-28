@@ -1,6 +1,6 @@
-## @package models
+## @file models.py
 #
-# This package contains the description of the Key and Token classes, which are used for authentication purposes in the project.
+# This file contains the description of the Key and Token classes, which are used for authentication purposes in the project.
 
 from django.db import models
 from django.utils import timezone as dj_tz

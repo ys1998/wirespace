@@ -1,6 +1,6 @@
-## @package middleware
+## @file middleware.py
 #
-# This package contains the description middleware used to authenticate token and expire keys
+# This file contains the description middleware used to authenticate token and expire keys
 from django.http import HttpResponse,JsonResponse
 from django.utils.deprecation import MiddlewareMixin
 from django.contrib.sessions.models import Session

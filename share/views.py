@@ -1,6 +1,6 @@
-## @package views
+## @file views.py
 #
-# This package contains the definitions of all the functions required by the project.
+# This file contains the definitions of all the functions required by the project.
 from __future__ import unicode_literals
 from django.shortcuts import render,redirect
 from django.http import HttpResponse, StreamingHttpResponse, JsonResponse
