@@ -8,6 +8,7 @@ from django.utils import timezone
 from .models import *
 import re
 
+## List of all paths for which the request has to be validated
 CHECK_LIST = [
 	'/share/',
 	'/share/open/',
@@ -20,21 +21,26 @@ CHECK_LIST = [
 	'/share/move/',
 ]
 
-MEMORY_CHECK_LIST = [
-	'/share/upload/',
-	'/share/delete/',
-	'/'
-]
-
+## List of paths for which the POST requests have to be ignored during validation
 POST_IGNORE_LIST = [
 	'/share/',
 ]
 
+## Regex for host/
 re_host=re.compile('/host[/]?.*')
+## Regex for editor/ 
 re_editor=re.compile('/editor[/]?.*')
+## Regex to match authentication keys
 re_key=re.compile('/[0-9a-f]{16}[/]?$')
 
+## @brief Middleware class to handle token authentication
 class AuthenticateTokenMiddleware(MiddlewareMixin):
+	## @brief Function to check whether the request contains a valid token or not
+	#
+	# Only those requests which are specified in CHECK_LIST are validated.
+	# @param self An instance of AuthenticateTokenMiddleware class
+	# @param request An HttpRequest object containing required metadata
+	# @returns None if no error occurs, a JsonResponse describing the error otherwise
 	def process_request(self,request):
 		global CHECK_LIST
 		if request.get_full_path() in CHECK_LIST:
@@ -59,7 +65,14 @@ class AuthenticateTokenMiddleware(MiddlewareMixin):
 			else:
 				return None
 
+## @brief Middleware class to handle expiration of keys
 class ExpireKeyMiddleware(MiddlewareMixin):
+	## @brief Function to check whether the key associated with the token in the request is still valid or not
+	#
+	# If the key is found to be expired, it is deleted alongwith all the associated tokens and session objects.
+	# @param self An instance of ExpireKeyMiddleware class
+	# @param request An HttpRequest object containing required metadata
+	# @returns None if no error occurs, a JsonResponse describing the error otherwise
 	def process_request(self,request):
 		if request.get_full_path() in CHECK_LIST and request.get_full_path()!='/share/':
 			# Since this will be called AFTER AuthenticateTokenMiddleware, token verification is already done

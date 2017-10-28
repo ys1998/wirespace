@@ -21,6 +21,7 @@ def gen_key(length=8):
 	return new_key.decode('utf-8')
 
 ## @brief Class to store all the information about the shared space.
+#
 # It saves these details to the database and helps in their retrieval upon clients' requests.
 class Key(models.Model):
 	## Stores the unique key associated with each instance that is provided to the client
@@ -123,6 +124,7 @@ def gen_token(length=16):
 	return new_token.decode('utf-8')
 
 ## @brief Class representing tokens for one-time-authentication using key
+#
 # Client data such as the associated key and IP address is stored in its instances.
 class Token(models.Model):
 	## Stores the Key instance associated with it
@@ -139,6 +141,7 @@ class Token(models.Model):
 		return self.token
 
 	## @brief Function that overrides the default save function
+	#
 	# It first validates the fields, not saving the instance if any error is found. On successful validation, it saves the instance by calling the super save() function
 	# @param self A Token instance
 	# @param *args Non-keyworded arguments
