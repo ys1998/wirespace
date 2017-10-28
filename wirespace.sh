@@ -49,6 +49,10 @@ else
 	elif [[ $1 == "--editor" || $1 == "-e" ]]; then
 		python3 actions.py editor
 
+	elif [[ $1 == "--newuser" || $1 == "-n" ]]; then
+		echo "Creating new administrator :"
+		python3 manage.py createsuperuser
+
 	elif [[ $1 == "--help" || $1 == "-h" ]]; then
 		echo "Wirespace v1.0"
 		echo "Developed by Yash, Saurav and Saunack"
@@ -60,6 +64,7 @@ else
 		echo -e "-l,--local\tHosts Wirespace locally in debug mode"
 		echo -e "-s,--start\tAutodetects IP address and hosts Wirespace over port 8000"
 		echo -e "-c,--custom\tHosts Wirespace after manual setup of IP address and port\n"
+		echo -e "-n,--newuser\tCreates a new administrator\n"
 		echo -e "****** Client-side ******"
 		echo -e "-e,--editor\tOpens Wirespace-Editor for local editing and remote saving"
 		echo ""
