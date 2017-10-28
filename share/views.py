@@ -334,13 +334,8 @@ def download_item(request):
 		if os.path.exists(os.path.join(CACHE_DIR+sharedPath,curr_dir+".zip")):
 			os.remove(os.path.join(CACHE_DIR+sharedPath,curr_dir+".zip"))
 
-<<<<<<< HEAD
 		file_to_send = zipfile.ZipFile(os.path.join(CACHE_DIR+sharedPath,curr_dir+".zip"), 'x',zipfile.ZIP_DEFLATED)
-		
-=======
-		file_to_send = zipfile.ZipFile(os.path.join(CACHE_DIR,sharedPath,curr_dir+".zip"), 'x',zipfile.ZIP_DEFLATED)
-		#Doing the same thing as in get_dir
->>>>>>> dcd0291bbc3b897dd686006e54fc42c95328fccc
+
 		for item in new_addr:
 			if os.path.isdir(os.path.join(root_path,item)):
 				curr_path=os.path.split(item)[0]
