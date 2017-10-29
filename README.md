@@ -1,8 +1,8 @@
 # User Manual - Wirespace
 
-## [Yash Shah](https://github.com/ys1998), [Kumar Saunack](https://github.com/saunack), [Kumar Saurav](https://github.com/krsrv)
+### Developed by : [Yash Shah](https://github.com/ys1998), [Kumar Saunack](https://github.com/saunack), [Kumar Saurav](https://github.com/krsrv)
 
-## 1 Introduction
+## 1. Introduction
 
 Wirespace is a decentralized file server application which, if permitted, allows clients to directly
 access file storage on the server side. To put it simply, the software creates a local file server which
@@ -20,7 +20,7 @@ editor.
 - Local editing: The software allows clients to collaboratively edit files shared, given that write
     access is allowed
 
-## 2 Getting Started
+## 2. Getting Started
 
 1. Install the package:
 
@@ -49,7 +49,7 @@ manually.
 The usage is `./wirespace.sh [-i|-s|-l|-c|-n|-e|-h]`. Once the server has started, you
 can minimise the terminal window. All requests from clients are logged in the terminal.
 
-## 3 Server side
+## 3. Server side
 
 On the server side, download and install the Wirespace software and create a superuser. Then run
 the server using either the `local`, `start` or `custom` flag. Then follow these steps to set up sharing:
@@ -83,12 +83,12 @@ send the link created which is listed under the *Link* header
 That’s it from the server side. Additionally, you can manage the list of superusers under the
 *Users* section in the *Authentication and Authorization* sidebar
 
-## 4 Client side
+## 4. Client side
 
 The server must have provided you with a link which would look something like this:
 
 ```
-192.168.0.4:8000/ 8368427f2d3db49f
+192.168.0.4:8000/8368427f2d3db49f
 ```
 where the first half is the *IP address* of the host and the second part is your *unique key*.
 
@@ -107,6 +107,8 @@ to the default options for browsing in your file explorer.
 - `Drag files/folders` into another folder to move the former inside the latter
 - `Drag and drop files` from the desktop/file explorer to upload, provided that write access is
     granted.
+    
+### 4.2 Actions supported
 
 | Action |  Gesture |
 | ------------- |------------|
