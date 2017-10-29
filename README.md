@@ -15,7 +15,7 @@ editor.
 - Authentication: A unique key is generated for each file/folder shared, which is to be entered
     once, following which the entire session is authenticated for the client. Needless to say, no
     client can work without the key.
-- Access hierarchy: There are types of access levels:ReadandRead/Write. In the former,
+- Access hierarchy: There are types of access levels:`Read` and `Read/Write`. In the former,
     no write access is allowed.
 - Local editing: The software allows clients to collaboratively edit files shared, given that write
     access is allowed
@@ -24,7 +24,7 @@ editor.
 
 1. Install the package:
 
-Clone the/ github repository [https://github.com/ys1998/Wirespace.git](https://github.com/ys1998/Wirespace.git) using
+Clone the github repository [https://github.com/ys1998/Wirespace.git](https://github.com/ys1998/Wirespace.git) using
 ```
 git clone https://github.com/ys1998/Wirespace.git
 ```
