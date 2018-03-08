@@ -16,8 +16,10 @@ else
 		fi
 		echo "Installing dependencies ..."
 		sudo pip3 install -r requirements.txt
+		sudo apt-get install python3-tk
 		echo "Creating database ..."
 		python3 manage.py makemigrations
+		python3 manage.py makemigrations share
 		python3 manage.py migrate
 		echo "Setting up administrator ..."
 		python3 manage.py createsuperuser
