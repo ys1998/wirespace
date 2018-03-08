@@ -10,7 +10,7 @@ from .models import Key,Token
 ## @brief Class that handles how the Key section would look on the admin page
 class KeyAdmin(admin.ModelAdmin):
     ## The fields to be included
-    fields=['key','created_on','expires_on','path_shared','permission','space_allotted','shared_to','email']
+    fields=['key','expires_on','path_shared','permission','space_allotted','shared_to','email']
     ## The fields to be displayed as columns in the tabular form
     list_display=('link','shared_to','path_shared','time_slot','space_available','permission')
     ## Defines overriding widgets for specified fields
@@ -32,9 +32,11 @@ class KeyAdmin(admin.ModelAdmin):
         if obj:
             # Change help_text and readonly_fields once object has been saved
             obj._meta.get_field('space_allotted').help_text="Total space shared in BYTES (including existing space)"
-            return ('key','created_on','space_allotted')
+            return ('created_on','space_allotted')
+            return ('created_on','space_allotted')
         else:
-            return ('key','created_on')
+            return ('created_on')
+            return ('created_on')
 
 ## @brief Class that handles how the Token section would look on the admin page
 class TokenAdmin(admin.ModelAdmin):
@@ -46,5 +48,5 @@ class TokenAdmin(admin.ModelAdmin):
     list_display=('token','link')   
     
     
-admin.site.register(Key,KeyAdmin)
+admin.site.register(Key, KeyAdmin)
 admin.site.register(Token, TokenAdmin)

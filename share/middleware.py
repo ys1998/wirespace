@@ -31,7 +31,8 @@ re_host=re.compile('/host[/]?.*')
 ## Regex for editor/ 
 re_editor=re.compile('/editor[/]?.*')
 ## Regex to match authentication keys
-re_key=re.compile('/[0-9a-f]{16}[/]?$')
+#re_key=re.compile('/[0-9a-f]{16}[/]?$')
+re_key=re.compile('/auth/[0-9a-z]+[/]?$')
 
 ## @brief Middleware class to handle token authentication
 class AuthenticateTokenMiddleware(MiddlewareMixin):

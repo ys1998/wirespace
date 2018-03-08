@@ -198,51 +198,52 @@ def get_file(filepath,mode):
 #	@returns A StreamingHttpResponse if no error occured, and a JsonResponse object otherwise
 def get_dir(dirpath):
 
-	global CACHE_DIR
-	if not os.path.exists(CACHE_DIR):
-		os.makedirs(CACHE_DIR)
-
+	# global CACHE_DIR
+	# if not os.path.exists(CACHE_DIR):
+	# 	os.makedirs(CACHE_DIR)
 	if os.path.isdir(dirpath):
-		if not os.path.exists(CACHE_DIR+dirpath):
-			os.makedirs(CACHE_DIR+dirpath)
 
-		(parentdir,dir_name) = os.path.split(dirpath)
-		target = os.path.normpath(CACHE_DIR + dirpath + "/" + dir_name + ".zip")
-		
-		# checks for existing .zip file and removes it if it exists (the file might have been edited between the time is was last downloaded and the current request)
-		if os.path.exists(target):
-			# response = StreamingHttpResponse(
-			# 	open(target,'rb'),
-			# 	content_type='application/x-gzip'
-			# 	)
-			# response['Content-Disposition'] = " attachment; filename={0}".format(dir_name+".zip")
-			# response['Content-Length'] = os.path.getsize(target)
-			# return response
-			os.remove(target)
-		# creates new .zip file
-		file_to_send = zipfile.ZipFile(target, 'x',zipfile.ZIP_DEFLATED)
-		
+	 	target = dirpath
+	 	file_to_send = zipfile.ZipFile(target, 'x', zipfile.ZIP_DEFLATED)
+	 	for root, dirs, files in os.walk(dirpath):
+	 		for file in files:
+	 			rel_path = os.path.relpath(root,parentdir)
+	 			file_to_send.write(
+	 				os.path.join(root,file),
+	 				os.path.join(rel_path,file)
+	 			)
+	 	file_to_send.close()
 
-		for root, dirs, files in os.walk(dirpath):
-			for file in files:
-				rel_path = os.path.relpath(root,parentdir)
-				file_to_send.write(
-					os.path.join(root,file),
-					os.path.join(rel_path,file)
-					)
-
-		file_to_send.close()
-		
-		#setting the HttpResponse
-		response = StreamingHttpResponse(
+	 	response = StreamingHttpResponse(
 			open(target,'rb'),
-			content_type = 'application/x-gzip')
-		response['Content-Disposition'] = " attachment; filename={0}".format(dir_name+".zip")
-		response['Content-Length'] = os.path.getsize(target)
-		
-		return response
+			content_type = 'application/x-gzip'
+			)
+	 	response['Content-Disposition'] = " attachment; filename={0}".format(dir_name+".zip")
+	 	response['Content-Length'] = os.path.getsize(target)
+	 	return response
 	else:
 		return JsonResponse({'message':"This directory does not exist."},status=404)
+	# 	if not os.path.exists(CACHE_DIR+dirpath):
+	# 		os.makedirs(CACHE_DIR+dirpath)
+
+	# 	(parentdir,dir_name) = os.path.split(dirpath)
+	# 	target = os.path.normpath(CACHE_DIR + dirpath + "/" + dir_name + ".zip")
+		
+	# 	# checks for existing .zip file and removes it if it exists (the file might have been edited between the time is was last downloaded and the current request)
+	# 	if os.path.exists(target):
+	# 		# response = StreamingHttpResponse(
+	# 		# 	open(target,'rb'),
+	# 		# 	content_type='application/x-gzip'
+	# 		# 	)
+	# 		# response['Content-Disposition'] = " attachment; filename={0}".format(dir_name+".zip")
+	# 		# response['Content-Length'] = os.path.getsize(target)
+	# 		# return response
+	#		os.remove(target)
+		# creates new .zip file
+		
+
+		#setting the HttpResponse
+		
 
 ##	@brief View to handle opening of the selected directory/file
 #

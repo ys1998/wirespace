@@ -18,7 +18,8 @@ from django.contrib import admin
 from share.views import authenticate,editor_authenticate,editor
 
 urlpatterns = [
-	url(r'^(?P<k>[a-f0-9]{16})/$',authenticate,name='authenticate'),
+	#url(r'^(?P<k>[a-z0-9]+)/$',authenticate,name='authenticate'),
+    url(r'^auth/(?P<k>[a-z0-9]+)/$',authenticate,name='authenticate'),
     url(r'^editor/(?P<k>[a-f0-9]{16})[/]?$',editor_authenticate,name='editor_authenticate'),
 	url(r'^editor[/]?',editor,name='editor'),
     url(r'^',include('share.urls')),

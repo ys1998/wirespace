@@ -16,6 +16,7 @@ from django.conf import settings
 #	@returns A random, unique, hex-string of specified length
 def gen_key(length=8):
 	new_key=binascii.hexlify(os.urandom(length))
+	print("Creating new key")
 	while Key.objects.filter(key=new_key).count()>0:
 		new_key=binascii.hexlify(os.urandom(length))
 	return new_key.decode('utf-8')
@@ -25,7 +26,8 @@ def gen_key(length=8):
 # It saves these details to the database and helps in their retrieval upon clients' requests.
 class Key(models.Model):
 	## Stores the unique key associated with each instance that is provided to the client
-	key=models.CharField(max_length=8,default=gen_key,editable=False,	primary_key=True,help_text="This value is temporary. Use the final value after saving.")
+	#key=models.CharField(max_length=8,default=gen_key,editable=True,primary_key=True,help_text="This value is temporary. Use the final value after saving.")
+	key=models.CharField(max_length=8, primary_key=True, default=gen_key)
 	## The permission that the host gives to the client. Can be one of 'read' or 'read-and-write'
 	permission=models.CharField(max_length=1,choices=(('r','Read-only'),('w','Read-and-Write')),default='r')
 	## Name of the client to which the Key is shared
@@ -37,7 +39,7 @@ class Key(models.Model):
 	## The shared path/directory associated with this instance
 	path_shared=models.TextField(default=os.path.expanduser("~/Desktop"),max_length=100)
 	## The timestamp when this instance was created. Gets filled automatically during time of creation and cannot be altered.
-	created_on=models.DateTimeField(auto_now_add=True)
+	created_on=models.DateTimeField(auto_now_add=True, editable=False)
 	## The date and time upto which the host wants to share his space
 	expires_on=models.DateTimeField(default=None)
 
@@ -77,7 +79,7 @@ class Key(models.Model):
 	def link(self):
 		ip=str(settings.HOST_IP) # Obtain IP from settings.py
 		port=str(settings.PORT) # Obtain the port from settings.py
-		return ip+":"+port+"/"+self.key
+		return ip+":"+port+"/"+"auth/"+self.key
 
 	## @brief Function to validate the Key instance before it is saved
 	# It raises a ValidationError if some error in the to-be-created instance is detected
@@ -105,12 +107,18 @@ class Key(models.Model):
 		if Key.objects.filter(key=self.key).count()==0 or Key.objects.get(key=self.key).path_shared!=self.path_shared:
 			if Key.objects.filter(key=self.key).count()==0:
 				# Convert space shared to TOTAL space shared - i.e. account for already consumed space
-				dir_space=int(subprocess.check_output(["du","-b","--max-depth=0",self.path_shared]).split()[0])
+				try:
+					dir_space=int(subprocess.check_output(["du","-b","--max-depth=0",self.path_shared]).split()[0])
+				except:
+					dir_space=4096
 				self.space_allotted+=dir_space
 			else:
-				new_dir_space=int(subprocess.check_output(["du","-b","--max-depth=0",self.path_shared]).split()[0])
-				old_dir_space=int(subprocess.check_output(["du","-b","--max-depth=0",Key.objects.get(key=self.key).path_shared]).split()[0])
-				self.space_allotted+=new_dir_space-old_dir_space
+				try:
+					new_dir_space=int(subprocess.check_output(["du","-b","--max-depth=0",self.path_shared]).split()[0])
+					old_dir_space=int(subprocess.check_output(["du","-b","--max-depth=0",Key.objects.get(key=self.key).path_shared]).split()[0])
+					self.space_allotted+=new_dir_space-old_dir_space
+				except:
+					self.space_allotted = 4096
 
 		super().save(*args,**kwargs)
 
@@ -130,7 +138,7 @@ class Token(models.Model):
 	## Stores the Key instance associated with it
 	link=models.ForeignKey(Key,on_delete=models.CASCADE,default=None)
 	## The unique, auto-generated token assigned to a client on providing a valid key
-	token=models.CharField(max_length=16,default=gen_token,editable=False,primary_key=True)
+	token=models.CharField(max_length=16,default=gen_token,editable=True,primary_key=True)
 	## Stores the IP address of the client, if detected, for future reference
 	IP=models.CharField(max_length=15,default=None)
 
