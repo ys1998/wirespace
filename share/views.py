@@ -14,6 +14,7 @@ import os,shutil,subprocess
 # for downloading files/folders
 import mimetypes
 import zipfile
+import random
 # importing models for authentication purpose
 from .models import *
 
@@ -31,36 +32,45 @@ def authenticate(request,k):
 	
 	# use request.sessions['token']
 	if Key.objects.filter(key=k).count()==0:
-		return render(request,'share/error.html',{'title':'Access Denied','header':'You don\'t have access','message':'It seems that the authentication key you provided is invalid.\nObtain the correct link from the host and try again.'})
+		return render(
+			request,
+			'share/error.html',
+			{
+				'title':'Access Denied',
+				'header':'You don\'t have access',
+				'message':'It seems that the authentication key you provided is invalid.\nObtain the correct link from the host and try again.'
+			}
+		)
 	else:
-		# Token doesn't exist but key is valid
+		# Token does not exist but the key is valid
 		if 'token' not in request.session:
-			key=Key.objects.get(key=k)
-			IP=get_ip(request)
-			t=Token.objects.create(link=key,IP=IP)
+			key = Key.objects.get(key=k)
+			IP = get_ip(request)
+			t = Token.objects.create(link=key, IP=IP)
 			request.session['token']=t.token
 		else:
 			# Token exists in request.session
 			try:
 				# When the key is valid but the existing token refers to a different valid key
-				old_t=Token.objects.get(token=request.session['token'])
-				old_key=old_t.link.key
-				if k!=old_key:
-					new_key=Key.objects.get(key=k)
-					IP=get_ip(request)
-					old_t.delete()
+				old_token = Token.objects.get(token=request.session['token'])
+				old_key = old_token.link.key
+				if not k == old_key:
+					new_key = Key.objects.get(key=k)
+					IP = get_ip(request)
+					old_token.delete()
 					del request.session['token']
-					new_t=Token.objects.create(link=new_key,IP=IP)
-					print(new_t.token)
-					request.session['token']=new_t.token
+					new_token = Token.objects.create(link=new_key,IP=IP)
+					#print(new_t.token)
+					request.session['token'] = new_token.token
 			# When the token is no long valid (i.e expired/deleted from database) but key is valid
 			except Token.DoesNotExist:
 				request.session.flush()
-				key=Key.objects.get(key=k)
-				IP=get_ip(request)
-				t=Token.objects.create(link=key,IP=IP)
-				request.session['token']=t.token
-		request.session.set_expiry(3600) # token expires after 60 minutes
+				key = Key.objects.get(key=k)
+				IP = get_ip(request)
+				token = Token.objects.create(link=key, IP=IP)
+				request.session['token'] = token.token
+
+		request.session.set_expiry(3600) 				# Token expires after 60 minutes
 		return redirect('/share/',permanent=True)
 
 ##	@brief View to handle authentication for the file editor.
@@ -71,22 +81,23 @@ def authenticate(request,k):
 #	@returns A JsonResponse object containing an error message, or a unique token and a list of files and directories for editing
 @csrf_exempt
 def editor_authenticate(request,k):
-	if Key.objects.filter(key=k).count()==0:
-		return JsonResponse({'message':"The key you provided doesn't exist."},status=404)
+	if Key.objects.filter(key=k).count() == 0:
+		return JsonResponse({'message':"The key you provided doesn't exist."}, status=404 )
 	else:
-		key=Key.objects.get(key=k)
-		if key.permission=='r':
-			return JsonResponse({'message':"You don't have editing rights."},status=403)
-		IP=get_ip(request)
-		t=Token.objects.create(link=key,IP=IP)
+		key = Key.objects.get(key=k)
+		if key.permission == 'r':
+			return JsonResponse({'message':"You don't have editing rights."}, status=403)
+		IP = get_ip(request)
+		token = Token.objects.create(link=key, IP=IP)
 
 		root_path,shared_dir=os.path.split(key.path_shared)
-		response_data={}
-		response_data['token']=t.token
-		response_data['path']=shared_dir
-		response_data['files']=[]
-		response_data['dirs']=[]
-		items=os.listdir(key.path_shared)
+		response_data={
+			'token': token.token,
+			'path': shared_dir,
+			'files': [],
+			'dirs': []
+		}
+		items = os.listdir(key.path_shared)
 		for element in items:
 			if os.path.isdir(os.path.join(key.path_shared, element)):
 					response_data['dirs'].append(element)
@@ -159,9 +170,17 @@ def editor(request):
 def home(request):
 
 	if 'token' not in request.session:
-		return render(request,'share/error.html',{'title':'Access Denied','header':'Unauthorized access','message':"It seems that the authentication key you provided is invalid.\nObtain the correct link from the host and try again."})
+		return render(
+			request,
+			'share/error.html',
+			{
+				'title':'Access Denied',
+				'header':'Unauthorized access',
+				'message':"It seems that the authentication key you provided is invalid.\nObtain the correct link from the host and try again."
+			}
+		)
 	else:
-		return render(request,'share/index.html')
+		return render(request, 'share/index.html')
 	
 
 ##	@brief Function that downloads/opens the required file as per the request.
@@ -170,7 +189,7 @@ def home(request):
 #	@param filepath The full path of the file to be accessed
 #	@param mode Specifies whether the file has to be downloaded or opened in the browser
 #	@returns A StreamingHttpResponse object if no error occured, or a JsonResponse object otherwise
-def get_file(filepath,mode):
+def get_file(filepath, mode):
 	
 	if os.path.exists(filepath):
 		response = StreamingHttpResponse(
@@ -183,17 +202,17 @@ def get_file(filepath,mode):
 		elif mode == "download":
 			response['Content-Disposition'] = " attachment; filename={0}".format(os.path.basename(filepath))
 		else:
-			return JsonResponse({'message':"Invalid mode!"},status=404)
+			return JsonResponse({'message':"Invalid mode!"}, status=404)
 
 		response['Content-Length'] = os.path.getsize(filepath)
 		return response
 
 	else:
-		return JsonResponse({'message':"{0} file does not exist.".format(filepath)},status=403)
+		return JsonResponse({'message':"{0} file does not exist.".format(filepath)}, status=403)
 	
 ##	@brief Function to download the specified directory
 #
-#	Compresses the directory into a zip file which is stored in \a CACHE_DIR, and returns a StreamingHttpResponse object
+#	Compresses the directory into a zip file and returns a StreamingHttpResponse object. CACHE_DIR is not maintained
 #	@param dirpath the full path of the directory to be accessed
 #	@returns A StreamingHttpResponse if no error occured, and a JsonResponse object otherwise
 def get_dir(dirpath):
@@ -202,7 +221,6 @@ def get_dir(dirpath):
 	# if not os.path.exists(CACHE_DIR):
 	# 	os.makedirs(CACHE_DIR)
 	if os.path.isdir(dirpath):
-
 	 	target = dirpath
 	 	file_to_send = zipfile.ZipFile(target, 'x', zipfile.ZIP_DEFLATED)
 	 	for root, dirs, files in os.walk(dirpath):
@@ -220,9 +238,10 @@ def get_dir(dirpath):
 			)
 	 	response['Content-Disposition'] = " attachment; filename={0}".format(dir_name+".zip")
 	 	response['Content-Length'] = os.path.getsize(target)
+	 	os.remove(target)
 	 	return response
 	else:
-		return JsonResponse({'message':"This directory does not exist."},status=404)
+		return JsonResponse({'message':"This directory does not exist."}, status=404)
 	# 	if not os.path.exists(CACHE_DIR+dirpath):
 	# 		os.makedirs(CACHE_DIR+dirpath)
 
@@ -252,8 +271,8 @@ def get_dir(dirpath):
 #	@returns A JsonResponse containing a list of files and folders present in the directory
 def open_item(request):
 
-	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared
-	(root_path,shared_dir)=os.path.split(os.path.expanduser(sharedPath))
+	sharedPath = Token.objects.get(token=request.session['token']).link.path_shared
+	(root_path,shared_dir) = os.path.split(os.path.expanduser(sharedPath))
 	# target - path to requested item
 	try:
 		addr = request.POST["target"]
@@ -264,7 +283,7 @@ def open_item(request):
 	if addr == "" or addr == ".":
 		addr = shared_dir
 	# To prevent access of directories outside the shared path
-	if addr==os.path.join(root_path,addr):
+	if addr == os.path.join(root_path,addr):
 		return JsonResponse({'message': 'Insufficient priveleges'},status=403)
 
 	#check if the specified target is a directory and then populate the file list
@@ -286,6 +305,7 @@ def open_item(request):
 			else:
 				context["hidden"][os.path.join(addr, element)] = element
 		return JsonResponse(context)
+	
 	#if it is a file, call get_file
 	elif os.path.exists(target):
 		return get_file(target, "open")
@@ -300,21 +320,24 @@ def open_item(request):
 #	@returns A StreamingHttpResponse object containing a zip file or a single file depending on the request
 def download_item(request):
 	
-	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared	
-	root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
+	sharedPath = Token.objects.get(token=request.session['token']).link.path_shared	
+	root_path,shared_dir = os.path.split(os.path.expanduser(sharedPath))
 	
 	try:
 		addr = request.POST.getlist("target[]")
+		addr = list(set(addr))
 	except:
-		return JsonResponse({'message': 'Invalid request parameters'},status=400)
-	if len(addr)==1:
-		addr=addr[0]
+		return JsonResponse({'message': 'Invalid request parameters'}, status=400)
+	
+	if len(addr) == 1:
+		# If only a single object is to be downloaded
+		addr = addr[0]
 		addr = os.path.normpath(addr)
 		if addr == "" or addr == ".":
 			addr = shared_dir
 
 		# To prevent access of directories outside the shared path
-		if addr==os.path.join(root_path,addr):
+		if addr == os.path.join(root_path,addr):
 			return JsonResponse({'message': 'Insufficient priveleges'},status=403)
 		
 		target = os.path.join(root_path, addr)
@@ -323,21 +346,24 @@ def download_item(request):
 			return get_dir(target)
 		else:
 			return get_file(target, "download")
+	
 	else:
-		
-		new_addr=[item.strip() for item in addr if item.strip()!="" or item.strip()!="." or item.strip()!=".."]
-		curr_dir=os.path.basename(os.path.split(new_addr[0])[0])
-		if os.path.exists(os.path.join(CACHE_DIR+sharedPath,curr_dir+".zip")):
-			os.remove(os.path.join(CACHE_DIR+sharedPath,curr_dir+".zip"))
+		# Download multiple objects simultaneously
+		print(addr)
+		new_addr = [item.strip() for item in addr if item.strip() != "" or item.strip() != "." or item.strip() != ".."]
+		curr_dir = os.path.basename(os.path.split(new_addr[0])[0])
 
-		file_to_send = zipfile.ZipFile(os.path.join(CACHE_DIR+sharedPath,curr_dir+".zip"), 'x',zipfile.ZIP_DEFLATED)
+		print(curr_dir)
+		target = curr_dir + str(random.randint(10000000, 99999999)) + "-partial.zip"
+		print(target)
+		file_to_send = zipfile.ZipFile(target, 'x', zipfile.ZIP_DEFLATED)
 
 		for item in new_addr:
 			if os.path.isdir(os.path.join(root_path,item)):
 				curr_path=os.path.split(item)[0]
 				for root, dirs, files in os.walk(os.path.join(root_path,item)):
 					for file in files:
-						rel_path=os.path.relpath(root,os.path.join(root_path,curr_path))
+						rel_path = os.path.relpath(root,os.path.join(root_path,curr_path))
 						file_to_send.write(
 							os.path.join(root,file),
 							os.path.join(rel_path,file)
@@ -347,14 +373,16 @@ def download_item(request):
 					os.path.join(root_path,item),
 					os.path.join(os.path.basename(item)),
 					)
-
+		print(file_to_send.testzip())
 		file_to_send.close()
-		#setting and sending the response
+		# Setting and sending the response
 		response = StreamingHttpResponse(
-			open(os.path.join(CACHE_DIR+sharedPath,curr_dir+".zip"),'rb'),
-			content_type = 'application/x-gzip')
-		response['Content-Disposition'] = " attachment; filename={0}".format(curr_dir+"-partial.zip")
-		response['Content-Length'] = os.path.getsize(os.path.join(CACHE_DIR+sharedPath,curr_dir+".zip"))
+			open(target, 'rb'),
+			content_type = 'application/x-gzip'
+			)
+		response['Content-Disposition'] = " attachment; filename={0}".format(target)
+		response['Content-Length'] = os.path.getsize(target)
+		os.remove(target)
 		return response
 
 
@@ -365,17 +393,20 @@ def download_item(request):
 #	@returns A JsonResponse object containing a success or error message.
 def upload(request):
 
-	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared
-	root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
+	sharedPath = Token.objects.get(token=request.session['token']).link.path_shared
+	root_path, shared_dir = os.path.split(os.path.expanduser(sharedPath))
 
 	#check if the client has write permission or not
-	can_edit=(Token.objects.get(token=request.session['token']).link.permission=='w')
+	can_edit = (Token.objects.get(token=request.session['token']).link.permission=='w')
+	
 	if can_edit:
-		t_Object=Token.objects.get(token=request.session['token'])
-		k_Object=t_Object.link
+		t_Object = Token.objects.get(token=request.session['token'])
+		k_Object = t_Object.link
+		
 		#available space is the unallocated space on the server
 		#du does not work on Mac, so temporarily setting the available space to 0.4 GB
 		#space_available=k_Object.space_allotted-int(subprocess.check_output(["du","-s",k_Object.path_shared]).split()[0])
+		
 		space_available=400000000
 		files = request.FILES.getlist('uplist[]')
 		total_size = 0
@@ -384,7 +415,7 @@ def upload(request):
 
 		# Checking for available space
 		if total_size > space_available:
-			return JsonResponse({'message': 'Insufficient space'},status=413)
+			return JsonResponse({'message': 'Insufficient space'}, status=413)
 		#print(files)
 		addresses = request.POST.getlist('address[]')
 		
@@ -392,7 +423,7 @@ def upload(request):
 			directory = os.path.join(root_path,address)
 			
 			if directory == address:
-				return JsonResponse({'message': 'Insufficient priveleges'},status=403)
+				return JsonResponse({'message': 'Insufficient priveleges'}, status=403)
 			directory = os.path.dirname(directory)
 
 			#if the directories do not exist, create the directories
@@ -415,36 +446,40 @@ def upload(request):
 #	@returns A JsonResponse object containing a list of all files and directories having the query in their name
 def search(request):
 
-	sharedPath=Token.objects.get(token=request.session['token']).link.path_shared
-	root_path,shared_dir=os.path.split(os.path.expanduser(sharedPath))
+	sharedPath = Token.objects.get(token=request.session['token']).link.path_shared
+	root_path,shared_dir = os.path.split(os.path.expanduser(sharedPath))
 	try:
 		current_path = request.POST['address']
 	except:
-		return JsonResponse({'message': 'Invalid request parameters'},status=400)
+		return JsonResponse({'message': 'Invalid request parameters'}, status=400)
 	
 	# To prevent access of directories outside the shared path
-	if current_path==os.path.join(root_path,current_path):
+	if current_path == os.path.join(root_path, current_path):
 		return JsonResponse({'message': 'Insufficient priveleges'}, status=403)
 	
 	#get the query from the request
 	query = request.POST['query']
 
-	context={"dirs":{},"files":{},"hidden":{}}
+	context = {
+		"dirs": {},
+		"files": {},
+		"hidden": {}
+		}
 
 	#search all the subdirectories and files
 	for root,directories,files in os.walk(os.path.join(root_path,current_path)):
 		for directory in directories:
 			if query in directory:
-				rel_path=s=os.path.relpath(root,root_path)
-				context["dirs"][os.path.join(rel_path,directory)]=directory
+				rel_path = os.path.relpath(root,root_path)
+				context["dirs"][os.path.join(rel_path,directory)] = directory
 		for filename in files:
 			if query in filename:
 				if filename.startswith('.'):
-					file_type="hidden"
+					file_type = "hidden"
 				else:
-					file_type="files"
-				rel_path=os.path.relpath(root,root_path)
-				context[file_type][os.path.join(rel_path,filename)]=filename
+					file_type = "files"
+				rel_path = os.path.relpath(root,root_path)
+				context[file_type][os.path.join(rel_path,filename)] = filename
 	return JsonResponse(context)
 
 ##	@brief View to handle deletion of a file or folder on the server via a request from the client
